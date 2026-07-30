@@ -21,6 +21,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     initModals();
     initDetail();
 
+    console.log('Dexie DB initialized', db.version(1).stores);
+
     // Initial sync and list render
     await initList();
     syncService.syncPending();

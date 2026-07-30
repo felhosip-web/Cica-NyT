@@ -48,15 +48,15 @@ export class SyncService {
 
         if (!dot || !text) return;
 
-        if (!this.supabase) {
-            dot.className = 'w-2.5 h-2.5 rounded-full bg-yellow-500 inline-block';
-            text.textContent = 'Offline (Helyi)';
-            return;
-        }
-
         if (!navigator.onLine) {
             dot.className = 'w-2.5 h-2.5 rounded-full bg-yellow-500 inline-block';
             text.textContent = 'Offline';
+            return;
+        }
+
+        if (!this.supabase) {
+            dot.className = 'w-2.5 h-2.5 rounded-full bg-green-500 inline-block';
+            text.textContent = 'Online (Helyi)';
             return;
         }
 
