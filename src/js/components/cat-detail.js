@@ -1,8 +1,10 @@
 import { db } from '../db.js';
-import { calculateAge, formatCurrency, formatDate, calculateTotalCost, escapeHtml } from '../utils.js';
+import { calculateAge } from '../utils/age.js';
+import { calculateTotalCost, formatCurrency, formatDate } from '../utils/cost.js';
+import { escapeHtml } from '../utils/escape.js';
 import { syncService } from '../services/sync-service.js';
-import { openModal, closeModal } from './modal.js';
-import { renderCatList } from './list.js';
+import { openModal, closeModal } from './fab.js';
+import { renderCatList } from './cat-list.js';
 
 let currentCatId = null;
 

@@ -1,6 +1,7 @@
 import { db } from '../db.js';
-import { calculateAge, escapeHtml } from '../utils.js';
-import { openDetailView } from './detail.js';
+import { calculateAge } from '../utils/age.js';
+import { escapeHtml } from '../utils/escape.js';
+import { openDetailView } from './cat-detail.js';
 
 let allCats = [];
 
