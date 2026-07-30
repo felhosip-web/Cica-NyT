@@ -46,13 +46,13 @@ export async function renderCatList(filter = '') {
         const sorszamStr = String(cat.sorszam).padStart(2, '0');
         const ageCalc = calculateAge(cat.szuletes).split('(')[0].trim();
 
-        card.className = "bg-white p-4 rounded-xl shadow-sm border border-transparent cursor-pointer transition-all active:scale-95 flex items-center gap-3";
+        card.className = "bg-white rounded-xl shadow p-4 mb-2 cursor-pointer transition-all active:scale-95 flex items-center gap-3 border border-transparent";
         card.dataset.id = cat.id;
 
         card.innerHTML = `
             <div class="flex-1 min-w-0">
-                <p class="text-gray-900 font-medium truncate">
-                    <span class="text-gray-500 font-mono text-sm mr-1">${sorszamStr}.</span>
+                <p class="text-gray-900 font-medium truncate flex items-center gap-2">
+                    <span class="bg-pink-500 text-white rounded px-2 py-1 font-mono text-sm">${sorszamStr}</span>
                     ${escapeHtml(cat.nev)} - ${escapeHtml(cat.ivar)} - ${ageCalc} - ${escapeHtml(cat.szin)}
                 </p>
             </div>
