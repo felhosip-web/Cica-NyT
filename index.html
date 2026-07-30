@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Cica-NyT</title>
+  <meta name="theme-color" content="#FF69B4">
+  <link rel="manifest" href="/manifest.json">
+  <link href="/src/style.css" rel="stylesheet">
+  <style>
+    /* Prevent pull-to-refresh on mobile */
+    body { overscroll-behavior-y: contain; }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen text-gray-800 font-sans antialiased">
+  <!-- PWA Update Banner -->
+  <div id="pwa-update-banner" class="hidden fixed top-0 w-full bg-blue-500 text-white p-3 text-center z-50 flex justify-between items-center shadow-md">
+    <span>Új verzió elérhető!</span>
+    <button id="pwa-update-btn" class="bg-white text-blue-500 px-3 py-1 rounded font-bold shadow hover:bg-gray-100">Frissítés</button>
+  </div>
+
+  <!-- Main View -->
+  <div id="main-view" class="block w-full max-w-2xl mx-auto pb-24">
+    <!-- Header -->
+    <header class="bg-white shadow-sm p-4 sticky top-0 z-40 flex justify-between items-center">
+      <div class="flex items-center gap-2">
+        <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-brand-pink to-brand-orange">
+          Cica-NyT
+        </h1>
+        <span class="text-xs text-gray-400">v1.0</span>
+      </div>
+      <!-- Sync Status -->
+      <div id="sync-status" class="flex items-center gap-1 text-sm bg-gray-100 px-2 py-1 rounded-full cursor-help">
+        <span id="sync-dot" class="w-2.5 h-2.5 rounded-full bg-yellow-500 inline-block"></span>
+        <span id="sync-text" class="text-gray-600 hidden sm:inline">Offline</span>
+      </div>
+    </header>
+
+    <!-- Search / Filter (Optional but good for UI) -->
+    <div class="p-4">
+       <input type="text" id="search-input" placeholder="Keresés (név, sorszám)..." class="w-full p-3 rounded-lg border-gray-300 shadow-sm focus:ring-brand-pink focus:border-brand-pink mb-2">
+    </div>
+
+    <!-- Cat List -->
+    <main class="p-2 space-y-2" id="cat-list-container">
+      <!-- Generated via JS -->
+      <div class="text-center text-gray-500 py-10" id="empty-state">
+        Nincsenek cicák. Kattints a + gombra egy hozzáadásához!
+      </div>
+    </main>
+
+    <!-- FAB -->
+    <button id="fab-add-cat" class="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-brand-pink to-brand-orange text-white rounded-full shadow-lg flex items-center justify-center text-3xl hover:scale-105 transition-transform z-40 focus:outline-none focus:ring-4 focus:ring-brand-pink focus:ring-opacity-50">
+      +
+    </button>
+  </div>
+
+  <!-- Detail View (Hidden by default) -->
+  <div id="detail-view" class="hidden fixed inset-0 bg-gray-100 z-50 overflow-y-auto w-full flex flex-col">
+    <!-- Header -->
+    <header class="bg-white shadow-sm p-4 sticky top-0 z-40 flex items-center gap-4">
+      <button id="btn-back-detail" class="text-gray-500 hover:text-gray-800 p-2 -ml-2">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+      </button>
+      <div class="flex-1 flex items-center gap-2">
+         <span id="detail-sorszam" class="bg-gray-200 text-gray-700 px-2 py-0.5 rounded text-sm font-mono">#--</span>
+         <h2 id="detail-nev" class="text-xl font-bold truncate">Név</h2>
+      </div>
+      <button id="btn-edit-cat" class="text-blue-500 font-medium">Szerkesztés</button>
+    </header>
+
+    <!-- Content -->
+    <main class="flex-1 p-4 pb-24 max-w-2xl mx-auto w-full space-y-4">
+      <!-- Info Card -->
+      <div class="bg-white rounded-xl shadow-sm p-4 space-y-3">
+         <div class="flex flex-wrap gap-2 mb-2" id="detail-badges">
+            <span id="detail-ivar" class="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">--</span>
+            <span id="detail-status" class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">--</span>
+         </div>
+         <p class="text-gray-600"><span class="font-medium">Szín:</span> <span id="detail-szin">--</span></p>
+         <div>
+            <p class="text-gray-600 font-medium">Kor:</p>
+            <p class="text-lg" id="detail-age">--</p>
+            <p class="text-sm text-gray-500" id="detail-birth-date">Született: --</p>
+         </div>
+      </div>
+
+      <!-- Accordions -->
+      <div class="space-y-3">
+        <!-- Oltások -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+          <button class="accordion-btn w-full p-4 flex justify-between items-center text-left font-medium" data-target="acc-oltasok">
+            <span>💉 Oltások (<span id="count-oltasok">0</span>)</span>
+            <span class="transform transition-transform text-gray-400">▼</span>
+          </button>
+          <div id="acc-oltasok" class="hidden border-t px-4 py-3 bg-gray-50">
+             <ul id="list-oltasok" class="space-y-2 mb-3"></ul>
+             <button class="w-full py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-medium border border-blue-200 hover:bg-blue-100 btn-add-event" data-type="oltas">+ Oltás hozzáadása</button>
+          </div>
+        </div>
+
+        <!-- Tesztek -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+          <button class="accordion-btn w-full p-4 flex justify-between items-center text-left font-medium" data-target="acc-tesztek">
+            <span>🧪 Tesztek (<span id="count-tesztek">0</span>)</span>
+            <span class="transform transition-transform text-gray-400">▼</span>
+          </button>
+          <div id="acc-tesztek" class="hidden border-t px-4 py-3 bg-gray-50">
+             <ul id="list-tesztek" class="space-y-2 mb-3"></ul>
+             <button class="w-full py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-medium border border-blue-200 hover:bg-blue-100 btn-add-event" data-type="teszt">+ Teszt hozzáadása</button>
+          </div>
+        </div>
+
+        <!-- Kezelések -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+          <button class="accordion-btn w-full p-4 flex justify-between items-center text-left font-medium" data-target="acc-kezelesek">
+            <span>🩺 Orvosi kezelések (<span id="count-kezelesek">0</span>)</span>
+            <span class="transform transition-transform text-gray-400">▼</span>
+          </button>
+          <div id="acc-kezelesek" class="hidden border-t px-4 py-3 bg-gray-50">
+             <ul id="list-kezelesek" class="space-y-2 mb-3"></ul>
+             <button class="w-full py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-medium border border-blue-200 hover:bg-blue-100 btn-add-event" data-type="kezeles">+ Kezelés hozzáadása</button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Bottom Sticky Cost -->
+    <div class="fixed bottom-0 left-0 w-full bg-white border-t p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-40">
+       <div class="max-w-2xl mx-auto flex justify-between items-center">
+          <div>
+            <p class="text-xs text-gray-500 uppercase tracking-wide">Össz költség</p>
+            <p class="text-xl font-bold text-gray-900" id="detail-ossz-koltseg">0 Ft</p>
+          </div>
+          <!-- A "Mentés" button is requested, but for auto-save DB it might be just to close, or save explicit edits. -->
+          <button id="btn-close-detail" class="bg-gray-900 text-white px-6 py-2 rounded-lg font-medium shadow">Vissza</button>
+       </div>
+    </div>
+  </div>
+
+  <!-- Cat Form Modal (Add / Edit) -->
+  <div id="modal-cat-form" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl flex flex-col max-h-[90vh]">
+      <div class="p-4 border-b flex justify-between items-center bg-gray-50 rounded-t-2xl">
+        <h3 class="text-lg font-bold" id="cat-form-title">Új Cica Hozzáadása</h3>
+        <button type="button" class="text-gray-400 hover:text-gray-600 p-2 modal-close">✕</button>
+      </div>
+      <div class="p-4 overflow-y-auto flex-1">
+        <form id="form-cat" class="space-y-4">
+          <input type="hidden" id="cat-id">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Név</label>
+            <input type="text" id="cat-nev" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink">
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Ivar</label>
+              <select id="cat-ivar" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink bg-white">
+                <option value="nőstény">Nőstény</option>
+                <option value="kandúr">Kandúr</option>
+                <option value="ismeretlen">Ismeretlen</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Státusz</label>
+              <select id="cat-status" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink bg-white">
+                <option value="befogadható">Befogadható</option>
+                <option value="ideiglenes">Ideiglenes</option>
+                <option value="gazdis">Gazdis</option>
+                <option value="orvosi">Orvosi</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Születési idő (becsült is jó)</label>
+            <input type="date" id="cat-szuletes" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Szín / Leírás</label>
+            <input type="text" id="cat-szin" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink" placeholder="Pl.: vörös, cirmos, fehér zoknis">
+          </div>
+        </form>
+      </div>
+      <div class="p-4 border-t bg-gray-50 flex justify-end gap-3 rounded-b-2xl">
+        <button type="button" class="px-4 py-2 text-gray-600 font-medium modal-close">Mégse</button>
+        <button type="submit" form="form-cat" class="px-6 py-2 bg-gradient-to-r from-brand-pink to-brand-orange text-white rounded-lg font-medium shadow">Mentés</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Event Form Modal (Oltás/Teszt/Kezelés) -->
+  <div id="modal-event-form" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl flex flex-col max-h-[90vh]">
+      <div class="p-4 border-b flex justify-between items-center bg-gray-50 rounded-t-2xl">
+        <h3 class="text-lg font-bold" id="event-form-title">Esemény</h3>
+        <button type="button" class="text-gray-400 hover:text-gray-600 p-2 modal-close">✕</button>
+      </div>
+      <div class="p-4 overflow-y-auto flex-1">
+        <form id="form-event" class="space-y-4">
+          <input type="hidden" id="event-type">
+          <input type="hidden" id="event-index"> <!-- For editing existing embed, if supported. Empty = new -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" id="event-label-nev">Név / Típus</label>
+            <input type="text" id="event-nev" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="...">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Dátum</label>
+            <input type="date" id="event-datum" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+          </div>
+
+          <!-- Extra fields depending on type -->
+          <div id="event-extra-teszt" class="hidden">
+             <label class="block text-sm font-medium text-gray-700 mb-1">Eredmény</label>
+             <select id="event-eredmeny" class="w-full p-2 border border-gray-300 rounded-lg bg-white">
+                <option value="negativ">Negatív</option>
+                <option value="pozitiv">Pozitív</option>
+                <option value="ketes">Kétes</option>
+             </select>
+          </div>
+
+          <div id="event-extra-kezeles" class="hidden">
+             <label class="block text-sm font-medium text-gray-700 mb-1">Orvos / Klinika</label>
+             <input type="text" id="event-orvos" class="w-full p-2 border border-gray-300 rounded-lg">
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Költség (Ft)</label>
+            <input type="number" id="event-koltseg" value="0" min="0" step="1" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+          </div>
+        </form>
+      </div>
+      <div class="p-4 border-t bg-gray-50 flex justify-end gap-3 rounded-b-2xl">
+        <button type="button" class="px-4 py-2 text-gray-600 font-medium modal-close">Mégse</button>
+        <button type="submit" form="form-event" class="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium shadow">Mentés</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
