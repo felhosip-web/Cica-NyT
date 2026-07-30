@@ -10,12 +10,12 @@
     /* Prevent pull-to-refresh on mobile */
     body { overscroll-behavior-y: contain; }
   </style>
-  <script type="module" crossorigin src="/Cica-NyT/assets/index-BdCqEwVv.js"></script>
-  <link rel="stylesheet" crossorigin href="/Cica-NyT/assets/index-CVe0JZIn.css">
+  <script type="module" crossorigin src="/Cica-NyT/assets/index-Czs0fUKZ.js"></script>
+  <link rel="stylesheet" crossorigin href="/Cica-NyT/assets/index-BKVp1r1f.css">
 </head>
 <body class="bg-gray-100 min-h-screen text-gray-800 font-sans antialiased">
   <!-- PWA Update Banner -->
-  <div id="pwa-update-banner" class="hidden fixed top-0 w-full bg-blue-500 text-white p-3 text-center z-50 flex justify-between items-center shadow-md">
+  <div id="pwa-update-banner" class="hidden fixed top-0 left-0 right-0 bg-yellow-100 p-2 flex justify-between z-50">
     <span>Új verzió elérhető!</span>
     <button id="pwa-update-btn" class="bg-white text-blue-500 px-3 py-1 rounded font-bold shadow hover:bg-gray-100">Frissítés</button>
   </div>
@@ -39,7 +39,7 @@
 
     <!-- Search / Filter (Optional but good for UI) -->
     <div class="p-4">
-       <input type="text" id="search-input" placeholder="Keresés (név, sorszám)..." class="w-full p-3 rounded-lg border-gray-300 shadow-sm focus:ring-brand-pink focus:border-brand-pink mb-2">
+       <input type="text" id="search-input" placeholder="Keresés (név, sorszám)..." class="border rounded-lg px-4 py-2 w-full">
     </div>
 
     <!-- Cat List -->
@@ -51,7 +51,7 @@
     </main>
 
     <!-- FAB -->
-    <button id="fab-add-cat" class="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-brand-pink to-brand-orange text-white rounded-full shadow-lg flex items-center justify-center text-3xl hover:scale-105 transition-transform z-40 focus:outline-none focus:ring-4 focus:ring-brand-pink focus:ring-opacity-50">
+    <button id="fab-add-cat" class="fixed bottom-6 right-6 w-14 h-14 bg-pink-500 rounded-full shadow-lg flex items-center justify-center text-white text-2xl hover:scale-105 z-40 focus:outline-none">
       +
     </button>
   </div>
@@ -64,7 +64,7 @@
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
       </button>
       <div class="flex-1 flex items-center gap-2">
-         <span id="detail-sorszam" class="bg-gray-200 text-gray-700 px-2 py-0.5 rounded text-sm font-mono">#--</span>
+         <span id="detail-sorszam" class="bg-gray-200 text-gray-700 px-2 py-0.5 rounded text-sm font-mono"></span>
          <h2 id="detail-nev" class="text-xl font-bold truncate">Név</h2>
       </div>
       <button id="btn-edit-cat" class="text-blue-500 font-medium">Szerkesztés</button>
@@ -75,14 +75,14 @@
       <!-- Info Card -->
       <div class="bg-white rounded-xl shadow-sm p-4 space-y-3">
          <div class="flex flex-wrap gap-2 mb-2" id="detail-badges">
-            <span id="detail-ivar" class="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">--</span>
-            <span id="detail-status" class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">--</span>
+            <span id="detail-ivar" class="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium"></span>
+            <span id="detail-status" class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium"></span>
          </div>
-         <p class="text-gray-600"><span class="font-medium">Szín:</span> <span id="detail-szin">--</span></p>
+         <p class="text-gray-600"><span class="font-medium">Szín:</span> <span id="detail-szin"></span></p>
          <div>
             <p class="text-gray-600 font-medium">Kor:</p>
-            <p class="text-lg" id="detail-age">--</p>
-            <p class="text-sm text-gray-500" id="detail-birth-date">Született: --</p>
+            <p class="text-lg" id="detail-age"></p>
+            <p class="text-sm text-gray-500" id="detail-birth-date"></p>
          </div>
       </div>
 
