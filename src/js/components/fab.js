@@ -1,6 +1,6 @@
 import { db } from '../db.js';
 import { syncService } from '../services/sync-service.js';
-import { renderCatList } from './list.js';
+import { renderCatList } from './cat-list.js';
 
 export function initModals() {
     // FAB Add Cat
