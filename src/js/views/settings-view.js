@@ -1,5 +1,7 @@
 import { db } from '../db.js';
-import { renderOrgDisplay } from './org-display.js'; // Will create this utility
+import { renderOrgDisplay } from './org-display.js';
+import { prepareExportModal } from './export-modal.js';
+import { openModal } from '../components/fab.js';
 
 export async function initSettings() {
     const orgNameInput = document.getElementById('settings-org-name');
@@ -73,6 +75,23 @@ export function initSettingsActions() {
     const inputImport = document.getElementById('input-import-data');
     const btnClearCache = document.getElementById('btn-clear-cache');
     const btnClearAll = document.getElementById('btn-clear-all');
+
+    const btnPdfSimple = document.getElementById('btn-settings-export-simple');
+    const btnPdfFinancial = document.getElementById('btn-settings-export-financial');
+
+    if (btnPdfSimple) {
+        btnPdfSimple.addEventListener('click', () => {
+            prepareExportModal('simple', 'all');
+            openModal('modal-export');
+        });
+    }
+
+    if (btnPdfFinancial) {
+        btnPdfFinancial.addEventListener('click', () => {
+            prepareExportModal('financial', 'all');
+            openModal('modal-export');
+        });
+    }
 
     // Export Data
     btnExport.addEventListener('click', async () => {

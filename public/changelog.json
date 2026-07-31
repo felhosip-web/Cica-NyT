@@ -1,5 +1,15 @@
 [
   {
+    "version": "1.3.0",
+    "date": "2026-05-13",
+    "changes": [
+      "Kiskönyv (oltási könyv) checkbox és adatok rögzítése",
+      "Kijelölő mód a lista kártyáin, exportáláshoz",
+      "PDF Kimutatás generálása (Sima és Könyvelői/Pénzügyi formátumban)",
+      "Kereső kiterjesztése a kiskönyv számára"
+    ]
+  },
+  {
     "version": "1.2.0",
     "date": "2026-05-13",
     "changes": [

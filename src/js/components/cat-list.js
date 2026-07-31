@@ -7,6 +7,20 @@ let allCats = [];
 
 let currentChipFilter = 'mind'; // mind, befogott, behozott, gazdis
 
+// Expose state globally for PDF export module
+window.AppState = window.AppState || {};
+window.AppState.selectedCatIds = new Set();
+window.AppState.selectionMode = false;
+window.AppState.filteredCats = []; // To hold current view for export
+
+export function getSelectedCatIds() {
+    return Array.from(window.AppState.selectedCatIds);
+}
+
+export function getFilteredCats() {
+    return window.AppState.filteredCats;
+}
+
 export async function initList() {
     await renderCatList();
 
@@ -33,6 +47,47 @@ export async function initList() {
             renderCatList();
         });
     });
+
+    // Selection mode buttons
+    const btnSelectionMode = document.getElementById('btn-selection-mode');
+    const btnCancelSelection = document.getElementById('btn-cancel-selection');
+
+    if (btnSelectionMode) {
+        btnSelectionMode.addEventListener('click', () => {
+            window.AppState.selectionMode = !window.AppState.selectionMode;
+            if (!window.AppState.selectionMode) {
+                window.AppState.selectedCatIds.clear();
+            }
+            renderCatList();
+            updateSelectionActionBar();
+        });
+    }
+
+    if (btnCancelSelection) {
+        btnCancelSelection.addEventListener('click', () => {
+            window.AppState.selectionMode = false;
+            window.AppState.selectedCatIds.clear();
+            renderCatList();
+            updateSelectionActionBar();
+        });
+    }
+}
+
+export function updateSelectionActionBar() {
+    const actionBar = document.getElementById('selection-action-bar');
+    const selectionCount = document.getElementById('selection-count');
+    const btnSelectionMode = document.getElementById('btn-selection-mode');
+
+    if (!actionBar) return;
+
+    if (window.AppState.selectionMode) {
+        actionBar.classList.remove('hidden');
+        if (btnSelectionMode) btnSelectionMode.classList.add('bg-blue-50', 'border-blue-300', 'text-blue-600');
+        if (selectionCount) selectionCount.innerText = `${window.AppState.selectedCatIds.size} kijelölve`;
+    } else {
+        actionBar.classList.add('hidden');
+        if (btnSelectionMode) btnSelectionMode.classList.remove('bg-blue-50', 'border-blue-300', 'text-blue-600');
+    }
 }
 
 export async function renderCatList() {
@@ -57,6 +112,7 @@ export async function renderCatList() {
 
     // 2. Search Filter
     if (searchTerm) {
+        const isKiskonyvSearch = searchTerm === 'kiskönyv' || searchTerm === 'kiskonyv';
         filteredCats = filteredCats.filter(cat =>
             cat.nev.toLowerCase().includes(searchTerm) ||
             String(cat.sorszam).includes(searchTerm) ||
@@ -64,9 +120,14 @@ export async function renderCatList() {
             (cat.befogottHol && cat.befogottHol.toLowerCase().includes(searchTerm)) ||
             (cat.befogottKi && cat.befogottKi.toLowerCase().includes(searchTerm)) ||
             (cat.behozottKi && cat.behozottKi.toLowerCase().includes(searchTerm)) ||
-            (cat.behozottAtvevoKi && cat.behozottAtvevoKi.toLowerCase().includes(searchTerm))
+            (cat.behozottAtvevoKi && cat.behozottAtvevoKi.toLowerCase().includes(searchTerm)) ||
+            (cat.kiskonyvSzam && cat.kiskonyvSzam.toLowerCase().includes(searchTerm)) ||
+            (isKiskonyvSearch && cat.hasKiskonyv)
         );
     }
+
+    // Save to global state for export
+    window.AppState.filteredCats = filteredCats;
 
     container.innerHTML = '';
 
@@ -116,17 +177,37 @@ export async function renderCatList() {
             `;
         }
 
+        let kiskonyvIcon = '';
+        if (cat.hasKiskonyv) {
+            kiskonyvIcon = `<span title="Van kiskönyve" class="text-lg absolute right-10 top-2" style="font-size: 1.1rem; line-height: 1;">📘</span>`;
+        }
+
+        // Ensure previously selected cards remain selected during re-render
+        const isAlreadySelected = window.AppState.selectedCatIds.has(cat.id);
+        const selBorder = isAlreadySelected ? 'border-blue-500' : '';
+        const selBg = isAlreadySelected ? 'bg-blue-50' : '';
+        if (isAlreadySelected) {
+            card.classList.add('border-blue-500', 'bg-blue-50');
+        }
+
+        const chkBg = isAlreadySelected ? 'bg-blue-500 border-blue-500' : 'border-gray-300';
+        const chkOp = isAlreadySelected ? '' : 'opacity-0';
+
+        // Hide checkbox if not in selection mode
+        const displayCheckbox = window.AppState.selectionMode ? 'flex' : 'none';
+
         card.innerHTML = `
             ${gazdisBadge}
+            ${kiskonyvIcon}
             <div class="flex-1 min-w-0 mt-1">
-                <p class="text-gray-900 font-medium truncate flex items-center gap-2">
+                <p class="text-gray-900 font-medium truncate flex items-center gap-2 pr-6">
                     <span class="bg-pink-500 text-white rounded px-2 py-1 font-mono text-sm">${sorszamStr}</span>
                     ${escapeHtml(cat.nev)} - ${escapeHtml(cat.ivar)} - ${ageCalc} - ${escapeHtml(cat.szin)}
                 </p>
                 ${intakeIndicator}
             </div>
-            <div class="checkbox-wrapper w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center shrink-0">
-                <svg class="w-4 h-4 text-white opacity-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+            <div style="display: ${displayCheckbox}" class="checkbox-wrapper w-6 h-6 rounded-full border-2 ${chkBg} items-center justify-center shrink-0">
+                <svg class="w-4 h-4 text-white ${chkOp}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
             </div>
         `;
 
@@ -134,18 +215,23 @@ export async function renderCatList() {
         let touchTimer = null;
 
         const selectCard = (e) => {
-            e.preventDefault();
-            const isSelected = card.classList.contains('border-blue-500');
+            if (e) e.preventDefault();
+            const isSelected = window.AppState.selectedCatIds.has(cat.id);
 
             if (isSelected) {
+                window.AppState.selectedCatIds.delete(cat.id);
                 card.classList.remove('border-blue-500', 'bg-blue-50');
                 card.querySelector('.checkbox-wrapper').classList.remove('bg-blue-500', 'border-blue-500');
+                card.querySelector('.checkbox-wrapper').classList.add('border-gray-300');
                 card.querySelector('svg').classList.add('opacity-0');
             } else {
+                window.AppState.selectedCatIds.add(cat.id);
                 card.classList.add('border-blue-500', 'bg-blue-50');
+                card.querySelector('.checkbox-wrapper').classList.remove('border-gray-300');
                 card.querySelector('.checkbox-wrapper').classList.add('bg-blue-500', 'border-blue-500');
                 card.querySelector('svg').classList.remove('opacity-0');
             }
+            updateSelectionActionBar();
         };
 
         const openDetail = (e) => {
@@ -160,12 +246,21 @@ export async function renderCatList() {
         card.addEventListener('click', (e) => {
             // If it's a mobile touch event, it's handled below to differentiate from long press
             if (e.pointerType === 'touch') return;
-            selectCard(e);
+            if (window.AppState.selectionMode) {
+                selectCard(e);
+            } else {
+                openDetail(e);
+            }
         });
 
         // Mobile touch events for tap (open) vs long press (select)
         card.addEventListener('touchstart', (e) => {
              touchTimer = setTimeout(() => {
+                 // Long press sets selection mode automatically if not enabled and selects card
+                 if (!window.AppState.selectionMode) {
+                     window.AppState.selectionMode = true;
+                     renderCatList();
+                 }
                  selectCard(e);
                  touchTimer = null;
              }, 500); // 500ms for long press
@@ -176,7 +271,11 @@ export async function renderCatList() {
                  clearTimeout(touchTimer);
                  touchTimer = null;
                  // It was a short tap
-                 openDetail(e);
+                 if (window.AppState.selectionMode) {
+                     selectCard(e);
+                 } else {
+                     openDetail(e);
+                 }
              }
         });
 
