@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import { formatDate } from './cost.js';
 
 // Convert Hungarian specific characters to closest ASCII match to avoid jsPDF font issues
@@ -127,7 +127,7 @@ export class PdfExporter {
         });
 
         // Generate Table
-        doc.autoTable({
+        const tableOptions = {
             startY: startY,
             head: head,
             body: body,
@@ -148,7 +148,17 @@ export class PdfExporter {
                     doc.text(`A kimutatas a Cica-NyT rendszerbol exportalva, adatok hitelesseget ${orgName} igazolja.`, 14, pageHeight - 5);
                 }
             }
-        });
+        };
+
+        try {
+            if (typeof doc.autoTable === 'function') {
+                doc.autoTable(tableOptions);
+            } else {
+                autoTable(doc, tableOptions);
+            }
+        } catch (e) {
+            autoTable(doc, tableOptions);
+        }
 
         const safeTitle = docTitle.replace(/[^a-zA-Z0-9-]/g, '_');
         doc.save(`${safeTitle}.pdf`);

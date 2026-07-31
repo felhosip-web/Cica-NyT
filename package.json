@@ -19,7 +19,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.111.0",
     "dexie": "^4.4.4",
-    "jspdf": "^4.2.1",
+    "jspdf": "^2.5.2",
     "jspdf-autotable": "^5.0.8",
     "uuid": "^14.0.1"
   }
