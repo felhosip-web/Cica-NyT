@@ -3,17 +3,40 @@ import { renderOrgDisplay } from './org-display.js';
 import { prepareExportModal } from './export-modal.js';
 import { openModal } from '../components/fab.js';
 
+export const ORG_ROLES = [
+  {value:'tulajdonos', label:'Tulajdonos', icon:'👤'},
+  {value:'ideiglenes_nevelo', label:'Ideiglenes nevelő / Befogadó', icon:'🏠'},
+  {value:'menhely', label:'Menhely', icon:'🏚️'},
+  {value:'alapitvany', label:'Alapítvány / Egyesület', icon:'🤝'},
+  {value:'maganszemely', label:'Magánszemély', icon:'🙋'}
+];
+
 export async function initSettings() {
     const orgNameInput = document.getElementById('settings-org-name');
     const orgRoleSelect = document.getElementById('settings-org-role');
     const form = document.getElementById('form-settings-org');
 
+    if (orgRoleSelect) {
+        orgRoleSelect.innerHTML = ORG_ROLES.map(opt => `<option value="${opt.value}">${opt.icon} ${opt.label}</option>`).join('');
+    }
+
     // Load initial settings
     try {
-        const settings = await db.settings.get('org');
+        let settings = await db.settings.get('main');
+        if (!settings) {
+            settings = await db.settings.get('org');
+        }
+
         if (settings) {
             orgNameInput.value = settings.orgName || '';
-            orgRoleSelect.value = settings.orgRole || 'maganszemely';
+            let savedRole = settings.orgRole || 'maganszemely';
+
+            // Migration
+            if (savedRole === 'allatmenhely' || savedRole.includes('/')) {
+                savedRole = 'menhely';
+            }
+
+            orgRoleSelect.value = savedRole;
         }
     } catch (e) {
         console.error('Failed to load settings', e);
@@ -26,7 +49,7 @@ export async function initSettings() {
         const orgRole = orgRoleSelect.value;
 
         const settingsObj = {
-            id: 'org',
+            id: 'main',
             orgName,
             orgRole,
             cloudEnabled: false,

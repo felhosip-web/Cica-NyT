@@ -67,7 +67,11 @@ export function initExportModal() {
                 catsToExport = getFilteredCats();
             }
 
-            const orgSettings = await db.settings.get('org') || {};
+            let orgSettings = await db.settings.get('main');
+            if (!orgSettings) {
+                orgSettings = await db.settings.get('org');
+            }
+            orgSettings = orgSettings || {};
 
             await PdfExporter.exportCats({
                 cats: catsToExport,

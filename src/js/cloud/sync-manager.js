@@ -7,7 +7,10 @@ class SyncManager {
 
     async init() {
         console.log('[SyncManager] Initializing...');
-        const settings = await db.settings.get('org');
+        let settings = await db.settings.get('main');
+        if (!settings) {
+            settings = await db.settings.get('org');
+        }
         if (settings && settings.cloudEnabled && settings.cloudProvider === 'supabase') {
             this.provider = 'supabase';
             console.log('[SyncManager] Supabase sync provider ready');
