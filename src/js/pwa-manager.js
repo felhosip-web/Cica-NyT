@@ -21,7 +21,7 @@ export class PwaManager {
     async checkForUpdates() {
         try {
             const currentVersion = localStorage.getItem('appVersion');
-            const response = await fetch('/version.json?t=' + new Date().getTime());
+            const response = await fetch('/version.json?v=1.0.1&t=' + new Date().getTime());
             if (!response.ok) return;
 
             const data = await response.json();

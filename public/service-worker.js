@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cica-nyt-v1.0.0';
+const CACHE_NAME = 'cica-nyt-v1.0.1';
 const STATIC_ASSETS = [
     '/Cica-NyT/',
     '/Cica-NyT/index.html',
@@ -44,6 +44,13 @@ self.addEventListener('fetch', event => {
     // Supabase API calls: Network only (handled by SyncService mostly, but bypass cache)
     if (url.hostname.includes('supabase.co')) {
         event.respondWith(fetch(event.request));
+        return;
+    }
+
+    if (event.request.mode === 'navigate' || event.request.url.includes('index.html')) {
+        event.respondWith(
+            fetch(event.request).catch(() => caches.match(event.request))
+        );
         return;
     }
 
