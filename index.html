@@ -150,13 +150,25 @@
           <div class="grid grid-cols-2 gap-3 pt-2">
             <button id="btn-export-data" class="py-2 px-3 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center justify-center gap-2 shadow-sm">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-              Export (JSON)
+              Adatmentés (JSON)
             </button>
             <label class="py-2 px-3 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center justify-center gap-2 shadow-sm cursor-pointer">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-              Import (JSON)
+              Visszaállítás (JSON)
               <input type="file" id="input-import-data" accept=".json" class="hidden">
             </label>
+          </div>
+
+          <hr class="border-gray-200 mt-4 mb-4">
+          <h4 class="font-bold text-gray-800 mb-2">📄 Kimutatások (PDF)</h4>
+          <p class="text-sm text-gray-500 mb-3">A teljes adatbázis (összes cica) exportálása.</p>
+          <div class="grid grid-cols-2 gap-3">
+             <button id="btn-settings-export-simple" class="py-2 px-3 bg-pink-50 border border-brand-pink text-brand-pink rounded-lg text-sm font-medium hover:bg-pink-100 flex items-center justify-center gap-2 shadow-sm">
+                📋 Sima PDF
+             </button>
+             <button id="btn-settings-export-financial" class="py-2 px-3 bg-pink-50 border border-brand-pink text-brand-pink rounded-lg text-sm font-medium hover:bg-pink-100 flex items-center justify-center gap-2 shadow-sm">
+                💰 Könyvelői PDF
+             </button>
           </div>
         </div>
       </section>
@@ -224,7 +236,24 @@
           <button class="filter-chip px-3 py-1 bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-full text-sm font-medium transition-colors" data-filter="behozott">📦 Behozott</button>
           <button class="filter-chip px-3 py-1 bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-full text-sm font-medium transition-colors" data-filter="gazdis">🏠 Gazdis</button>
        </div>
-       <input type="text" id="search-input" placeholder="Keresés (név, sorszám, cím, név)..." class="border rounded-lg px-4 py-2 w-full focus:ring-brand-pink focus:border-brand-pink outline-none transition-shadow">
+       <div class="flex gap-2">
+         <input type="text" id="search-input" placeholder="Keresés (név, sorszám, cím, név)..." class="border rounded-lg px-4 py-2 w-full focus:ring-brand-pink focus:border-brand-pink outline-none transition-shadow">
+         <button id="btn-selection-mode" class="px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 hover:bg-gray-50 flex-shrink-0 transition-colors" title="Kijelölés">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+         </button>
+       </div>
+
+       <!-- Action Bar (Hidden default) -->
+       <div id="selection-action-bar" class="hidden bg-blue-50 border border-blue-200 rounded-lg p-3 flex justify-between items-center transition-all">
+          <span class="text-blue-800 font-bold text-sm" id="selection-count">0 kijelölve</span>
+          <div class="flex gap-2">
+             <button id="btn-cancel-selection" class="px-3 py-1.5 text-blue-600 font-medium text-sm hover:bg-blue-100 rounded-lg">Mégse</button>
+             <button id="btn-export-selected" class="px-3 py-1.5 bg-blue-600 text-white font-medium text-sm hover:bg-blue-700 rounded-lg shadow flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                PDF
+             </button>
+          </div>
+       </div>
     </div>
 
     <!-- Cat List -->
@@ -259,6 +288,11 @@
     <main class="flex-1 p-4 pb-24 max-w-2xl mx-auto w-full space-y-4">
       <!-- Intake Info Card (Beérkezés) -->
       <div id="detail-intake-info" class="bg-white rounded-xl shadow-sm p-4 text-sm">
+         <!-- Populated via JS -->
+      </div>
+
+      <!-- Kiskonyv Info Card -->
+      <div id="detail-kiskonyv-info" class="bg-white rounded-xl shadow-sm p-4 text-sm flex items-center justify-between border-l-4">
          <!-- Populated via JS -->
       </div>
 
@@ -448,11 +482,96 @@
             <label class="block text-sm font-medium text-gray-700 mb-1">Szín / Leírás</label>
             <input type="text" id="cat-szin" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink" placeholder="Pl.: vörös, cirmos, fehér zoknis">
           </div>
+
+          <hr class="border-gray-200">
+          <div>
+             <h4 class="font-bold text-gray-800 mb-2 flex items-center gap-2">📘 Dokumentumok</h4>
+             <label class="flex items-center gap-2 cursor-pointer mb-2">
+               <input type="checkbox" id="cat-has-kiskonyv" class="w-5 h-5 text-brand-pink rounded border-gray-300 focus:ring-brand-pink">
+               <span class="text-sm font-medium text-gray-700">Van kiskönyve (oltási könyv)</span>
+             </label>
+             <div id="kiskonyv-fields" class="space-y-3 overflow-hidden transition-all duration-300 max-h-0 opacity-0 ml-7">
+               <div>
+                 <label class="block text-sm font-medium text-gray-700 mb-1">Kiskönyv száma</label>
+                 <input type="text" id="cat-kiskonyv-szam" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink" placeholder="pl. 12345/2026">
+               </div>
+               <div>
+                 <label class="block text-sm font-medium text-gray-700 mb-1">Kiskönyv kiállítás dátuma</label>
+                 <input type="date" id="cat-kiskonyv-date" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink">
+               </div>
+             </div>
+          </div>
         </form>
       </div>
       <div class="p-4 border-t bg-gray-50 flex justify-end gap-3 rounded-b-2xl">
         <button type="button" class="px-4 py-2 text-gray-600 font-medium modal-close">Mégse</button>
         <button type="submit" form="form-cat" class="px-6 py-2 bg-gradient-to-r from-brand-pink to-brand-orange text-white rounded-lg font-medium shadow">Mentés</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PDF Export Modal -->
+  <div id="modal-export" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl flex flex-col max-h-[90vh]">
+      <div class="p-4 border-b flex justify-between items-center bg-gray-50 rounded-t-2xl">
+        <h3 class="text-lg font-bold">PDF Kimutatás generálása</h3>
+        <button type="button" class="text-gray-400 hover:text-gray-600 p-2 modal-close">✕</button>
+      </div>
+      <div class="p-4 overflow-y-auto flex-1 space-y-6">
+
+        <div>
+          <h4 class="font-bold text-gray-800 mb-3">Mely állatok?</h4>
+          <div class="space-y-2">
+            <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+              <input type="radio" name="exportScope" value="all" class="w-4 h-4 text-brand-pink focus:ring-brand-pink" checked>
+              <span class="font-medium text-gray-700" id="export-lbl-all">Összes állat</span>
+            </label>
+            <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 opacity-50" id="export-lbl-selected-container">
+              <input type="radio" name="exportScope" value="selected" class="w-4 h-4 text-brand-pink focus:ring-brand-pink" disabled>
+              <span class="font-medium text-gray-700" id="export-lbl-selected">Kijelölt állatok (0 db)</span>
+            </label>
+            <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+              <input type="radio" name="exportScope" value="filtered" class="w-4 h-4 text-brand-pink focus:ring-brand-pink">
+              <span class="font-medium text-gray-700" id="export-lbl-filtered">Szűrt lista (aktuális nézet)</span>
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="font-bold text-gray-800 mb-3">Kimutatás típusa</h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label class="border-2 border-brand-pink bg-pink-50 rounded-xl p-3 flex flex-col cursor-pointer transition-all export-type-lbl">
+              <div class="flex items-center justify-between mb-1">
+                <span class="font-bold text-gray-800 flex items-center gap-1">📋 Sima</span>
+                <input type="radio" name="exportType" value="simple" class="hidden" checked>
+                <div class="w-4 h-4 rounded-full border-2 border-brand-pink bg-brand-pink ring-2 ring-white shadow-sm indicator"></div>
+              </div>
+              <span class="text-xs text-gray-600">Áttekintő lista, státuszok, kiskönyv</span>
+            </label>
+
+            <label class="border border-gray-200 bg-white rounded-xl p-3 flex flex-col cursor-pointer transition-all export-type-lbl">
+              <div class="flex items-center justify-between mb-1">
+                <span class="font-bold text-gray-800 flex items-center gap-1">💰 Könyvelői</span>
+                <input type="radio" name="exportType" value="financial" class="hidden">
+                <div class="w-4 h-4 rounded-full border-2 border-gray-300 indicator"></div>
+              </div>
+              <span class="text-xs text-gray-600">Hivatalos, összesítőkkel, aláírással, könyvelőnek</span>
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-gray-800 mb-1">Kimutatás címe</label>
+          <input type="text" id="export-title" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink" value="Állatnyilvántartás">
+        </div>
+
+      </div>
+      <div class="p-4 border-t bg-gray-50 flex justify-end gap-3 rounded-b-2xl">
+        <button type="button" class="px-4 py-2 text-gray-600 font-medium modal-close">Mégse</button>
+        <button type="button" id="btn-generate-pdf" class="px-6 py-2 bg-gradient-to-r from-brand-pink to-brand-orange text-white rounded-lg font-medium shadow flex items-center gap-2">
+           <svg class="w-5 h-5 animate-spin hidden" id="pdf-spinner" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+           Generálás
+        </button>
       </div>
     </div>
   </div>
@@ -505,6 +624,6 @@
     </div>
   </div>
 
-  <script type="module" src="/src/js/app.js?v=1.2.0"></script>
+  <script type="module" src="/src/js/app.js?v=1.3.0"></script>
 </body>
 </html>

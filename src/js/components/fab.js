@@ -10,6 +10,14 @@ export function initModals() {
             document.getElementById('form-cat').reset();
             document.getElementById('cat-id').value = '';
             document.getElementById('cat-form-title').innerText = 'Új Cica Hozzáadása';
+
+            // Reset kiskonyv fields state manually since reset() doesn't trigger change event
+            const kiskonyvFields = document.getElementById('kiskonyv-fields');
+            if (kiskonyvFields) {
+                kiskonyvFields.classList.add('max-h-0', 'opacity-0');
+                kiskonyvFields.classList.remove('max-h-[500px]');
+            }
+
             openModal('modal-cat-form');
         });
     }
@@ -68,6 +76,21 @@ export function initModals() {
         });
     }
 
+    // Kiskonyv toggle listener
+    const kiskonyvCheckbox = document.getElementById('cat-has-kiskonyv');
+    const kiskonyvFields = document.getElementById('kiskonyv-fields');
+    if (kiskonyvCheckbox && kiskonyvFields) {
+        kiskonyvCheckbox.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                kiskonyvFields.classList.remove('max-h-0', 'opacity-0');
+                kiskonyvFields.classList.add('max-h-[500px]');
+            } else {
+                kiskonyvFields.classList.add('max-h-0', 'opacity-0');
+                kiskonyvFields.classList.remove('max-h-[500px]');
+            }
+        });
+    }
+
     // Cat Form Submit
     const formCat = document.getElementById('form-cat');
     if (formCat) {
@@ -116,6 +139,8 @@ export function initModals() {
                 }
             }
 
+            const hasKiskonyv = document.getElementById('cat-has-kiskonyv').checked;
+
             const catData = {
                 nev: document.getElementById('cat-nev').value,
                 ivar: document.getElementById('cat-ivar').value,
@@ -129,6 +154,9 @@ export function initModals() {
                 behozottKi: intakeType === 'behozott' ? document.getElementById('cat-behozott-ki').value : null,
                 behozottMikor: intakeType === 'behozott' ? document.getElementById('cat-behozott-mikor').value : null,
                 behozottAtvevoKi: intakeType === 'behozott' ? document.getElementById('cat-behozott-atvevo').value : null,
+                hasKiskonyv: hasKiskonyv,
+                kiskonyvSzam: hasKiskonyv ? document.getElementById('cat-kiskonyv-szam').value : null,
+                kiskonyvDate: hasKiskonyv ? document.getElementById('cat-kiskonyv-date').value : null,
             };
 
             if (status === 'gazdis') {

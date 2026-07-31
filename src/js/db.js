@@ -21,3 +21,7 @@ db.version(3).stores({
 db.version(4).stores({
   cats: 'id, sorszam, nev, ivar, szin, szuletes, created, syncStatus, status, gazdisDate, gazdisPerson, intakeType'
 });
+
+db.version(5).stores({
+  cats: 'id, sorszam, nev, ivar, szin, szuletes, created, syncStatus, status, gazdisDate, gazdisPerson, intakeType, hasKiskonyv'
+});

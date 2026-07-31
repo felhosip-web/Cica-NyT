@@ -33,6 +33,24 @@ export function initDetail() {
             document.getElementById('cat-szuletes').value = cat.szuletes;
             document.getElementById('cat-szin').value = cat.szin;
 
+            // Kiskonyv fields
+            const hasKiskonyvEl = document.getElementById('cat-has-kiskonyv');
+            if (hasKiskonyvEl) {
+                hasKiskonyvEl.checked = !!cat.hasKiskonyv;
+                const kiskonyvFields = document.getElementById('kiskonyv-fields');
+                if (cat.hasKiskonyv) {
+                    kiskonyvFields.classList.remove('max-h-0', 'opacity-0');
+                    kiskonyvFields.classList.add('max-h-[500px]');
+                    document.getElementById('cat-kiskonyv-szam').value = cat.kiskonyvSzam || '';
+                    document.getElementById('cat-kiskonyv-date').value = cat.kiskonyvDate || '';
+                } else {
+                    kiskonyvFields.classList.add('max-h-0', 'opacity-0');
+                    kiskonyvFields.classList.remove('max-h-[500px]');
+                    document.getElementById('cat-kiskonyv-szam').value = '';
+                    document.getElementById('cat-kiskonyv-date').value = '';
+                }
+            }
+
             // Set Intake fields
             const intakeType = cat.intakeType || 'befogott';
             const radioToSelect = document.querySelector(`input[name="intakeType"][value="${intakeType}"]`);
@@ -199,6 +217,30 @@ export async function openDetailView(catId) {
     document.getElementById('detail-szin').innerText = escapeHtml(cat.szin);
     document.getElementById('detail-age').innerText = calculateAge(cat.szuletes);
     document.getElementById('detail-birth-date').innerText = `Született: ${formatDate(cat.szuletes)}`;
+
+    // Kiskonyv Info setup
+    const kiskonyvContainer = document.getElementById('detail-kiskonyv-info');
+    if (cat.hasKiskonyv) {
+        const szamInfo = cat.kiskonyvSzam ? `<div class="text-gray-600 text-xs mt-1 font-mono">Szám: ${escapeHtml(cat.kiskonyvSzam)}</div>` : '';
+        const dateInfo = cat.kiskonyvDate ? `<div class="text-gray-500 text-xs">Kiállítva: ${formatDate(cat.kiskonyvDate)}</div>` : '';
+
+        kiskonyvContainer.classList.remove('border-gray-300');
+        kiskonyvContainer.classList.add('border-green-400');
+        kiskonyvContainer.innerHTML = `
+            <div>
+                <div class="font-bold text-green-700 flex items-center gap-2">📘 Van kiskönyv</div>
+                ${szamInfo}
+                ${dateInfo}
+            </div>
+            <div class="text-2xl opacity-50">📋</div>
+        `;
+    } else {
+        kiskonyvContainer.classList.remove('border-green-400');
+        kiskonyvContainer.classList.add('border-gray-300');
+        kiskonyvContainer.innerHTML = `
+            <div class="text-gray-500 flex items-center gap-2 font-medium">📕 Nincs kiskönyv</div>
+        `;
+    }
 
     // Intake Info Card setup
     const intakeContainer = document.getElementById('detail-intake-info');

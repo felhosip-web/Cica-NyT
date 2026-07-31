@@ -7,6 +7,7 @@ import { initDetail } from './components/cat-detail.js';
 import './components/update-banner.js';
 import { renderOrgDisplay } from './views/org-display.js';
 import { initSettings, initSettingsActions } from './views/settings-view.js';
+import { initExportModal } from './views/export-modal.js';
 import { renderChangelog } from './views/help-view.js';
 import { cloudSyncManager } from './cloud/sync-manager.js';
 
@@ -55,6 +56,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Initialize UI components
     initModals();
     initDetail();
+    initExportModal();
 
     console.log('Dexie DB initialized', db.version(1).stores);
 
