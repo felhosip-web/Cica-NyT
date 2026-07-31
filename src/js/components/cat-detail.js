@@ -33,6 +33,21 @@ export function initDetail() {
             document.getElementById('cat-szuletes').value = cat.szuletes;
             document.getElementById('cat-szin').value = cat.szin;
 
+            const gazdisExtra = document.getElementById('gazdis-extra');
+            if (cat.status === 'gazdis') {
+                gazdisExtra.classList.remove('hidden');
+                document.getElementById('cat-gazdis-date').value = cat.gazdisDate || '';
+                document.getElementById('cat-gazdis-person').value = cat.gazdisPerson || '';
+                document.getElementById('cat-gazdis-contact').value = cat.gazdisContact || '';
+                document.getElementById('cat-gazdis-notes').value = cat.gazdisNotes || '';
+            } else {
+                gazdisExtra.classList.add('hidden');
+                document.getElementById('cat-gazdis-date').value = '';
+                document.getElementById('cat-gazdis-person').value = '';
+                document.getElementById('cat-gazdis-contact').value = '';
+                document.getElementById('cat-gazdis-notes').value = '';
+            }
+
             document.getElementById('cat-form-title').innerText = 'Cica Szerkesztése';
             openModal('modal-cat-form');
         }
@@ -154,6 +169,15 @@ export async function openDetailView(catId) {
     else if(status === 'ideiglenes') statusBadge.className = 'px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium';
     else if(status === 'gazdis') statusBadge.className = 'px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium';
     else if(status === 'orvosi') statusBadge.className = 'px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium';
+
+    const gazdisInfo = document.getElementById('detail-gazdis-info');
+    if (status === 'gazdis') {
+        gazdisInfo.classList.remove('hidden');
+        document.getElementById('detail-gazdis-badge').innerText = `🏠 Gazdis ${formatDate(cat.gazdisDate)} óta`;
+        document.getElementById('detail-gazdis-person').innerText = `Örökbefogadó: ${escapeHtml(cat.gazdisPerson || '')} ${cat.gazdisContact ? '(' + escapeHtml(cat.gazdisContact) + ')' : ''}`;
+    } else {
+        gazdisInfo.classList.add('hidden');
+    }
 
     document.getElementById('detail-szin').innerText = escapeHtml(cat.szin);
     document.getElementById('detail-age').innerText = calculateAge(cat.szuletes);

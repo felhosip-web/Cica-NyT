@@ -9,3 +9,7 @@ db.version(1).stores({
   kezelesek: 'id, catId, datum',
   meta: 'key'
 });
+
+db.version(2).stores({
+  cats: 'id, sorszam, nev, ivar, szin, szuletes, created, syncStatus, status, gazdisDate, gazdisPerson'
+});
