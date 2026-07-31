@@ -46,6 +46,16 @@
         </ul>
       </section>
 
+      <!-- Beérkezés módja: Befogott vs Behozott -->
+      <section class="bg-white rounded-xl shadow-sm p-5 prose prose-sm max-w-none text-gray-700">
+        <h3 class="text-gray-900 font-bold mb-2">Beérkezés: Befogott vs. Behozott</h3>
+        <p>A cicák nyilvántartásakor fontos különbséget tenni a beérkezés módja között:</p>
+        <ul class="list-disc pl-4 space-y-1">
+          <li><strong>🐾 Befogott:</strong> Tervezett befogás keretében (pl. TNR) utcáról befogott állat. Fontos a pontos helyszín, hogy tudjuk, hova kell visszatenni, vagy melyik kolóniához tartozik.</li>
+          <li><strong>📦 Behozott:</strong> Valaki által talált és behozott cica (pl. dobozban lerakott). Itt a behozó és az átvevő személyének rögzítése a legfontosabb a visszakövethetőség miatt.</li>
+        </ul>
+      </section>
+
       <!-- Státuszok magyarázata -->
       <section class="bg-white rounded-xl shadow-sm p-5 prose prose-sm max-w-none text-gray-700">
         <h3 class="text-gray-900 font-bold mb-2">Státuszok magyarázata</h3>
@@ -206,9 +216,15 @@
       </div>
     </header>
 
-    <!-- Search / Filter (Optional but good for UI) -->
-    <div class="p-4">
-       <input type="text" id="search-input" placeholder="Keresés (név, sorszám)..." class="border rounded-lg px-4 py-2 w-full">
+    <!-- Search / Filter -->
+    <div class="p-4 space-y-3">
+       <div class="flex flex-wrap gap-2" id="filter-chips">
+          <button class="filter-chip px-3 py-1 bg-gray-800 text-white rounded-full text-sm font-medium transition-colors" data-filter="mind">Mind</button>
+          <button class="filter-chip px-3 py-1 bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-full text-sm font-medium transition-colors" data-filter="befogott">🐾 Befogott</button>
+          <button class="filter-chip px-3 py-1 bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-full text-sm font-medium transition-colors" data-filter="behozott">📦 Behozott</button>
+          <button class="filter-chip px-3 py-1 bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-full text-sm font-medium transition-colors" data-filter="gazdis">🏠 Gazdis</button>
+       </div>
+       <input type="text" id="search-input" placeholder="Keresés (név, sorszám, cím, név)..." class="border rounded-lg px-4 py-2 w-full focus:ring-brand-pink focus:border-brand-pink outline-none transition-shadow">
     </div>
 
     <!-- Cat List -->
@@ -241,6 +257,11 @@
 
     <!-- Content -->
     <main class="flex-1 p-4 pb-24 max-w-2xl mx-auto w-full space-y-4">
+      <!-- Intake Info Card (Beérkezés) -->
+      <div id="detail-intake-info" class="bg-white rounded-xl shadow-sm p-4 text-sm">
+         <!-- Populated via JS -->
+      </div>
+
       <!-- Info Card -->
       <div class="bg-white rounded-xl shadow-sm p-4 space-y-3">
          <div class="flex flex-wrap gap-2 mb-2" id="detail-badges">
@@ -331,6 +352,57 @@
             <label class="block text-sm font-medium text-gray-700 mb-1">Név</label>
             <input type="text" id="cat-nev" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink">
           </div>
+
+          <!-- Beérkezés módja -->
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700">Beérkezés módja</label>
+            <div class="grid grid-cols-2 gap-3">
+               <label class="intake-radio-lbl border border-gray-200 bg-white rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer transition-all border-pink-500 bg-pink-50 ring-2 ring-pink-500">
+                  <input type="radio" name="intakeType" value="befogott" class="hidden" checked>
+                  <span class="text-xl mb-1">🐾</span>
+                  <span class="font-bold text-gray-800">Befogott</span>
+               </label>
+               <label class="intake-radio-lbl border border-gray-200 bg-white rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer transition-all">
+                  <input type="radio" name="intakeType" value="behozott" class="hidden">
+                  <span class="text-xl mb-1">📦</span>
+                  <span class="font-bold text-gray-800">Behozott</span>
+               </label>
+            </div>
+          </div>
+
+          <!-- Befogott fields -->
+          <div id="befogott-fields" class="space-y-4 overflow-hidden transition-all duration-300 max-h-[500px]">
+             <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">📍 Hol fogták be? (helyszín) <span class="text-red-500">*</span></label>
+                <input type="text" id="cat-befogott-hol" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink" placeholder="Pl. Budapest X., park, cím">
+             </div>
+             <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">📅 Mikor fogták be? <span class="text-red-500">*</span></label>
+                <input type="datetime-local" id="cat-befogott-mikor" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink">
+             </div>
+             <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">👤 Ki fogta be?</label>
+                <input type="text" id="cat-befogott-ki" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink" placeholder="Név">
+             </div>
+          </div>
+
+          <!-- Behozott fields -->
+          <div id="behozott-fields" class="space-y-4 overflow-hidden transition-all duration-300 max-h-0 opacity-0">
+             <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">👤 Ki hozta be? <span class="text-red-500">*</span></label>
+                <input type="text" id="cat-behozott-ki" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink" placeholder="Behozó neve">
+             </div>
+             <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">📅 Mikor hozták be? <span class="text-red-500">*</span></label>
+                <input type="datetime-local" id="cat-behozott-mikor" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink">
+             </div>
+             <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">🤝 Ki vette át? <span class="text-red-500">*</span></label>
+                <input type="text" id="cat-behozott-atvevo" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink" placeholder="Átvevő neve">
+             </div>
+          </div>
+
+          <hr class="border-gray-200">
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Ivar</label>
@@ -433,6 +505,6 @@
     </div>
   </div>
 
-  <script type="module" src="/src/js/app.js?v=1.1.0"></script>
+  <script type="module" src="/src/js/app.js?v=1.2.0"></script>
 </body>
 </html>

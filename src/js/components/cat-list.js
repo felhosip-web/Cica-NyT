@@ -5,20 +5,39 @@ import { openDetailView } from './cat-detail.js';
 
 let allCats = [];
 
+let currentChipFilter = 'mind'; // mind, befogott, behozott, gazdis
+
 export async function initList() {
     await renderCatList();
 
     const searchInput = document.getElementById('search-input');
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
-            renderCatList(e.target.value.toLowerCase());
+            renderCatList();
         });
     }
+
+    const filterChips = document.querySelectorAll('.filter-chip');
+    filterChips.forEach(chip => {
+        chip.addEventListener('click', (e) => {
+            // Update active state
+            filterChips.forEach(c => {
+                c.classList.remove('bg-gray-800', 'text-white');
+                c.classList.add('bg-gray-200', 'text-gray-700');
+            });
+            const clicked = e.target;
+            clicked.classList.remove('bg-gray-200', 'text-gray-700');
+            clicked.classList.add('bg-gray-800', 'text-white');
+
+            currentChipFilter = clicked.dataset.filter;
+            renderCatList();
+        });
+    });
 }
 
-export async function renderCatList(filter) {
+export async function renderCatList() {
     const searchInput = document.getElementById('search-input');
-    const currentFilter = filter !== undefined ? filter : (searchInput ? searchInput.value.toLowerCase() : '');
+    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
 
     const container = document.getElementById('cat-list-container');
 
@@ -26,11 +45,26 @@ export async function renderCatList(filter) {
     console.log(`Rendering ${allCats.length} cats`);
 
     let filteredCats = allCats;
-    if (currentFilter) {
-        filteredCats = allCats.filter(cat =>
-            cat.nev.toLowerCase().includes(currentFilter) ||
-            String(cat.sorszam).includes(currentFilter) ||
-            (cat.gazdisPerson && cat.gazdisPerson.toLowerCase().includes(currentFilter))
+
+    // 1. Chip Filter
+    if (currentChipFilter === 'befogott') {
+        filteredCats = filteredCats.filter(cat => cat.intakeType === 'befogott');
+    } else if (currentChipFilter === 'behozott') {
+        filteredCats = filteredCats.filter(cat => cat.intakeType === 'behozott');
+    } else if (currentChipFilter === 'gazdis') {
+        filteredCats = filteredCats.filter(cat => cat.status === 'gazdis');
+    }
+
+    // 2. Search Filter
+    if (searchTerm) {
+        filteredCats = filteredCats.filter(cat =>
+            cat.nev.toLowerCase().includes(searchTerm) ||
+            String(cat.sorszam).includes(searchTerm) ||
+            (cat.gazdisPerson && cat.gazdisPerson.toLowerCase().includes(searchTerm)) ||
+            (cat.befogottHol && cat.befogottHol.toLowerCase().includes(searchTerm)) ||
+            (cat.befogottKi && cat.befogottKi.toLowerCase().includes(searchTerm)) ||
+            (cat.behozottKi && cat.behozottKi.toLowerCase().includes(searchTerm)) ||
+            (cat.behozottAtvevoKi && cat.behozottAtvevoKi.toLowerCase().includes(searchTerm))
         );
     }
 
@@ -62,7 +96,24 @@ export async function renderCatList(filter) {
                     GAZDIS - ${escapeHtml(cat.gazdisPerson || '')}
                 </div>
             `;
-            card.classList.add('relative');
+        }
+
+        // Always make card relative for absolute positioning of badges
+        card.classList.add('relative');
+
+        let intakeIndicator = '';
+        if (cat.intakeType === 'befogott') {
+            intakeIndicator = `
+                <div class="text-xs text-blue-600 font-medium mt-1 truncate">
+                    🐾 Befogott - ${escapeHtml(cat.befogottHol || '')}
+                </div>
+            `;
+        } else if (cat.intakeType === 'behozott') {
+            intakeIndicator = `
+                <div class="text-xs text-orange-600 font-medium mt-1 truncate">
+                    📦 Behozott - ${escapeHtml(cat.behozottKi || '')}
+                </div>
+            `;
         }
 
         card.innerHTML = `
@@ -72,6 +123,7 @@ export async function renderCatList(filter) {
                     <span class="bg-pink-500 text-white rounded px-2 py-1 font-mono text-sm">${sorszamStr}</span>
                     ${escapeHtml(cat.nev)} - ${escapeHtml(cat.ivar)} - ${ageCalc} - ${escapeHtml(cat.szin)}
                 </p>
+                ${intakeIndicator}
             </div>
             <div class="checkbox-wrapper w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center shrink-0">
                 <svg class="w-4 h-4 text-white opacity-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>

@@ -24,6 +24,37 @@ export function initModals() {
         });
     });
 
+    // Intake Type change listener
+    const intakeRadios = document.querySelectorAll('input[name="intakeType"]');
+    const befogottFields = document.getElementById('befogott-fields');
+    const behozottFields = document.getElementById('behozott-fields');
+
+    intakeRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            // Update labels styling
+            document.querySelectorAll('.intake-radio-lbl').forEach(lbl => {
+                lbl.classList.remove('border-pink-500', 'bg-pink-50', 'ring-2', 'ring-pink-500');
+            });
+            const selectedLbl = e.target.closest('.intake-radio-lbl');
+            if (selectedLbl) {
+                selectedLbl.classList.add('border-pink-500', 'bg-pink-50', 'ring-2', 'ring-pink-500');
+            }
+
+            // Show/hide fields with smooth transitions
+            if (e.target.value === 'befogott') {
+                befogottFields.classList.remove('max-h-0', 'opacity-0');
+                befogottFields.classList.add('max-h-[500px]');
+                behozottFields.classList.add('max-h-0', 'opacity-0');
+                behozottFields.classList.remove('max-h-[500px]');
+            } else if (e.target.value === 'behozott') {
+                behozottFields.classList.remove('max-h-0', 'opacity-0');
+                behozottFields.classList.add('max-h-[500px]');
+                befogottFields.classList.add('max-h-0', 'opacity-0');
+                befogottFields.classList.remove('max-h-[500px]');
+            }
+        });
+    });
+
     // Status change listener for gazdis fields
     const statusSelect = document.getElementById('cat-status');
     const gazdisExtra = document.getElementById('gazdis-extra');
@@ -45,6 +76,36 @@ export function initModals() {
 
             const idInput = document.getElementById('cat-id').value;
             const status = document.getElementById('cat-status').value;
+            const intakeType = document.querySelector('input[name="intakeType"]:checked')?.value || 'befogott';
+
+            if (intakeType === 'befogott') {
+                const hol = document.getElementById('cat-befogott-hol').value;
+                const mikor = document.getElementById('cat-befogott-mikor').value;
+                if (!hol) {
+                    alert('Add meg hol fogták be!');
+                    return;
+                }
+                if (!mikor) {
+                    alert('Add meg mikor fogták be!');
+                    return;
+                }
+            } else if (intakeType === 'behozott') {
+                const ki = document.getElementById('cat-behozott-ki').value;
+                const mikor = document.getElementById('cat-behozott-mikor').value;
+                const atvevo = document.getElementById('cat-behozott-atvevo').value;
+                if (!ki) {
+                    alert('Add meg ki hozta be!');
+                    return;
+                }
+                if (!mikor) {
+                    alert('Add meg mikor hozták be!');
+                    return;
+                }
+                if (!atvevo) {
+                    alert('Add meg ki vette át!');
+                    return;
+                }
+            }
 
             if (status === 'gazdis') {
                 const gazdisDate = document.getElementById('cat-gazdis-date').value;
@@ -61,6 +122,13 @@ export function initModals() {
                 status: status,
                 szuletes: document.getElementById('cat-szuletes').value,
                 szin: document.getElementById('cat-szin').value,
+                intakeType: intakeType,
+                befogottHol: intakeType === 'befogott' ? document.getElementById('cat-befogott-hol').value : null,
+                befogottMikor: intakeType === 'befogott' ? document.getElementById('cat-befogott-mikor').value : null,
+                befogottKi: intakeType === 'befogott' ? document.getElementById('cat-befogott-ki').value : null,
+                behozottKi: intakeType === 'behozott' ? document.getElementById('cat-behozott-ki').value : null,
+                behozottMikor: intakeType === 'behozott' ? document.getElementById('cat-behozott-mikor').value : null,
+                behozottAtvevoKi: intakeType === 'behozott' ? document.getElementById('cat-behozott-atvevo').value : null,
             };
 
             if (status === 'gazdis') {

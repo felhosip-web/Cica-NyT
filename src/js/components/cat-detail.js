@@ -33,6 +33,23 @@ export function initDetail() {
             document.getElementById('cat-szuletes').value = cat.szuletes;
             document.getElementById('cat-szin').value = cat.szin;
 
+            // Set Intake fields
+            const intakeType = cat.intakeType || 'befogott';
+            const radioToSelect = document.querySelector(`input[name="intakeType"][value="${intakeType}"]`);
+            if (radioToSelect) {
+                radioToSelect.checked = true;
+                // Dispatch change event to trigger UI update
+                radioToSelect.dispatchEvent(new Event('change'));
+            }
+
+            document.getElementById('cat-befogott-hol').value = cat.befogottHol || '';
+            document.getElementById('cat-befogott-mikor').value = cat.befogottMikor || '';
+            document.getElementById('cat-befogott-ki').value = cat.befogottKi || '';
+
+            document.getElementById('cat-behozott-ki').value = cat.behozottKi || '';
+            document.getElementById('cat-behozott-mikor').value = cat.behozottMikor || '';
+            document.getElementById('cat-behozott-atvevo').value = cat.behozottAtvevoKi || '';
+
             const gazdisExtra = document.getElementById('gazdis-extra');
             if (cat.status === 'gazdis') {
                 gazdisExtra.classList.remove('hidden');
@@ -182,6 +199,38 @@ export async function openDetailView(catId) {
     document.getElementById('detail-szin').innerText = escapeHtml(cat.szin);
     document.getElementById('detail-age').innerText = calculateAge(cat.szuletes);
     document.getElementById('detail-birth-date').innerText = `Született: ${formatDate(cat.szuletes)}`;
+
+    // Intake Info Card setup
+    const intakeContainer = document.getElementById('detail-intake-info');
+    if (!cat.intakeType) {
+        intakeContainer.innerHTML = `
+            <div class="flex items-center gap-2 text-gray-500">
+                <span>⚠️ Beérkezés: nincs rögzítve - szerkesztéssel pótolható</span>
+            </div>
+        `;
+    } else if (cat.intakeType === 'befogott') {
+        intakeContainer.innerHTML = `
+            <div class="flex items-center gap-2 mb-2">
+                <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1">🐾 Befogott</span>
+            </div>
+            <div class="space-y-1 text-gray-700">
+                <p><strong>📍 Hol:</strong> ${escapeHtml(cat.befogottHol || 'Ismeretlen')}</p>
+                <p><strong>📅 Mikor:</strong> ${escapeHtml(cat.befogottMikor ? formatDate(cat.befogottMikor).replace('T', ' ') : 'Ismeretlen')}</p>
+                <p><strong>👤 Ki:</strong> ${escapeHtml(cat.befogottKi || 'Ismeretlen')}</p>
+            </div>
+        `;
+    } else if (cat.intakeType === 'behozott') {
+        intakeContainer.innerHTML = `
+            <div class="flex items-center gap-2 mb-2">
+                <span class="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1">📦 Behozott</span>
+            </div>
+            <div class="space-y-1 text-gray-700">
+                <p><strong>👤 Behozta:</strong> ${escapeHtml(cat.behozottKi || 'Ismeretlen')}</p>
+                <p><strong>📅 Mikor:</strong> ${escapeHtml(cat.behozottMikor ? formatDate(cat.behozottMikor).replace('T', ' ') : 'Ismeretlen')}</p>
+                <p><strong>🤝 Átvevő:</strong> ${escapeHtml(cat.behozottAtvevoKi || 'Ismeretlen')}</p>
+            </div>
+        `;
+    }
 
     // Render lists
     renderEventList('oltasok', cat.oltasok || []);
