@@ -1,5 +1,15 @@
 [
   {
+    "version": "1.2.0",
+    "date": "2026-05-13",
+    "changes": [
+      "Befogott és Behozott kategóriák szétválasztása (dinamikus űrlap)",
+      "Gyorsszűrő gombok a főoldalon (Befogott, Behozott, Gazdis)",
+      "Kereső kiterjesztése a beérkezés adataira",
+      "Kártya design frissítés (címkék a listában és az adatlapon)"
+    ]
+  },
+  {
     "version": "1.1.0",
     "date": "2026-05-13",
     "changes": [

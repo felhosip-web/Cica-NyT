@@ -17,3 +17,7 @@ db.version(2).stores({
 db.version(3).stores({
   settings: 'id'
 });
+
+db.version(4).stores({
+  cats: 'id, sorszam, nev, ivar, szin, szuletes, created, syncStatus, status, gazdisDate, gazdisPerson, intakeType'
+});
