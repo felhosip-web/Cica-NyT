@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { formatDate } from './cost.js';
+import { ORG_ROLES } from '../views/settings-view.js';
 
 // Convert Hungarian specific characters to closest ASCII match to avoid jsPDF font issues
 // or we can use replace logic for just standard text.
@@ -29,7 +30,17 @@ export class PdfExporter {
         // Initialize jsPDF (Landscape for better table fit)
         const doc = new jsPDF('l', 'mm', 'a4');
         const orgName = orgSettings?.orgName ? stripAccents(orgSettings.orgName) : 'Szervezet / Maganszemely';
-        const orgRole = orgSettings?.orgRole ? stripAccents(orgSettings.orgRole) : '';
+
+        let orgRole = '';
+        if (orgSettings?.orgRole) {
+            let roleValue = orgSettings.orgRole;
+            if (roleValue === 'allatmenhely' || roleValue.includes('/')) {
+                roleValue = 'menhely';
+            }
+            const roleDef = ORG_ROLES.find(r => r.value === roleValue);
+            orgRole = roleDef ? stripAccents(roleDef.label) : stripAccents(roleValue);
+        }
+
         const now = new Date();
         const dateStr = now.toISOString().split('T')[0].replace(/-/g, '.');
         const docTitle = stripAccents(title) || `Allatnyilvantartas - ${dateStr}`;
