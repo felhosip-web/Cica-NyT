@@ -1,0 +1,35 @@
+[
+  {
+    "version": "1.1.0",
+    "date": "2026-05-13",
+    "changes": [
+      "Beállítások menü",
+      "Szervezet neve + státusz a főoldalon",
+      "Felhő szinkron alapok + export/import",
+      "Átfogó Súgó és Changelog",
+      "Verziókezelés javítva"
+    ]
+  },
+  {
+    "version": "1.0.2",
+    "date": "2026-05-12",
+    "changes": [
+      "Gazdis extra mezők: dátum, örökbefogadó neve, elérhetőség",
+      "Lista render bug javítva szerkesztés után"
+    ]
+  },
+  {
+    "version": "1.0.1",
+    "date": "2026-05-12",
+    "changes": [
+      "Tailwind build javítva, deploy yaml deploy-pages@v4-re"
+    ]
+  },
+  {
+    "version": "1.0.0",
+    "date": "2026-05-12",
+    "changes": [
+      "Alap nyilvántartás, Dexie IndexedDB, PWA"
+    ]
+  }
+]
