@@ -24,6 +24,19 @@ export function initModals() {
         });
     });
 
+    // Status change listener for gazdis fields
+    const statusSelect = document.getElementById('cat-status');
+    const gazdisExtra = document.getElementById('gazdis-extra');
+    if (statusSelect && gazdisExtra) {
+        statusSelect.addEventListener('change', (e) => {
+            if (e.target.value === 'gazdis') {
+                gazdisExtra.classList.remove('hidden');
+            } else {
+                gazdisExtra.classList.add('hidden');
+            }
+        });
+    }
+
     // Cat Form Submit
     const formCat = document.getElementById('form-cat');
     if (formCat) {
@@ -31,14 +44,36 @@ export function initModals() {
             e.preventDefault();
 
             const idInput = document.getElementById('cat-id').value;
+            const status = document.getElementById('cat-status').value;
+
+            if (status === 'gazdis') {
+                const gazdisDate = document.getElementById('cat-gazdis-date').value;
+                const gazdisPerson = document.getElementById('cat-gazdis-person').value;
+                if (!gazdisDate || !gazdisPerson) {
+                    alert('Add meg a gazdis dátumot és az örökbefogadó nevét!');
+                    return;
+                }
+            }
 
             const catData = {
                 nev: document.getElementById('cat-nev').value,
                 ivar: document.getElementById('cat-ivar').value,
-                status: document.getElementById('cat-status').value,
+                status: status,
                 szuletes: document.getElementById('cat-szuletes').value,
                 szin: document.getElementById('cat-szin').value,
             };
+
+            if (status === 'gazdis') {
+                catData.gazdisDate = document.getElementById('cat-gazdis-date').value;
+                catData.gazdisPerson = document.getElementById('cat-gazdis-person').value;
+                catData.gazdisContact = document.getElementById('cat-gazdis-contact').value;
+                catData.gazdisNotes = document.getElementById('cat-gazdis-notes').value;
+            } else {
+                catData.gazdisDate = null;
+                catData.gazdisPerson = null;
+                catData.gazdisContact = null;
+                catData.gazdisNotes = null;
+            }
 
             if (idInput) {
                 // Edit existing

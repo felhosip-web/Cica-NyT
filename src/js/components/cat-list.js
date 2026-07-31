@@ -16,29 +16,31 @@ export async function initList() {
     }
 }
 
-export async function renderCatList(filter = '') {
+export async function renderCatList(filter) {
+    const searchInput = document.getElementById('search-input');
+    const currentFilter = filter !== undefined ? filter : (searchInput ? searchInput.value.toLowerCase() : '');
+
     const container = document.getElementById('cat-list-container');
-    const emptyState = document.getElementById('empty-state');
 
     allCats = await db.cats.orderBy('sorszam').reverse().toArray();
+    console.log(`Rendering ${allCats.length} cats`);
 
     let filteredCats = allCats;
-    if (filter) {
+    if (currentFilter) {
         filteredCats = allCats.filter(cat =>
-            cat.nev.toLowerCase().includes(filter) ||
-            String(cat.sorszam).includes(filter)
+            cat.nev.toLowerCase().includes(currentFilter) ||
+            String(cat.sorszam).includes(currentFilter) ||
+            (cat.gazdisPerson && cat.gazdisPerson.toLowerCase().includes(currentFilter))
         );
     }
 
-    // Clear list but keep empty state element if we need it
     container.innerHTML = '';
 
     if (filteredCats.length === 0) {
-        container.appendChild(emptyState);
-        emptyState.classList.remove('hidden');
+        container.innerHTML = `<div class="text-center text-gray-500 py-10" id="empty-state">
+            Nincsenek cicák.
+        </div>`;
         return;
-    } else {
-        emptyState.classList.add('hidden');
     }
 
     filteredCats.forEach(cat => {
@@ -46,11 +48,26 @@ export async function renderCatList(filter = '') {
         const sorszamStr = String(cat.sorszam).padStart(2, '0');
         const ageCalc = calculateAge(cat.szuletes).split('(')[0].trim();
 
-        card.className = "bg-white rounded-xl shadow p-4 mb-2 cursor-pointer transition-all active:scale-95 flex items-center gap-3 border border-transparent";
+        const isGazdis = cat.status === 'gazdis';
+        const borderClass = isGazdis ? 'border-green-400' : 'border-transparent';
+        const bgClass = isGazdis ? 'bg-green-50' : 'bg-white';
+
+        card.className = `${bgClass} rounded-xl shadow p-4 mb-2 cursor-pointer transition-all active:scale-95 flex items-center gap-3 border ${borderClass}`;
         card.dataset.id = cat.id;
 
+        let gazdisBadge = '';
+        if (isGazdis) {
+            gazdisBadge = `
+                <div class="absolute top-0 right-0 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-xl">
+                    GAZDIS - ${escapeHtml(cat.gazdisPerson || '')}
+                </div>
+            `;
+            card.classList.add('relative');
+        }
+
         card.innerHTML = `
-            <div class="flex-1 min-w-0">
+            ${gazdisBadge}
+            <div class="flex-1 min-w-0 mt-1">
                 <p class="text-gray-900 font-medium truncate flex items-center gap-2">
                     <span class="bg-pink-500 text-white rounded px-2 py-1 font-mono text-sm">${sorszamStr}</span>
                     ${escapeHtml(cat.nev)} - ${escapeHtml(cat.ivar)} - ${ageCalc} - ${escapeHtml(cat.szin)}
