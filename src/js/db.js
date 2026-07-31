@@ -13,3 +13,7 @@ db.version(1).stores({
 db.version(2).stores({
   cats: 'id, sorszam, nev, ivar, szin, szuletes, created, syncStatus, status, gazdisDate, gazdisPerson'
 });
+
+db.version(3).stores({
+  settings: 'id'
+});
