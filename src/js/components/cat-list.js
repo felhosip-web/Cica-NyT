@@ -52,6 +52,36 @@ export async function initList() {
     const btnSelectionMode = document.getElementById('btn-selection-mode');
     const btnCancelSelection = document.getElementById('btn-cancel-selection');
 
+    // Tab buttons
+    const tabAnimals = document.getElementById('tab-animals');
+    const tabEvents = document.getElementById('tab-events');
+    const animalsView = document.getElementById('animals-view');
+    const eventsView = document.getElementById('events-view');
+
+    if (tabAnimals && tabEvents && animalsView && eventsView) {
+        tabAnimals.addEventListener('click', () => {
+            tabAnimals.classList.add('font-bold', 'text-brand-pink', 'border-brand-pink');
+            tabAnimals.classList.remove('font-medium', 'text-gray-500', 'border-transparent');
+
+            tabEvents.classList.add('font-medium', 'text-gray-500', 'border-transparent');
+            tabEvents.classList.remove('font-bold', 'text-brand-pink', 'border-brand-pink');
+
+            animalsView.classList.remove('hidden');
+            eventsView.classList.add('hidden');
+        });
+
+        tabEvents.addEventListener('click', () => {
+            tabEvents.classList.add('font-bold', 'text-brand-pink', 'border-brand-pink');
+            tabEvents.classList.remove('font-medium', 'text-gray-500', 'border-transparent');
+
+            tabAnimals.classList.add('font-medium', 'text-gray-500', 'border-transparent');
+            tabAnimals.classList.remove('font-bold', 'text-brand-pink', 'border-brand-pink');
+
+            eventsView.classList.remove('hidden');
+            animalsView.classList.add('hidden');
+        });
+    }
+
     if (btnSelectionMode) {
         btnSelectionMode.addEventListener('click', () => {
             window.AppState.selectionMode = !window.AppState.selectionMode;
@@ -153,6 +183,12 @@ export async function renderCatList() {
     // Save to global state for export
     window.AppState.filteredCats = filteredCats;
 
+    // Update animals count in tab
+    const animalsCountEl = document.getElementById('animals-count');
+    if (animalsCountEl) {
+        animalsCountEl.textContent = filteredCats.length;
+    }
+
     container.innerHTML = '';
 
     if (filteredCats.length === 0) {
@@ -219,8 +255,15 @@ export async function renderCatList() {
         }
 
         let kiskonyvIcon = '';
+        let rightOffset = 10;
+
         if (cat.hasKiskonyv) {
-            kiskonyvIcon = `<span title="Van kiskönyve" class="text-lg absolute right-10 top-2" style="font-size: 1.1rem; line-height: 1;">📘</span>`;
+            kiskonyvIcon += `<span title="Van kiskönyve" class="text-lg absolute top-2" style="right: ${rightOffset}px; font-size: 1.1rem; line-height: 1;">📘</span>`;
+            rightOffset += 24;
+        }
+
+        if (cat.chipNumber) {
+            kiskonyvIcon += `<span title="Chipes" class="text-lg absolute top-2" style="right: ${rightOffset}px; font-size: 1.1rem; line-height: 1;">🔖</span>`;
         }
 
         // Ensure previously selected cards remain selected during re-render
