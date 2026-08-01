@@ -279,10 +279,14 @@
     </div>
 
     <!-- Events View -->
-    <div id="events-view" class="hidden p-4">
-      <div class="text-center text-gray-500 py-10">
-        Hamarosan: Események, emlékeztetők kezelése.
+    <div id="events-view" class="hidden">
+      <div class="flex gap-2 mb-4">
+        <button data-event-filter="all" class="active">Összes</button>
+        <button data-event-filter="pending">⏳ Függő</button>
+        <button data-event-filter="expired" class="text-red-600">⚠️ Lejárt</button>
+        <button data-event-filter="done">✅ Kész</button>
       </div>
+      <div id="events-list"></div>
     </div>
 
     <!-- FAB -->
@@ -382,6 +386,18 @@
              <button class="w-full py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-medium border border-blue-200 hover:bg-blue-100 btn-add-event" data-type="kezeles">+ Kezelés hozzáadása</button>
           </div>
         </div>
+
+        <!-- Események (Task 1.5.5) -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden mt-4">
+          <div class="p-4 flex justify-between items-center text-left font-medium border-b">
+            <span>📅 Események</span>
+          </div>
+          <div class="px-4 py-3 bg-gray-50">
+             <div id="detail-events-list" class="space-y-2 mb-3"></div>
+             <button id="btn-add-cat-event" class="w-full py-2 bg-pink-50 text-pink-600 rounded-lg text-sm font-medium border border-pink-200 hover:bg-pink-100">+ Esemény</button>
+          </div>
+        </div>
+
       </div>
     </main>
 
@@ -400,6 +416,63 @@
           <!-- A "Mentés" button is requested, but for auto-save DB it might be just to close, or save explicit edits. -->
           <button id="btn-close-detail" class="bg-gray-900 text-white px-6 py-2 rounded-lg font-medium shadow">Vissza</button>
        </div>
+    </div>
+  </div>
+
+  <!-- Event Form Modal -->
+  <div id="modal-new-event-form" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl flex flex-col max-h-[90vh]">
+      <div class="p-4 border-b flex justify-between items-center bg-gray-50 rounded-t-2xl sm:rounded-t-2xl">
+        <h3 class="text-lg font-bold" id="new-event-form-title">Új Esemény</h3>
+        <button type="button" class="text-gray-400 hover:text-gray-600 p-2" id="btn-close-new-event-modal">✕</button>
+      </div>
+      <div class="p-4 overflow-y-auto flex-1">
+        <form id="form-new-event" class="space-y-4">
+          <input type="hidden" id="event-id">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Cica *</label>
+            <select id="event-cat-id" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink">
+              <option value="">Válassz cicát...</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Típus *</label>
+            <select id="event-type" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink">
+              <option value="oltas">Oltás</option>
+              <option value="orvosi">Orvosi</option>
+              <option value="egyeni">Egyéni</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Megnevezés *</label>
+            <input type="text" id="event-title" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink" placeholder="pl. Veszettség elleni oltás">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Dátum *</label>
+            <input type="date" id="event-date" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Ismétlődés</label>
+            <select id="event-repeat" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink">
+              <option value="nincs">Nincs</option>
+              <option value="3ho">3 hónaponta</option>
+              <option value="6ho">Félévente</option>
+              <option value="12ho">Évente</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Orvos / Helyszín</label>
+            <input type="text" id="event-vet" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Megjegyzés</label>
+            <textarea id="event-notes" rows="2" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink"></textarea>
+          </div>
+          <button type="submit" class="w-full bg-pink-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-pink-700 shadow-md">
+            Mentés
+          </button>
+        </form>
+      </div>
     </div>
   </div>
 
@@ -559,7 +632,7 @@
 
             <label class="block mb-3">
               <span class="text-sm text-gray-600">Elhunyt dátuma *</span>
-              <input type="date" id="elhunytDate" class="w-full mt-1 p-2 border rounded-lg focus:ring-brand-pink focus:border-brand-pink" required>
+              <input type="date" id="elhunytDate" class="w-full mt-1 p-2 border rounded-lg focus:ring-brand-pink focus:border-brand-pink">
               <span id="elhunytDate-error" class="text-xs text-red-500 hidden">Kérlek add meg a dátumot</span>
             </label>
 
