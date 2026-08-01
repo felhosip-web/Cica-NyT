@@ -1,6 +1,8 @@
 import { db } from '../db.js';
 import { updateEventBadge } from '../utils/event-check.js';
 import { renderEvents } from './event-list.js';
+import { showToast } from '../utils/toast.js';
+import { scheduleLocalCheck } from '../utils/push.js';
 
 export function initEventForm() {
     const btnClose = document.getElementById('btn-close-new-event-modal');
@@ -96,4 +98,7 @@ async function saveEvent() {
 
     renderEvents();
     document.dispatchEvent(new CustomEvent('eventsChanged'));
+
+    showToast('Esemény mentve', 'info');
+    scheduleLocalCheck();
 }

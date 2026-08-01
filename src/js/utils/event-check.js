@@ -39,3 +39,23 @@ export async function updateEventBadge() {
         }
     }
 }
+
+export async function getBadgeCount() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const sevenDaysFromNow = new Date(today);
+    sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+    sevenDaysFromNow.setHours(23, 59, 59, 999);
+
+    const pendingCount = await db.events
+        .where({ status: 'pending' })
+        .filter(e => new Date(e.date) <= sevenDaysFromNow)
+        .count();
+
+    const expiredCount = await db.events
+        .where({ status: 'expired' })
+        .count();
+
+    return pendingCount + expiredCount;
+}

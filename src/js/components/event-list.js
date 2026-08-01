@@ -2,6 +2,7 @@ import { db } from '../db.js';
 import { escapeHtml } from '../utils/escape.js';
 import { updateEventBadge } from '../utils/event-check.js';
 import { openEventModal } from './event-form.js';
+import { showToast } from '../utils/toast.js';
 
 let currentFilter = 'all';
 
@@ -112,12 +113,20 @@ export async function renderEvents() {
                 const isExpired = e.status === 'expired';
 
                 let bgClass = 'bg-white';
-                if (isExpired) bgClass = 'bg-red-50 border-red-200';
+                if (isExpired) bgClass = 'bg-red-50 border-red-300';
                 if (isDone) bgClass = 'bg-gray-100 opacity-75';
 
                 let icon = '📅';
                 if (e.type === 'oltas') icon = '💉';
                 if (e.type === 'orvosi') icon = '🩺';
+                if (isExpired) icon += ' ⚠️';
+
+                let dateDisplay = e.date;
+                if (isExpired) {
+                    const diffTime = Math.abs(new Date() - new Date(e.date));
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    dateDisplay = `<span class="text-red-600 font-bold">LEJÁRT ${diffDays} napja</span>`;
+                }
 
                 html += `
                     <div class="event-card ${bgClass} border rounded-lg p-3 shadow-sm flex items-center justify-between cursor-pointer hover:shadow-md transition" data-id="${e.id}">
@@ -126,7 +135,7 @@ export async function renderEvents() {
                             <div class="flex-1 min-w-0">
                                 <div class="font-medium text-sm truncate">${catName}${chipStr}</div>
                                 <div class="font-bold truncate text-gray-800">${titleStr}</div>
-                                <div class="text-xs text-gray-500">${e.date}</div>
+                                <div class="text-xs text-gray-500">${dateDisplay}</div>
                             </div>
                         </div>
                         <div class="ml-2">
@@ -186,25 +195,9 @@ async function markEventDone(id) {
         });
     }
 
-    showToast('Esemény teljesítve! ✅');
+    showToast('Esemény teljesítve! ✅', 'info');
 
     await updateEventBadge();
     renderEvents();
     document.dispatchEvent(new CustomEvent('eventsChanged'));
-}
-
-function showToast(msg) {
-    let toast = document.getElementById('toast');
-    if (!toast) {
-        toast = document.createElement('div');
-        toast.id = 'toast';
-        toast.className = 'fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded shadow-lg z-[100] transition-opacity duration-300';
-        document.body.appendChild(toast);
-    }
-    toast.textContent = msg;
-    toast.style.opacity = '1';
-
-    setTimeout(() => {
-        toast.style.opacity = '0';
-    }, 3000);
 }
