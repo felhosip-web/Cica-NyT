@@ -101,6 +101,21 @@ export async function renderCatList() {
 
     let filteredCats = allCats;
 
+    // 0. Hide deceased if setting says so and filter not active
+    let showDeceased = true;
+    try {
+        const settings = await db.settings.get('main');
+        if (settings && typeof settings.showDeceased !== 'undefined') {
+            showDeceased = settings.showDeceased;
+        }
+    } catch (e) {
+        console.error('Error reading settings', e);
+    }
+
+    if (!showDeceased && currentChipFilter !== 'elhunyt') {
+        filteredCats = filteredCats.filter(cat => cat.status !== 'elhunyt');
+    }
+
     // 1. Chip Filter
     if (currentChipFilter === 'befogott') {
         filteredCats = filteredCats.filter(cat => cat.intakeType === 'befogott');
@@ -108,6 +123,8 @@ export async function renderCatList() {
         filteredCats = filteredCats.filter(cat => cat.intakeType === 'behozott');
     } else if (currentChipFilter === 'gazdis') {
         filteredCats = filteredCats.filter(cat => cat.status === 'gazdis');
+    } else if (currentChipFilter === 'elhunyt') {
+        filteredCats = filteredCats.filter(cat => cat.status === 'elhunyt');
     }
 
     // 2. Search Filter
@@ -125,6 +142,13 @@ export async function renderCatList() {
             (isKiskonyvSearch && cat.hasKiskonyv)
         );
     }
+
+    // Sort deceased cats to the bottom
+    filteredCats.sort((a, b) => {
+        const aElhunyt = a.status === 'elhunyt' ? 1 : 0;
+        const bElhunyt = b.status === 'elhunyt' ? 1 : 0;
+        return aElhunyt - bElhunyt;
+    });
 
     // Save to global state for export
     window.AppState.filteredCats = filteredCats;
@@ -144,10 +168,21 @@ export async function renderCatList() {
         const ageCalc = calculateAge(cat.szuletes).split('(')[0].trim();
 
         const isGazdis = cat.status === 'gazdis';
-        const borderClass = isGazdis ? 'border-green-400' : 'border-transparent';
-        const bgClass = isGazdis ? 'bg-green-50' : 'bg-white';
+        const isElhunyt = cat.status === 'elhunyt';
+        let borderClass = 'border-transparent';
+        let bgClass = 'bg-white';
+        let extraClasses = '';
 
-        card.className = `${bgClass} rounded-xl shadow p-4 mb-2 cursor-pointer transition-all active:scale-95 flex items-center gap-3 border ${borderClass}`;
+        if (isGazdis) {
+            borderClass = 'border-green-400';
+            bgClass = 'bg-green-50';
+        } else if (isElhunyt) {
+            borderClass = 'border-gray-300';
+            bgClass = 'bg-gray-100';
+            extraClasses = 'grayscale opacity-80';
+        }
+
+        card.className = `${bgClass} rounded-xl shadow p-4 mb-2 cursor-pointer transition-all active:scale-95 flex items-center gap-3 border ${borderClass} ${extraClasses}`;
         card.dataset.id = cat.id;
 
         let gazdisBadge = '';
@@ -155,6 +190,12 @@ export async function renderCatList() {
             gazdisBadge = `
                 <div class="absolute top-0 right-0 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-xl">
                     GAZDIS - ${escapeHtml(cat.gazdisPerson || '')}
+                </div>
+            `;
+        } else if (isElhunyt) {
+            gazdisBadge = `
+                <div class="absolute top-0 right-0 bg-gray-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-xl flex items-center gap-1">
+                    🕊️ ELHUNYT
                 </div>
             `;
         }

@@ -67,7 +67,7 @@ export class PdfExporter {
             const befogott = cats.filter(c => c.intakeType === 'befogott').length;
             const behozott = cats.filter(c => c.intakeType === 'behozott').length;
             const gazdis = cats.filter(c => c.status === 'gazdis').length;
-            const aktiv = cats.filter(c => c.status !== 'gazdis' && c.status !== 'elpusztult').length;
+            const aktiv = cats.filter(c => c.status !== 'gazdis' && c.status !== 'elhunyt').length;
             const hasKiskonyvCount = cats.filter(c => c.hasKiskonyv).length;
 
             // Calculate date range based on intake/created

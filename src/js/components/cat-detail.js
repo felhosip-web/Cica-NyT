@@ -83,6 +83,21 @@ export function initDetail() {
                 document.getElementById('cat-gazdis-notes').value = '';
             }
 
+            const elhunytExtra = document.getElementById('elhunyt-extra');
+            if (elhunytExtra) {
+                if (cat.status === 'elhunyt') {
+                    elhunytExtra.classList.remove('hidden');
+                    document.getElementById('elhunytDate').value = cat.elhunytDate || '';
+                    document.getElementById('elhunytOk').value = cat.elhunytOk || '';
+                    document.getElementById('elhunytNotes').value = cat.elhunytNotes || '';
+                } else {
+                    elhunytExtra.classList.add('hidden');
+                    document.getElementById('elhunytDate').value = '';
+                    document.getElementById('elhunytOk').value = '';
+                    document.getElementById('elhunytNotes').value = '';
+                }
+            }
+
             document.getElementById('cat-form-title').innerText = 'Cica Szerkesztése';
             openModal('modal-cat-form');
         }
@@ -199,11 +214,16 @@ export async function openDetailView(catId) {
 
     const statusBadge = document.getElementById('detail-status');
     const status = cat.status || 'befogadható';
-    statusBadge.innerText = escapeHtml(status);
-    if(status === 'befogadható') statusBadge.className = 'px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium';
-    else if(status === 'ideiglenes') statusBadge.className = 'px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium';
-    else if(status === 'gazdis') statusBadge.className = 'px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium';
-    else if(status === 'orvosi') statusBadge.className = 'px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium';
+    if(status === 'elhunyt') {
+        statusBadge.innerText = '🕊️ Elhunyt';
+        statusBadge.className = 'px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium';
+    } else {
+        statusBadge.innerText = escapeHtml(status);
+        if(status === 'befogadható') statusBadge.className = 'px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium';
+        else if(status === 'ideiglenes') statusBadge.className = 'px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium';
+        else if(status === 'gazdis') statusBadge.className = 'px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium';
+        else if(status === 'orvosi') statusBadge.className = 'px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium';
+    }
 
     const gazdisInfo = document.getElementById('detail-gazdis-info');
     if (status === 'gazdis') {
@@ -217,6 +237,42 @@ export async function openDetailView(catId) {
     document.getElementById('detail-szin').innerText = escapeHtml(cat.szin);
     document.getElementById('detail-age').innerText = calculateAge(cat.szuletes);
     document.getElementById('detail-birth-date').innerText = `Született: ${formatDate(cat.szuletes)}`;
+
+    // Elhunyt info
+    const mainContent = document.getElementById('detail-main-content');
+    const elhunytBanner = document.getElementById('memorial-banner');
+    const elhunytMemorial = document.getElementById('memorial-section');
+    const memorialDateEl = document.getElementById('memorial-date');
+    const memorialNotesEl = document.getElementById('memorial-notes');
+
+    if (status === 'elhunyt') {
+        if (mainContent) {
+            mainContent.classList.add('grayscale-[0.3]', 'opacity-80');
+        }
+
+        if (elhunytBanner) {
+            elhunytBanner.classList.remove('hidden');
+            if (memorialDateEl) memorialDateEl.innerText = formatDate(cat.elhunytDate);
+        }
+
+        if (cat.elhunytOk || cat.elhunytNotes) {
+            if (elhunytMemorial) elhunytMemorial.classList.remove('hidden');
+            if (memorialNotesEl) {
+                let noteText = '';
+                if (cat.elhunytOk) noteText += `Ok: ${escapeHtml(cat.elhunytOk)} `;
+                if (cat.elhunytNotes) noteText += `- "${escapeHtml(cat.elhunytNotes)}"`;
+                memorialNotesEl.innerText = noteText.trim();
+            }
+        } else {
+            if (elhunytMemorial) elhunytMemorial.classList.add('hidden');
+        }
+    } else {
+        if (mainContent) {
+            mainContent.classList.remove('grayscale-[0.3]', 'opacity-80');
+        }
+        if (elhunytBanner) elhunytBanner.classList.add('hidden');
+        if (elhunytMemorial) elhunytMemorial.classList.add('hidden');
+    }
 
     // Kiskonyv Info setup
     const kiskonyvContainer = document.getElementById('detail-kiskonyv-info');
