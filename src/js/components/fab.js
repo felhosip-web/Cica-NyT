@@ -88,7 +88,10 @@ export function initModals() {
                     if (elhunytDate) elhunytDate.required = true;
                 } else {
                     elhunytExtra.classList.add('hidden');
-                    if (elhunytDate) elhunytDate.required = false;
+                    if (elhunytDate) {
+                        elhunytDate.required = false;
+                        elhunytDate.value = '';
+                    }
                 }
             }
         });
@@ -172,10 +175,10 @@ export function initModals() {
             const chipError = document.getElementById('chip-error');
             if (chipError) chipError.classList.add('hidden');
 
-            if (chipNumberInput) {
-                if (chipNumberInput.length !== 15 || !/^(900|348)/.test(chipNumberInput) || !/^\d+$/.test(chipNumberInput)) {
+            if (chipNumberInput && chipNumberInput !== '') {
+                if (!/^(900|348)\d{12}$/.test(chipNumberInput)) {
                     if (chipError) chipError.classList.remove('hidden');
-                    return;
+                    return false;
                 }
             }
 

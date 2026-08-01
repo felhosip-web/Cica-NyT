@@ -10,6 +10,9 @@ import { initSettings, initSettingsActions } from './views/settings-view.js';
 import { initExportModal } from './views/export-modal.js';
 import { renderChangelog } from './views/help-view.js';
 import { cloudSyncManager } from './cloud/sync-manager.js';
+import { checkExpired, updateEventBadge } from './utils/event-check.js';
+import { initEventList, renderEvents } from './components/event-list.js';
+import { initEventForm } from './components/event-form.js';
 
 function setupRouting() {
     const mainView = document.getElementById('main-view');
@@ -57,6 +60,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     initModals();
     initDetail();
     initExportModal();
+    initEventList();
+    initEventForm();
 
     console.log('Dexie DB initialized', db.version(1).stores);
 
@@ -85,6 +90,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.addEventListener('orgSettingsChanged', () => {
         renderOrgDisplay();
     });
+
+    // Check and update events
+    await checkExpired();
+    await updateEventBadge();
+    await renderEvents();
 
     // Initial sync and list render
     await initList();

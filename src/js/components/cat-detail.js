@@ -5,6 +5,7 @@ import { escapeHtml } from '../utils/escape.js';
 import { syncService } from '../services/sync-service.js';
 import { openModal, closeModal } from './fab.js';
 import { renderCatList } from './cat-list.js';
+import { openEventModal } from './event-form.js';
 
 let currentCatId = null;
 
@@ -193,6 +194,21 @@ export function initDetail() {
         // Refresh detail view
         openDetailView(currentCatId);
     });
+
+    document.addEventListener('eventsChanged', () => {
+        if (currentCatId && !document.getElementById('detail-view').classList.contains('hidden')) {
+             renderCatEvents(currentCatId);
+        }
+    });
+
+    const btnAddEvent = document.getElementById('btn-add-cat-event');
+    if (btnAddEvent) {
+        btnAddEvent.addEventListener('click', () => {
+            if (currentCatId) {
+                openEventModal(null, currentCatId);
+            }
+        });
+    }
 }
 
 export async function openDetailView(catId) {
@@ -337,8 +353,54 @@ export async function openDetailView(catId) {
 
     document.getElementById('detail-ossz-koltseg').innerText = formatCurrency(cat.osszKoltseg || 0);
 
+    renderCatEvents(id);
+
     document.getElementById('detail-view').classList.remove('hidden');
 }
+
+async function renderCatEvents(catId) {
+    const listEl = document.getElementById('detail-events-list');
+    if (!listEl) return;
+    listEl.innerHTML = '';
+
+    const events = await db.events.where({ catId: catId }).toArray();
+    events.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    if (events.length === 0) {
+        listEl.innerHTML = '<div class="text-sm text-gray-500 italic">Nincsenek események.</div>';
+        return;
+    }
+
+    let html = '';
+    for (let e of events) {
+        let icon = '📅';
+        if (e.type === 'oltas') icon = '💉';
+        if (e.type === 'orvosi') icon = '🩺';
+
+        const title = escapeHtml(e.title || '');
+        const dateStr = escapeHtml(e.date || '');
+        let statusStr = '';
+        if (e.status === 'done') statusStr = '<span class="text-xs text-green-600 font-bold ml-2">✅ Kész</span>';
+        if (e.status === 'expired') statusStr = '<span class="text-xs text-red-600 font-bold ml-2">⚠️ Lejárt</span>';
+
+        html += `
+            <div class="p-2 border border-gray-200 rounded bg-white flex justify-between items-center cursor-pointer hover:bg-gray-50" onclick="window.handleDetailEventClick(${e.id})">
+                <div class="flex items-center gap-2">
+                    <span>${icon}</span>
+                    <div>
+                        <div class="text-sm font-bold text-gray-800">${title}${statusStr}</div>
+                        <div class="text-xs text-gray-500">${dateStr}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    listEl.innerHTML = html;
+}
+
+window.handleDetailEventClick = function(id) {
+    openEventModal(id);
+};
 
 function renderEventList(type, items) {
     const listEl = document.getElementById(`list-${type}`);
