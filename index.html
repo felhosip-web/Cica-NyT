@@ -279,18 +279,24 @@
     </div>
 
     <!-- Events View -->
-    <div id="events-view" class="hidden">
-      <div class="flex gap-2 mb-4">
-        <button data-event-filter="all" class="active">Összes</button>
-        <button data-event-filter="pending">⏳ Függő</button>
-        <button data-event-filter="expired" class="text-red-600">⚠️ Lejárt</button>
-        <button data-event-filter="done">✅ Kész</button>
+    <div id="events-view" class="hidden p-4">
+      <div class="flex justify-between items-center mb-4">
+        <div class="flex gap-2">
+          <button data-event-filter="all" class="active px-2 py-1 rounded">Összes</button>
+          <button data-event-filter="pending" class="px-2 py-1 rounded">⏳ Függő</button>
+          <button data-event-filter="expired" class="text-red-600 px-2 py-1 rounded">⚠️ Lejárt</button>
+          <button data-event-filter="done" class="px-2 py-1 rounded">✅ Kész</button>
+        </div>
+        <button id="btn-add-event-view" class="px-3 py-1 bg-blue-600 text-white rounded shadow text-sm font-medium hover:bg-blue-700">+ Új esemény</button>
       </div>
       <div id="events-list"></div>
     </div>
 
     <!-- FAB -->
-    <button id="fab-add-cat" class="fixed bottom-6 right-6 w-14 h-14 bg-pink-500 rounded-full shadow-lg flex items-center justify-center text-white text-2xl hover:scale-105 z-40 focus:outline-none">
+    <button id="fab-add-event" class="fixed bottom-24 right-6 w-14 h-14 bg-blue-600 rounded-full shadow-lg flex items-center justify-center text-white text-2xl hover:scale-105 z-40 focus:outline-none" title="Új esemény">
+      📅
+    </button>
+    <button id="fab-add-cat" class="fixed bottom-6 right-6 w-14 h-14 bg-pink-500 rounded-full shadow-lg flex items-center justify-center text-white text-2xl hover:scale-105 z-40 focus:outline-none" title="Új cica">
       +
     </button>
   </div>
