@@ -18,6 +18,11 @@ export function initModals() {
                 kiskonyvFields.classList.remove('max-h-[500px]');
             }
 
+            const chipError = document.getElementById('chip-error');
+            if (chipError) {
+                chipError.classList.add('hidden');
+            }
+
             openModal('modal-cat-form');
         });
     }
@@ -163,6 +168,17 @@ export function initModals() {
 
             const hasKiskonyv = document.getElementById('cat-has-kiskonyv').checked;
 
+            const chipNumberInput = document.getElementById('cat-chip-number').value.trim();
+            const chipError = document.getElementById('chip-error');
+            if (chipError) chipError.classList.add('hidden');
+
+            if (chipNumberInput) {
+                if (chipNumberInput.length !== 15 || !/^(900|348)/.test(chipNumberInput) || !/^\d+$/.test(chipNumberInput)) {
+                    if (chipError) chipError.classList.remove('hidden');
+                    return;
+                }
+            }
+
             const catData = {
                 nev: document.getElementById('cat-nev').value,
                 ivar: document.getElementById('cat-ivar').value,
@@ -179,6 +195,9 @@ export function initModals() {
                 hasKiskonyv: hasKiskonyv,
                 kiskonyvSzam: hasKiskonyv ? document.getElementById('cat-kiskonyv-szam').value : null,
                 kiskonyvDate: hasKiskonyv ? document.getElementById('cat-kiskonyv-date').value : null,
+                chipNumber: chipNumberInput || null,
+                chipDate: chipNumberInput ? document.getElementById('cat-chip-date').value : null,
+                chipLocation: chipNumberInput ? document.getElementById('cat-chip-location').value : null,
             };
 
             if (status === 'gazdis') {

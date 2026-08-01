@@ -25,3 +25,18 @@ db.version(4).stores({
 db.version(5).stores({
   cats: 'id, sorszam, nev, ivar, szin, szuletes, created, syncStatus, status, gazdisDate, gazdisPerson, intakeType, hasKiskonyv'
 });
+
+db.version(6).stores({
+  cats: 'id, sorszam, nev, ivar, szin, szuletes, created, syncStatus, status, gazdisDate, gazdisPerson, intakeType, hasKiskonyv'
+});
+
+db.version(7).stores({
+  cats: 'id, sorszam, nev, ivar, szin, szuletes, created, syncStatus, status, gazdisDate, gazdisPerson, intakeType, hasKiskonyv, chipNumber, chipDate, chipLocation',
+  events: '++id, catId, type, date, status, createdAt'
+}).upgrade(tx => {
+  return tx.cats.toCollection().modify(cat => {
+    if (cat.chipNumber === undefined) cat.chipNumber = null;
+    if (cat.chipDate === undefined) cat.chipDate = null;
+    if (cat.chipLocation === undefined) cat.chipLocation = null;
+  });
+});
