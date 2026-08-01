@@ -17,6 +17,20 @@ export function initEventForm() {
             await saveEvent();
         });
     }
+
+    const fabAddEvent = document.getElementById('fab-add-event');
+    if (fabAddEvent) {
+        fabAddEvent.addEventListener('click', () => {
+            openEventModal();
+        });
+    }
+
+    const btnAddEventView = document.getElementById('btn-add-event-view');
+    if (btnAddEventView) {
+        btnAddEventView.addEventListener('click', () => {
+            openEventModal();
+        });
+    }
 }
 
 export async function openEventModal(eventId = null, catId = null) {
