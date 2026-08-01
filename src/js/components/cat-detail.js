@@ -254,6 +254,17 @@ export async function openDetailView(catId) {
     document.getElementById('detail-age').innerText = calculateAge(cat.szuletes);
     document.getElementById('detail-birth-date').innerText = `Született: ${formatDate(cat.szuletes)}`;
 
+    // Expired event banner
+    const expiredBanner = document.getElementById('expired-event-banner');
+    if (expiredBanner) {
+        const hasExpiredEvent = await db.events.where({ catId: id, status: 'expired' }).count() > 0;
+        if (hasExpiredEvent) {
+            expiredBanner.classList.remove('hidden');
+        } else {
+            expiredBanner.classList.add('hidden');
+        }
+    }
+
     // Elhunyt info
     const mainContent = document.getElementById('detail-main-content');
     const elhunytBanner = document.getElementById('memorial-banner');

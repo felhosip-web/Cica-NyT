@@ -10,9 +10,11 @@ import { initSettings, initSettingsActions } from './views/settings-view.js';
 import { initExportModal } from './views/export-modal.js';
 import { renderChangelog } from './views/help-view.js';
 import { cloudSyncManager } from './cloud/sync-manager.js';
-import { checkExpired, updateEventBadge } from './utils/event-check.js';
+import { checkExpired, updateEventBadge, getBadgeCount } from './utils/event-check.js';
 import { initEventList, renderEvents } from './components/event-list.js';
 import { initEventForm } from './components/event-form.js';
+import { showToast } from './utils/toast.js';
+import { requestPermission, scheduleLocalCheck } from './utils/push.js';
 
 function setupRouting() {
     const mainView = document.getElementById('main-view');
@@ -95,6 +97,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     await checkExpired();
     await updateEventBadge();
     await renderEvents();
+
+    // Toast if there are pending/expired events
+    const count = await getBadgeCount();
+    if (count > 0) {
+        showToast(`${count} lejárt/közeli esemény`, count > 5 ? 'error' : 'warning');
+    }
+
+    // Request notification permission and set up push checks
+    if (window.Notification && Notification.permission !== 'denied') {
+        requestPermission();
+        setInterval(scheduleLocalCheck, 60 * 60 * 1000); // check hourly
+    }
 
     // Initial sync and list render
     await initList();
