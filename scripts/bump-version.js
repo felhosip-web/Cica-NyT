@@ -9,7 +9,8 @@ const indexFilePath = path.join(process.cwd(), 'index.html');
 const versionData = JSON.parse(fs.readFileSync(versionFilePath, 'utf8'));
 const currentVersion = versionData.version;
 const versionParts = currentVersion.split('.');
-versionParts[2] = parseInt(versionParts[2], 10) + 1;
+versionParts[1] = parseInt(versionParts[1], 10) + 1;
+versionParts[2] = 0;
 const newVersion = versionParts.join('.');
 const newBuildDate = new Date().toISOString().split('T')[0];
 

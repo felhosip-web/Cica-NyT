@@ -37,9 +37,28 @@ export async function initSettings() {
             }
 
             orgRoleSelect.value = savedRole;
+
+            const showDeceasedEl = document.getElementById('showDeceased');
+            if (showDeceasedEl) {
+                showDeceasedEl.checked = settings.showDeceased ?? true;
+            }
         }
     } catch (e) {
         console.error('Failed to load settings', e);
+    }
+
+    const showDeceasedEl = document.getElementById('showDeceased');
+    if (showDeceasedEl) {
+        showDeceasedEl.addEventListener('change', async (e) => {
+            let currentSettings = await db.settings.get('main');
+            if (!currentSettings) currentSettings = { id: 'main' };
+            currentSettings.showDeceased = e.target.checked;
+            await db.settings.put(currentSettings);
+
+            // Reload list to apply filter immediately
+            const { initList } = await import('../components/cat-list.js');
+            initList();
+        });
     }
 
     form.addEventListener('submit', async (e) => {
@@ -48,12 +67,19 @@ export async function initSettings() {
         const orgName = orgNameInput.value.trim();
         const orgRole = orgRoleSelect.value;
 
+        let currentSettings = await db.settings.get('main');
+        if (!currentSettings) currentSettings = { id: 'main' };
+
+        const showDeceasedEl = document.getElementById('showDeceased');
+
         const settingsObj = {
+            ...currentSettings,
             id: 'main',
             orgName,
             orgRole,
             cloudEnabled: false,
-            cloudProvider: null
+            cloudProvider: null,
+            showDeceased: showDeceasedEl ? showDeceasedEl.checked : true
         };
 
         try {

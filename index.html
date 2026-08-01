@@ -108,6 +108,13 @@
     </header>
 
     <main class="p-4 space-y-6">
+      <section class="bg-white rounded-xl shadow-sm p-4">
+        <label class="flex items-center justify-between p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+          <span class="text-sm font-medium text-gray-700">Elhunyt cicák mutatása listában</span>
+          <input type="checkbox" id="showDeceased" class="rounded text-brand-pink focus:ring-brand-pink h-5 w-5 border-gray-300">
+        </label>
+      </section>
+
       <!-- Szervezet beállításai -->
       <section class="bg-white rounded-xl shadow-sm p-4">
         <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2">🏢 Szervezet beállításai</h3>
@@ -232,6 +239,7 @@
           <button class="filter-chip px-3 py-1 bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-full text-sm font-medium transition-colors" data-filter="befogott">🐾 Befogott</button>
           <button class="filter-chip px-3 py-1 bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-full text-sm font-medium transition-colors" data-filter="behozott">📦 Behozott</button>
           <button class="filter-chip px-3 py-1 bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-full text-sm font-medium transition-colors" data-filter="gazdis">🏠 Gazdis</button>
+          <button class="filter-chip px-3 py-1 bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-full text-sm font-medium transition-colors" data-filter="elhunyt">🕊️ Elhunyt</button>
        </div>
        <div class="flex gap-2">
          <input type="text" id="search-input" placeholder="Keresés (név, sorszám, cím, név)..." class="border rounded-lg px-4 py-2 w-full focus:ring-brand-pink focus:border-brand-pink outline-none transition-shadow">
@@ -282,7 +290,12 @@
     </header>
 
     <!-- Content -->
-    <main class="flex-1 p-4 pb-24 max-w-2xl mx-auto w-full space-y-4">
+    <main id="detail-main-content" class="flex-1 p-4 pb-24 max-w-2xl mx-auto w-full space-y-4">
+      <!-- DETAIL VIEW - top banner -->
+      <div id="memorial-banner" class="hidden bg-gray-100 border border-gray-200 rounded-xl p-3 mb-4 text-center">
+        <p class="text-sm text-gray-700">🕊️ Ez a cica <span id="memorial-date"></span>-án elhunyt - Emlékét megőrizzük 🤍</p>
+      </div>
+
       <!-- Intake Info Card (Beérkezés) -->
       <div id="detail-intake-info" class="bg-white rounded-xl shadow-sm p-4 text-sm">
          <!-- Populated via JS -->
@@ -291,6 +304,11 @@
       <!-- Kiskonyv Info Card -->
       <div id="detail-kiskonyv-info" class="bg-white rounded-xl shadow-sm p-4 text-sm flex items-center justify-between border-l-4">
          <!-- Populated via JS -->
+      </div>
+
+      <!-- DETAIL alján memorial -->
+      <div id="memorial-section" class="hidden mt-6 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+        <p id="memorial-notes" class="text-sm italic text-gray-600 text-center"></p>
       </div>
 
       <!-- Info Card -->
@@ -450,6 +468,7 @@
                 <option value="ideiglenes">Ideiglenes</option>
                 <option value="gazdis">Gazdis</option>
                 <option value="orvosi">Orvosi</option>
+                <option value="elhunyt">🕊️ Elhunyt</option>
               </select>
             </div>
           </div>
@@ -497,6 +516,33 @@
                  <input type="date" id="cat-kiskonyv-date" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink">
                </div>
              </div>
+          </div>
+
+          <div id="elhunyt-extra" class="hidden mt-6 pt-6 border-t border-gray-200 bg-gray-50 rounded-xl p-4">
+            <h3 class="text-sm font-semibold text-gray-700 mb-3">🕊️ Elhunyt - Megemlékezés</h3>
+
+            <label class="block mb-3">
+              <span class="text-sm text-gray-600">Elhunyt dátuma *</span>
+              <input type="date" id="elhunytDate" class="w-full mt-1 p-2 border rounded-lg focus:ring-brand-pink focus:border-brand-pink" required>
+              <span id="elhunytDate-error" class="text-xs text-red-500 hidden">Kérlek add meg a dátumot</span>
+            </label>
+
+            <label class="block mb-3">
+              <span class="text-sm text-gray-600">Ok (opcionális)</span>
+              <select id="elhunytOk" class="w-full mt-1 p-2 border rounded-lg focus:ring-brand-pink focus:border-brand-pink bg-white">
+                <option value="">Válassz...</option>
+                <option value="betegség">Betegség</option>
+                <option value="idős kor">Idős kor</option>
+                <option value="baleset">Baleset</option>
+                <option value="elaltatás">Elaltatás</option>
+                <option value="ismeretlen">Ismeretlen</option>
+              </select>
+            </label>
+
+            <label class="block">
+              <span class="text-sm text-gray-600">Megemlékezés</span>
+              <textarea id="elhunytNotes" rows="2" class="w-full mt-1 p-2 border rounded-lg focus:ring-brand-pink focus:border-brand-pink" placeholder="Nyugodj békében..."></textarea>
+            </label>
           </div>
         </form>
       </div>

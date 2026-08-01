@@ -63,15 +63,28 @@ export function initModals() {
         });
     });
 
-    // Status change listener for gazdis fields
+    // Status change listener for gazdis and elhunyt fields
     const statusSelect = document.getElementById('cat-status');
     const gazdisExtra = document.getElementById('gazdis-extra');
-    if (statusSelect && gazdisExtra) {
+    const elhunytExtra = document.getElementById('elhunyt-extra');
+    if (statusSelect) {
         statusSelect.addEventListener('change', (e) => {
-            if (e.target.value === 'gazdis') {
-                gazdisExtra.classList.remove('hidden');
-            } else {
-                gazdisExtra.classList.add('hidden');
+            if (gazdisExtra) {
+                if (e.target.value === 'gazdis') {
+                    gazdisExtra.classList.remove('hidden');
+                } else {
+                    gazdisExtra.classList.add('hidden');
+                }
+            }
+            if (elhunytExtra) {
+                const elhunytDate = document.getElementById('elhunytDate');
+                if (e.target.value === 'elhunyt') {
+                    elhunytExtra.classList.remove('hidden');
+                    if (elhunytDate) elhunytDate.required = true;
+                } else {
+                    elhunytExtra.classList.add('hidden');
+                    if (elhunytDate) elhunytDate.required = false;
+                }
             }
         });
     }
@@ -139,6 +152,15 @@ export function initModals() {
                 }
             }
 
+            if (status === 'elhunyt') {
+                const d = document.getElementById('elhunytDate').value;
+                if (!d) {
+                    const errEl = document.getElementById('elhunytDate-error');
+                    if (errEl) errEl.classList.remove('hidden');
+                    return;
+                }
+            }
+
             const hasKiskonyv = document.getElementById('cat-has-kiskonyv').checked;
 
             const catData = {
@@ -169,6 +191,16 @@ export function initModals() {
                 catData.gazdisPerson = null;
                 catData.gazdisContact = null;
                 catData.gazdisNotes = null;
+            }
+
+            if (status === 'elhunyt') {
+                catData.elhunytDate = document.getElementById('elhunytDate').value;
+                catData.elhunytOk = document.getElementById('elhunytOk').value;
+                catData.elhunytNotes = document.getElementById('elhunytNotes').value;
+            } else {
+                catData.elhunytDate = null;
+                catData.elhunytOk = null;
+                catData.elhunytNotes = null;
             }
 
             if (idInput) {
