@@ -65,9 +65,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             const swUrl = import.meta.env.BASE_URL + 'service-worker.js';
-            navigator.serviceWorker.register(swUrl).catch(err => {
+            navigator.serviceWorker.register(swUrl).then(registration => {
+                setInterval(() => {
+                    registration.update();
+                }, 60 * 60 * 1000); // 1 hour
+            }).catch(err => {
                 console.error('ServiceWorker registration failed: ', err);
             });
+        });
+
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            window.location.reload();
         });
     }
 

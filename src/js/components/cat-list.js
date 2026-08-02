@@ -325,17 +325,8 @@ export async function renderCatList() {
              openDetailView(cat.id);
         };
 
-        // Desktop Double Click
-        card.addEventListener('dblclick', openDetail);
-
-        // Click handler (Desktop and Mobile)
-        card.addEventListener('click', (e) => {
-            if (window.AppState.selectionMode) {
-                selectCard(e);
-            } else {
-                openDetail(e);
-            }
-        });
+        // Click handler
+        card.addEventListener('click', openDetail);
 
         container.appendChild(card);
     });

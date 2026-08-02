@@ -226,11 +226,16 @@ export function initModals() {
                 catData.elhunytNotes = null;
             }
 
-            if (idInput) {
+            const modalForm = document.getElementById('modal-cat-form');
+            const editId = modalForm.dataset.editId;
+
+            if (editId) {
                 // Edit existing
-                const existing = await db.cats.get(idInput);
+                const existing = await db.cats.get(editId);
                 const updatedCat = { ...existing, ...catData };
+                await db.cats.update(editId, updatedCat);
                 await syncService.queueSync(updatedCat);
+                delete modalForm.dataset.editId;
             } else {
                 // New cat
                 const meta = await db.meta.get('nextSorszam') || { key: 'nextSorszam', value: 1 };
