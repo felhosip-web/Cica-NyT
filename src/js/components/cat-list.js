@@ -296,7 +296,6 @@ export async function renderCatList() {
         `;
 
         // Interaction logic
-        let touchTimer = null;
 
         const selectCard = (e) => {
             if (e) e.preventDefault();
@@ -326,48 +325,13 @@ export async function renderCatList() {
         // Desktop Double Click
         card.addEventListener('dblclick', openDetail);
 
-        // Desktop Single Click / Mobile Tap
+        // Click handler (Desktop and Mobile)
         card.addEventListener('click', (e) => {
-            // If it's a mobile touch event, it's handled below to differentiate from long press
-            if (e.pointerType === 'touch') return;
             if (window.AppState.selectionMode) {
                 selectCard(e);
             } else {
                 openDetail(e);
             }
-        });
-
-        // Mobile touch events for tap (open) vs long press (select)
-        card.addEventListener('touchstart', (e) => {
-             touchTimer = setTimeout(() => {
-                 // Long press sets selection mode automatically if not enabled and selects card
-                 if (!window.AppState.selectionMode) {
-                     window.AppState.selectionMode = true;
-                     renderCatList();
-                 }
-                 selectCard(e);
-                 touchTimer = null;
-             }, 500); // 500ms for long press
-        }, {passive: true});
-
-        card.addEventListener('touchend', (e) => {
-             if (touchTimer) {
-                 clearTimeout(touchTimer);
-                 touchTimer = null;
-                 // It was a short tap
-                 if (window.AppState.selectionMode) {
-                     selectCard(e);
-                 } else {
-                     openDetail(e);
-                 }
-             }
-        });
-
-        card.addEventListener('touchmove', () => {
-             if (touchTimer) {
-                 clearTimeout(touchTimer);
-                 touchTimer = null;
-             }
         });
 
         container.appendChild(card);
