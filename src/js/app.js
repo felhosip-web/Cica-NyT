@@ -87,8 +87,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     await cloudSyncManager.init();
 
     // Listen for org settings changed
-    document.addEventListener('orgSettingsChanged', () => {
+    document.addEventListener('orgSettingsChanged', async () => {
         renderOrgDisplay();
+        await cloudSyncManager.init();
+        syncService.updateSyncUI();
+        syncService.syncPending();
     });
 
     // Check and update events
