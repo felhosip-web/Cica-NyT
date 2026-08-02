@@ -421,13 +421,21 @@ async function renderCatEvents(catId) {
         const title = escapeHtml(e.title || '');
         const dateStr = escapeHtml(e.date || '');
         let statusStr = '';
-        if (e.status === 'done') statusStr = '<span class="text-xs text-green-600 font-bold ml-2">✅ Kész</span>';
-        if (e.status === 'expired') statusStr = '<span class="text-xs text-red-600 font-bold ml-2">⚠️ Lejárt</span>';
+        let bgClass = 'bg-blue-50 border-blue-200'; // Default pending
+        if (e.status === 'done') {
+            statusStr = '<span class="text-xs text-green-600 font-bold ml-2">✅ Kész</span>';
+            bgClass = 'bg-green-50 border-green-200 opacity-75';
+        }
+        if (e.status === 'expired') {
+            statusStr = '<span class="text-xs text-red-600 font-bold ml-2">⚠️ Lejárt</span>';
+            bgClass = 'bg-red-50 border-red-200';
+            icon += ' ⚠️';
+        }
 
         html += `
-            <div class="p-2 border border-gray-200 rounded bg-white flex justify-between items-center cursor-pointer hover:bg-gray-50" onclick="window.handleDetailEventClick(${e.id})">
+            <div class="p-2 border rounded flex justify-between items-center cursor-pointer hover:opacity-100 hover:shadow-md transition ${bgClass}" onclick="window.handleDetailEventClick(${e.id})">
                 <div class="flex items-center gap-2">
-                    <span>${icon}</span>
+                    <span class="text-2xl">${icon}</span>
                     <div>
                         <div class="text-sm font-bold text-gray-800">${title}${statusStr}</div>
                         <div class="text-xs text-gray-500">${dateStr}</div>

@@ -2,7 +2,7 @@ import { db } from '../db.js';
 import { calculateAge } from '../utils/age.js';
 import { escapeHtml } from '../utils/escape.js';
 import { openDetailView } from './cat-detail.js';
-import { updateFooterStats } from '../app.js';
+import { updateFooterStats } from '../utils/stats.js';
 
 let allCats = [];
 
