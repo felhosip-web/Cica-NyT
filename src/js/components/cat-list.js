@@ -2,6 +2,7 @@ import { db } from '../db.js';
 import { calculateAge } from '../utils/age.js';
 import { escapeHtml } from '../utils/escape.js';
 import { openDetailView } from './cat-detail.js';
+import { updateFooterStats } from '../app.js';
 
 let allCats = [];
 
@@ -121,6 +122,8 @@ export function updateSelectionActionBar() {
 }
 
 export async function renderCatList() {
+    await updateFooterStats();
+
     const searchInput = document.getElementById('search-input');
     const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
 
