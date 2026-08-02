@@ -326,7 +326,13 @@ export async function renderCatList() {
         };
 
         // Click handler
-        card.addEventListener('click', openDetail);
+        card.addEventListener('click', (e) => {
+            if (window.AppState.selectionMode) {
+                selectCard(e);
+            } else {
+                openDetail(e);
+            }
+        });
 
         container.appendChild(card);
     });

@@ -1,5 +1,12 @@
 [
   {
+    "version": "1.6.4",
+    "date": "2026-08-02",
+    "changes": [
+      "Bugfix: Kijelölési módban a kártyára kattintáskor a szerkesztés nyílt meg a kijelölés helyett"
+    ]
+  },
+  {
     "version": "1.4.0",
     "date": "2026-07-31",
     "changes": [
