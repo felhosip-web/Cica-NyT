@@ -77,7 +77,9 @@ export async function renderEvents() {
     const catCache = {};
 
     for (let e of events) {
-        if (!catCache[e.catId]) {
+        if (e.catId === 'general') {
+            catCache['general'] = { nev: 'Általános esemény', chipNumber: null };
+        } else if (!catCache[e.catId]) {
             const cat = await db.cats.get(e.catId);
             catCache[e.catId] = cat || { nev: 'Ismeretlen', chipNumber: null };
         }
@@ -129,7 +131,7 @@ export async function renderEvents() {
                 }
 
                 html += `
-                    <div class="event-card ${bgClass} border rounded-lg p-3 shadow-sm flex items-center justify-between cursor-pointer hover:shadow-md transition" data-id="${e.id}">
+                    <div class="event-card ${bgClass} border rounded-lg p-3 shadow-sm flex items-center justify-between cursor-pointer hover:shadow-md transition group" data-id="${e.id}">
                         <div class="flex items-center gap-3 overflow-hidden flex-1" onclick="window.handleEventClick(event, ${e.id})">
                             <div class="text-2xl">${icon}</div>
                             <div class="flex-1 min-w-0">
@@ -138,7 +140,10 @@ export async function renderEvents() {
                                 <div class="text-xs text-gray-500">${dateDisplay}</div>
                             </div>
                         </div>
-                        <div class="ml-2">
+                        <div class="ml-2 flex items-center gap-3">
+                            <button type="button" class="text-red-400 hover:text-red-600 p-1 bg-white rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity btn-delete-list-event" data-id="${e.id}" title="Törlés">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
                             <input type="checkbox" class="w-6 h-6 rounded border-gray-300 text-brand-pink focus:ring-brand-pink cursor-pointer event-done-cb"
                                 ${isDone ? 'checked disabled' : ''}
                                 data-id="${e.id}">
@@ -151,6 +156,21 @@ export async function renderEvents() {
     }
 
     listEl.innerHTML = html;
+
+    // Bind delete buttons
+    document.querySelectorAll('.btn-delete-list-event').forEach(btn => {
+        btn.addEventListener('click', async (ev) => {
+            ev.stopPropagation(); // prevent card click
+            const id = parseInt(ev.currentTarget.dataset.id, 10);
+            if (confirm('Biztosan törlöd ezt az eseményt?')) {
+                await db.events.delete(id);
+                await updateEventBadge();
+                renderEvents();
+                document.dispatchEvent(new CustomEvent('eventsChanged'));
+                showToast('Esemény törölve', 'info');
+            }
+        });
+    });
 
     // Bind checkboxes
     document.querySelectorAll('.event-done-cb').forEach(cb => {
@@ -192,8 +212,16 @@ function openConfirmDoneModal(eventId, checkboxEl) {
     });
 }
 
-window.handleEventClick = function(ev, id) {
-    if (ev.target.type === 'checkbox') return; // let the checkbox handle it
+window.handleEventClick = async function(ev, id) {
+    if (ev.target.type === 'checkbox' || ev.target.closest('.btn-delete-list-event')) return; // let the specific elements handle it
+
+    // Check if event is done
+    const eventObj = await db.events.get(id);
+    if (eventObj && eventObj.status === 'done') {
+        showToast('Ez az esemény már teljesítve van, nem szerkeszthető.', 'warning');
+        return;
+    }
+
     openEventModal(id);
 };
 

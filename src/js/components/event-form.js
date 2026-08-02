@@ -10,6 +10,13 @@ export function initEventForm() {
         btnClose.addEventListener('click', closeEventModal);
     }
 
+    const btnCloseTypeSelector = document.getElementById('btn-close-type-selector');
+    if (btnCloseTypeSelector) {
+        btnCloseTypeSelector.addEventListener('click', () => {
+            document.getElementById('modal-event-type-selector').classList.add('hidden');
+        });
+    }
+
     const form = document.querySelector('#modal-new-event-form #form-new-event');
     if (form) {
         form.addEventListener('submit', async (e) => {
@@ -18,24 +25,58 @@ export function initEventForm() {
         });
     }
 
+    const btnDelete = document.getElementById('btn-delete-event-form');
+    if (btnDelete) {
+        btnDelete.addEventListener('click', async () => {
+            const idInput = document.querySelector('#modal-new-event-form #event-id').value;
+            if (!idInput) return;
+
+            if (confirm('Biztosan törlöd ezt az eseményt?')) {
+                await db.events.delete(parseInt(idInput, 10));
+                closeEventModal();
+                await updateEventBadge();
+                renderEvents();
+                document.dispatchEvent(new CustomEvent('eventsChanged'));
+                showToast('Esemény törölve', 'info');
+            }
+        });
+    }
+
     const fabAddEvent = document.getElementById('fab-add-event');
     if (fabAddEvent) {
         fabAddEvent.addEventListener('click', () => {
-            openEventModal();
+            document.getElementById('modal-event-type-selector').classList.remove('hidden');
         });
     }
 
     const btnAddEventView = document.getElementById('btn-add-event-view');
     if (btnAddEventView) {
         btnAddEventView.addEventListener('click', () => {
-            openEventModal();
+            document.getElementById('modal-event-type-selector').classList.remove('hidden');
         });
     }
+
+    // Global function for the selector modal
+    window.startNewEvent = function(mode) {
+        document.getElementById('modal-event-type-selector').classList.add('hidden');
+        openEventModal(null, null, mode);
+    };
 }
 
-export async function openEventModal(eventId = null, catId = null) {
+export async function openEventModal(eventId = null, catId = null, mode = 'cat') {
     const modal = document.getElementById('modal-new-event-form');
     if (!modal) return;
+
+    if (eventId) {
+        const ev = await db.events.get(eventId);
+        if (ev && ev.status === 'done') {
+            showToast('Ez az esemény már teljesítve van, nem szerkeszthető.', 'warning');
+            return;
+        }
+        if (ev) {
+            mode = ev.catId === 'general' ? 'general' : 'cat';
+        }
+    }
 
     const catSelect = modal.querySelector('#event-cat-id');
     catSelect.innerHTML = '<option value="">Válassz cicát...</option>';
@@ -50,16 +91,34 @@ export async function openEventModal(eventId = null, catId = null) {
 
     modal.querySelector('#form-new-event').reset();
     modal.querySelector('#event-id').value = '';
+    modal.querySelector('#event-mode').value = mode;
+
+    const catContainer = modal.querySelector('#event-cat-container');
+    if (mode === 'general') {
+        catContainer.classList.add('hidden');
+        catSelect.removeAttribute('required');
+    } else {
+        catContainer.classList.remove('hidden');
+        catSelect.setAttribute('required', 'required');
+    }
 
     const titleEl = modal.querySelector('#new-event-form-title');
     titleEl.textContent = 'Új Esemény';
 
+    const btnDelete = modal.querySelector('#btn-delete-event-form');
+    if (btnDelete) {
+        btnDelete.classList.add('hidden');
+    }
+
     if (eventId) {
         titleEl.textContent = 'Esemény szerkesztése';
+        if (btnDelete) btnDelete.classList.remove('hidden');
         const ev = await db.events.get(eventId);
         if (ev) {
             modal.querySelector('#event-id').value = ev.id;
-            modal.querySelector('#event-cat-id').value = ev.catId;
+            if (ev.catId !== 'general') {
+                modal.querySelector('#event-cat-id').value = ev.catId;
+            }
             modal.querySelector('#event-type').value = ev.type || 'egyeni';
             modal.querySelector('#event-title').value = ev.title || '';
             modal.querySelector('#event-date').value = ev.date || '';
@@ -82,9 +141,17 @@ export function closeEventModal() {
 async function saveEvent() {
     const modal = document.getElementById('modal-new-event-form');
     const idInput = modal.querySelector('#event-id').value;
+    const mode = modal.querySelector('#event-mode').value;
+
+    // Get organization name for creator tracking (useful for multi-user sync later)
+    let creatorName = 'Ismeretlen';
+    const settings = await db.settings.get('main');
+    if (settings && settings.orgName) {
+        creatorName = settings.orgName;
+    }
 
     const eventData = {
-        catId: modal.querySelector('#event-cat-id').value,
+        catId: mode === 'general' ? 'general' : modal.querySelector('#event-cat-id').value,
         type: modal.querySelector('#event-type').value,
         title: modal.querySelector('#event-title').value,
         date: modal.querySelector('#event-date').value,
@@ -92,6 +159,7 @@ async function saveEvent() {
         vetName: modal.querySelector('#event-vet').value,
         notes: modal.querySelector('#event-notes').value,
         status: 'pending',
+        createdBy: creatorName,
         createdAt: new Date().toISOString()
     };
 
