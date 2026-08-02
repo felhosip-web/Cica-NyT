@@ -218,7 +218,7 @@ export async function renderCatList() {
             extraClasses = 'grayscale opacity-80';
         }
 
-        card.className = `${bgClass} rounded-xl shadow p-4 mb-2 cursor-pointer transition-all active:scale-95 flex items-center gap-3 border ${borderClass} ${extraClasses}`;
+        card.className = `${bgClass} rounded-xl shadow p-4 cursor-pointer transition-all active:scale-95 flex items-center gap-3 border ${borderClass} ${extraClasses}`;
         card.dataset.id = cat.id;
 
         let gazdisBadge = '';

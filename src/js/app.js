@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const eventCount = await db.events.where('status').equals('pending').count();
         const statsEl = document.getElementById('app-stats');
         if (statsEl) {
-            statsEl.textContent = `${catCount} cica • ${eventCount} függő esemény`;
+            statsEl.textContent = `${catCount} cica • ${eventCount} függő`;
         }
     } catch (e) {
         console.error('Failed to update stats', e);
