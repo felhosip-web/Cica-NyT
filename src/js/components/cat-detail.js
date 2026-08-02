@@ -10,6 +10,93 @@ import { showToast } from '../utils/toast.js';
 
 let currentCatId = null;
 
+export function openCatModal(cat) {
+    if (cat) {
+        document.getElementById('cat-id').value = cat.id;
+        document.getElementById('cat-nev').value = cat.nev;
+        document.getElementById('cat-ivar').value = cat.ivar;
+        document.getElementById('cat-status').value = cat.status || 'befogadható';
+        document.getElementById('cat-szuletes').value = cat.szuletes;
+        document.getElementById('cat-szin').value = cat.szin;
+
+        // Kiskonyv fields
+        const hasKiskonyvEl = document.getElementById('cat-has-kiskonyv');
+        if (hasKiskonyvEl) {
+            hasKiskonyvEl.checked = !!cat.hasKiskonyv;
+            const kiskonyvFields = document.getElementById('kiskonyv-fields');
+            if (cat.hasKiskonyv) {
+                kiskonyvFields.classList.remove('max-h-0', 'opacity-0');
+                kiskonyvFields.classList.add('max-h-[500px]');
+                document.getElementById('cat-kiskonyv-szam').value = cat.kiskonyvSzam || '';
+                document.getElementById('cat-kiskonyv-date').value = cat.kiskonyvDate || '';
+            } else {
+                kiskonyvFields.classList.add('max-h-0', 'opacity-0');
+                kiskonyvFields.classList.remove('max-h-[500px]');
+                document.getElementById('cat-kiskonyv-szam').value = '';
+                document.getElementById('cat-kiskonyv-date').value = '';
+            }
+        }
+
+        document.getElementById('cat-chip-number').value = cat.chipNumber || '';
+        document.getElementById('cat-chip-date').value = cat.chipDate || '';
+        document.getElementById('cat-chip-location').value = cat.chipLocation || '';
+
+        // Set Intake fields
+        const intakeType = cat.intakeType || 'befogott';
+        const radioToSelect = document.querySelector(`input[name="intakeType"][value="${intakeType}"]`);
+        if (radioToSelect) {
+            radioToSelect.checked = true;
+            // Dispatch change event to trigger UI update
+            radioToSelect.dispatchEvent(new Event('change'));
+        }
+
+        document.getElementById('cat-befogott-hol').value = cat.befogottHol || '';
+        document.getElementById('cat-befogott-mikor').value = cat.befogottMikor || '';
+        document.getElementById('cat-befogott-ki').value = cat.befogottKi || '';
+
+        document.getElementById('cat-behozott-ki').value = cat.behozottKi || '';
+        document.getElementById('cat-behozott-mikor').value = cat.behozottMikor || '';
+        document.getElementById('cat-behozott-atvevo').value = cat.behozottAtvevoKi || '';
+
+        const gazdisExtra = document.getElementById('gazdis-extra');
+        if (cat.status === 'gazdis') {
+            gazdisExtra.classList.remove('hidden');
+            document.getElementById('cat-gazdis-date').value = cat.gazdisDate || '';
+            document.getElementById('cat-gazdis-person').value = cat.gazdisPerson || '';
+            document.getElementById('cat-gazdis-contact').value = cat.gazdisContact || '';
+            document.getElementById('cat-gazdis-notes').value = cat.gazdisNotes || '';
+        } else {
+            gazdisExtra.classList.add('hidden');
+            document.getElementById('cat-gazdis-date').value = '';
+            document.getElementById('cat-gazdis-person').value = '';
+            document.getElementById('cat-gazdis-contact').value = '';
+            document.getElementById('cat-gazdis-notes').value = '';
+        }
+
+        const elhunytExtra = document.getElementById('elhunyt-extra');
+        if (elhunytExtra) {
+            if (cat.status === 'elhunyt') {
+                elhunytExtra.classList.remove('hidden');
+                document.getElementById('elhunytDate').value = cat.elhunytDate || '';
+                document.getElementById('elhunytOk').value = cat.elhunytOk || '';
+                document.getElementById('elhunytNotes').value = cat.elhunytNotes || '';
+            } else {
+                elhunytExtra.classList.add('hidden');
+                document.getElementById('elhunytDate').value = '';
+                document.getElementById('elhunytOk').value = '';
+                document.getElementById('elhunytNotes').value = '';
+            }
+        }
+
+        document.getElementById('cat-form-title').innerText = 'Cica szerkesztése';
+        const modal = document.getElementById('modal-cat-form');
+        if (modal) {
+            modal.dataset.editId = cat.id;
+        }
+        openModal('modal-cat-form');
+    }
+}
+
 export function initDetail() {
     // Back button
     document.getElementById('btn-back-detail').addEventListener('click', () => {
@@ -28,97 +115,20 @@ export function initDetail() {
         if (!currentCatId) return;
         const cat = await db.cats.get(currentCatId);
         if (cat) {
-            document.getElementById('cat-id').value = cat.id;
-            document.getElementById('cat-nev').value = cat.nev;
-            document.getElementById('cat-ivar').value = cat.ivar;
-            document.getElementById('cat-status').value = cat.status || 'befogadható';
-            document.getElementById('cat-szuletes').value = cat.szuletes;
-            document.getElementById('cat-szin').value = cat.szin;
-
-            // Kiskonyv fields
-            const hasKiskonyvEl = document.getElementById('cat-has-kiskonyv');
-            if (hasKiskonyvEl) {
-                hasKiskonyvEl.checked = !!cat.hasKiskonyv;
-                const kiskonyvFields = document.getElementById('kiskonyv-fields');
-                if (cat.hasKiskonyv) {
-                    kiskonyvFields.classList.remove('max-h-0', 'opacity-0');
-                    kiskonyvFields.classList.add('max-h-[500px]');
-                    document.getElementById('cat-kiskonyv-szam').value = cat.kiskonyvSzam || '';
-                    document.getElementById('cat-kiskonyv-date').value = cat.kiskonyvDate || '';
-                } else {
-                    kiskonyvFields.classList.add('max-h-0', 'opacity-0');
-                    kiskonyvFields.classList.remove('max-h-[500px]');
-                    document.getElementById('cat-kiskonyv-szam').value = '';
-                    document.getElementById('cat-kiskonyv-date').value = '';
-                }
-            }
-
-            document.getElementById('cat-chip-number').value = cat.chipNumber || '';
-            document.getElementById('cat-chip-date').value = cat.chipDate || '';
-            document.getElementById('cat-chip-location').value = cat.chipLocation || '';
-
-            // Set Intake fields
-            const intakeType = cat.intakeType || 'befogott';
-            const radioToSelect = document.querySelector(`input[name="intakeType"][value="${intakeType}"]`);
-            if (radioToSelect) {
-                radioToSelect.checked = true;
-                // Dispatch change event to trigger UI update
-                radioToSelect.dispatchEvent(new Event('change'));
-            }
-
-            document.getElementById('cat-befogott-hol').value = cat.befogottHol || '';
-            document.getElementById('cat-befogott-mikor').value = cat.befogottMikor || '';
-            document.getElementById('cat-befogott-ki').value = cat.befogottKi || '';
-
-            document.getElementById('cat-behozott-ki').value = cat.behozottKi || '';
-            document.getElementById('cat-behozott-mikor').value = cat.behozottMikor || '';
-            document.getElementById('cat-behozott-atvevo').value = cat.behozottAtvevoKi || '';
-
-            const gazdisExtra = document.getElementById('gazdis-extra');
-            if (cat.status === 'gazdis') {
-                gazdisExtra.classList.remove('hidden');
-                document.getElementById('cat-gazdis-date').value = cat.gazdisDate || '';
-                document.getElementById('cat-gazdis-person').value = cat.gazdisPerson || '';
-                document.getElementById('cat-gazdis-contact').value = cat.gazdisContact || '';
-                document.getElementById('cat-gazdis-notes').value = cat.gazdisNotes || '';
-            } else {
-                gazdisExtra.classList.add('hidden');
-                document.getElementById('cat-gazdis-date').value = '';
-                document.getElementById('cat-gazdis-person').value = '';
-                document.getElementById('cat-gazdis-contact').value = '';
-                document.getElementById('cat-gazdis-notes').value = '';
-            }
-
-            const elhunytExtra = document.getElementById('elhunyt-extra');
-            if (elhunytExtra) {
-                if (cat.status === 'elhunyt') {
-                    elhunytExtra.classList.remove('hidden');
-                    document.getElementById('elhunytDate').value = cat.elhunytDate || '';
-                    document.getElementById('elhunytOk').value = cat.elhunytOk || '';
-                    document.getElementById('elhunytNotes').value = cat.elhunytNotes || '';
-                } else {
-                    elhunytExtra.classList.add('hidden');
-                    document.getElementById('elhunytDate').value = '';
-                    document.getElementById('elhunytOk').value = '';
-                    document.getElementById('elhunytNotes').value = '';
-                }
-            }
-
-            document.getElementById('cat-form-title').innerText = 'Szerkesztés';
-            openModal('modal-cat-form');
+            openCatModal(cat);
         }
     });
 
     document.getElementById('btn-delete-cat').addEventListener('click', async () => {
         if (!currentCatId) return;
-        if (confirm("Biztos törlöd?")) {
+        if (confirm("Törlöd?")) {
             await db.cats.delete(currentCatId);
             // Delete associated events
             const events = await db.events.where({ catId: currentCatId }).toArray();
             for (let e of events) {
                 await db.events.delete(e.id);
             }
-            showToast('Cica törölve!', 'info');
+            showToast('Törölve', 'info');
             document.getElementById('detail-view').classList.add('hidden');
             renderCatList();
         }
