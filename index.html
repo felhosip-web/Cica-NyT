@@ -444,6 +444,32 @@
     </div>
   </div>
 
+  <!-- Event Type Selector Modal -->
+  <div id="modal-event-type-selector" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white w-full max-w-sm mx-auto rounded-t-2xl sm:rounded-2xl flex flex-col shadow-xl">
+      <div class="p-4 border-b flex justify-between items-center bg-gray-50 rounded-t-2xl">
+        <h3 class="text-lg font-bold">Új esemény típusa</h3>
+        <button type="button" class="text-gray-400 hover:text-gray-600 p-2 modal-close-type-selector" id="btn-close-type-selector">✕</button>
+      </div>
+      <div class="p-5 flex flex-col gap-3">
+        <button type="button" class="w-full py-3 px-4 bg-white border-2 border-brand-pink text-brand-pink rounded-xl font-bold hover:bg-pink-50 transition shadow-sm text-left flex items-center gap-3" onclick="window.startNewEvent('cat')">
+          <span class="text-2xl">🐱</span>
+          <div>
+            <div class="font-bold">Állathoz kapcsolódó</div>
+            <div class="text-xs text-gray-500 font-normal">Konkrét cica oltása, kezelése</div>
+          </div>
+        </button>
+        <button type="button" class="w-full py-3 px-4 bg-white border-2 border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition shadow-sm text-left flex items-center gap-3" onclick="window.startNewEvent('general')">
+          <span class="text-2xl">📌</span>
+          <div>
+            <div class="font-bold">Állattól független</div>
+            <div class="text-xs text-gray-500 font-normal">Általános feladat, találkozó, stb.</div>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Event Form Modal -->
   <div id="modal-new-event-form" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4">
     <div class="bg-white w-full max-w-lg mx-auto rounded-t-2xl sm:rounded-2xl flex flex-col max-h-[90vh]">
@@ -454,7 +480,8 @@
       <div class="p-4 overflow-y-auto flex-1">
         <form id="form-new-event" class="space-y-4">
           <input type="hidden" id="event-id">
-          <div>
+          <input type="hidden" id="event-mode" value="cat">
+          <div id="event-cat-container">
             <label class="block text-sm font-medium text-gray-700 mb-1">Cica *</label>
             <select id="event-cat-id" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink">
               <option value="">Válassz cicát...</option>
@@ -493,9 +520,14 @@
             <label class="block text-sm font-medium text-gray-700 mb-1">Megjegyzés</label>
             <textarea id="event-notes" rows="2" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink"></textarea>
           </div>
-          <button type="submit" class="w-full bg-pink-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-pink-700 shadow-md">
-            Mentés
-          </button>
+          <div class="flex gap-3">
+             <button type="button" id="btn-delete-event-form" class="hidden w-12 flex-shrink-0 bg-red-100 text-red-600 flex items-center justify-center rounded-xl hover:bg-red-200 transition" title="Törlés">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+             </button>
+             <button type="submit" class="flex-1 bg-pink-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-pink-700 shadow-md transition">
+               Mentés
+             </button>
+          </div>
         </form>
       </div>
     </div>
