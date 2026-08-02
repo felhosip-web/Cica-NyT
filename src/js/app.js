@@ -67,18 +67,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     console.log('Dexie DB initialized', db.version(1).stores);
 
-    // Fetch and display version
+    // Update footer stats
     try {
-        const response = await fetch(import.meta.env.BASE_URL + 'version.json');
-        if (response.ok) {
-            const data = await response.json();
-            const footer = document.getElementById('app-footer');
-            if (footer) {
-                footer.textContent = `v${data.version} - Build: ${data.build}`;
-            }
+        const catCount = await db.cats.count();
+        const eventCount = await db.events.where('status').equals('pending').count();
+        const statsEl = document.getElementById('app-stats');
+        if (statsEl) {
+            statsEl.textContent = `${catCount} cica • ${eventCount} függő esemény`;
         }
     } catch (e) {
-        console.error('Failed to load version.json', e);
+        console.error('Failed to update stats', e);
     }
 
     setupRouting();
