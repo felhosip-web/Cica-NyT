@@ -112,9 +112,9 @@ export async function renderEvents() {
                 const isDone = e.status === 'done';
                 const isExpired = e.status === 'expired';
 
-                let bgClass = 'bg-white';
+                let bgClass = 'bg-blue-50 border-blue-300'; // Default pending
                 if (isExpired) bgClass = 'bg-red-50 border-red-300';
-                if (isDone) bgClass = 'bg-gray-100 opacity-75';
+                if (isDone) bgClass = 'bg-green-50 border-green-300 opacity-75';
 
                 let icon = '📅';
                 if (e.type === 'oltas') icon = '💉';
@@ -154,12 +154,41 @@ export async function renderEvents() {
 
     // Bind checkboxes
     document.querySelectorAll('.event-done-cb').forEach(cb => {
-        cb.addEventListener('change', async (ev) => {
+        cb.addEventListener('change', (ev) => {
             if (ev.target.checked) {
+                // Revert visual state until confirmed
+                ev.target.checked = false;
                 const id = parseInt(ev.target.dataset.id, 10);
-                await markEventDone(id);
+                openConfirmDoneModal(id, ev.target);
             }
         });
+    });
+}
+
+function openConfirmDoneModal(eventId, checkboxEl) {
+    const modal = document.getElementById('modal-confirm-done');
+    if (!modal) return;
+
+    modal.classList.remove('hidden');
+
+    const btnCancel = document.getElementById('btn-cancel-done');
+    const btnConfirm = document.getElementById('btn-confirm-done');
+
+    // Clean up previous event listeners to avoid duplicates
+    const newBtnCancel = btnCancel.cloneNode(true);
+    btnCancel.parentNode.replaceChild(newBtnCancel, btnCancel);
+
+    const newBtnConfirm = btnConfirm.cloneNode(true);
+    btnConfirm.parentNode.replaceChild(newBtnConfirm, btnConfirm);
+
+    newBtnCancel.addEventListener('click', () => {
+        modal.classList.add('hidden');
+    });
+
+    newBtnConfirm.addEventListener('click', async () => {
+        modal.classList.add('hidden');
+        if (checkboxEl) checkboxEl.checked = true;
+        await markEventDone(eventId);
     });
 }
 

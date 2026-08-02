@@ -429,6 +429,21 @@
     </div>
   </div>
 
+  <!-- Confirm Done Modal -->
+  <div id="modal-confirm-done" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[70] flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm mx-auto rounded-2xl flex flex-col shadow-xl">
+      <div class="p-5 text-center">
+        <div class="w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">✓</div>
+        <h3 class="text-xl font-bold text-gray-900 mb-2">Esemény kész?</h3>
+        <p class="text-gray-500 text-sm mb-6">Biztosan készre nyilvánítod ezt az eseményt? A művelet nem vonható vissza.</p>
+        <div class="flex gap-3 w-full">
+          <button type="button" id="btn-cancel-done" class="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200">Mégse</button>
+          <button type="button" id="btn-confirm-done" class="flex-1 py-3 bg-green-500 text-white rounded-xl font-bold hover:bg-green-600 shadow-md">Igen, kész</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Event Form Modal -->
   <div id="modal-new-event-form" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4">
     <div class="bg-white w-full max-w-lg mx-auto rounded-t-2xl sm:rounded-2xl flex flex-col max-h-[90vh]">
