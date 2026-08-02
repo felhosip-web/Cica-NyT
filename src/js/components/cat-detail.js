@@ -287,7 +287,7 @@ export async function openDetailView(catId) {
     // Expired event banner
     const expiredBanner = document.getElementById('expired-event-banner');
     if (expiredBanner) {
-        const hasExpiredEvent = await db.events.where({ catId: id, status: 'expired' }).count() > 0;
+        const hasExpiredEvent = await db.events.where({ catId: catId, status: 'expired' }).count() > 0;
         if (hasExpiredEvent) {
             expiredBanner.classList.remove('hidden');
         } else {
@@ -394,7 +394,7 @@ export async function openDetailView(catId) {
 
     document.getElementById('detail-ossz-koltseg').innerText = formatCurrency(cat.osszKoltseg || 0);
 
-    renderCatEvents(id);
+    renderCatEvents(catId);
 
     document.getElementById('detail-view').classList.remove('hidden');
 }

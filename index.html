@@ -302,9 +302,9 @@
   </main>
 
   <!-- Detail View (Hidden by default) -->
-  <div id="detail-view" class="hidden fixed inset-0 bg-gray-100 z-50 overflow-y-auto w-full flex flex-col">
+  <div id="detail-view" class="hidden fixed inset-0 bg-gray-100 z-50 overflow-hidden w-full flex flex-col">
     <!-- Header -->
-    <header class="bg-white shadow-sm p-4 sticky top-0 z-40 flex items-center gap-4">
+    <header class="bg-white shadow-sm p-4 z-40 flex items-center gap-4 shrink-0">
       <button id="btn-back-detail" class="text-gray-500 hover:text-gray-800 p-2 -ml-2">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
       </button>
@@ -319,7 +319,7 @@
     </header>
 
     <!-- Content -->
-    <main id="detail-main-content" class="flex-1 p-4 pb-24 max-w-4xl mx-auto w-full md:grid md:grid-cols-2 md:gap-4 md:space-y-0 space-y-4">
+    <main id="detail-main-content" class="flex-1 p-4 pb-24 max-w-4xl mx-auto w-full overflow-y-auto md:grid md:grid-cols-2 md:gap-4 md:space-y-0 space-y-4">
       <!-- EXPIRED EVENT BANNER -->
       <div id="expired-event-banner" class="hidden bg-red-50 border border-red-300 rounded-xl p-3 mb-4 text-center">
         <p class="text-sm font-bold text-red-600">⚠️ Van lejárt eseménye!</p>
