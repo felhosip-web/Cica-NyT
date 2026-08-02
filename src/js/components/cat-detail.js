@@ -6,6 +6,7 @@ import { syncService } from '../services/sync-service.js';
 import { openModal, closeModal } from './fab.js';
 import { renderCatList } from './cat-list.js';
 import { openEventModal } from './event-form.js';
+import { showToast } from '../utils/toast.js';
 
 let currentCatId = null;
 
@@ -51,6 +52,10 @@ export function initDetail() {
                     document.getElementById('cat-kiskonyv-date').value = '';
                 }
             }
+
+            document.getElementById('cat-chip-number').value = cat.chipNumber || '';
+            document.getElementById('cat-chip-date').value = cat.chipDate || '';
+            document.getElementById('cat-chip-location').value = cat.chipLocation || '';
 
             // Set Intake fields
             const intakeType = cat.intakeType || 'befogott';
@@ -101,6 +106,21 @@ export function initDetail() {
 
             document.getElementById('cat-form-title').innerText = 'Cica Szerkesztése';
             openModal('modal-cat-form');
+        }
+    });
+
+    document.getElementById('btn-delete-cat').addEventListener('click', async () => {
+        if (!currentCatId) return;
+        if (confirm('Biztosan törlöd ezt a cicát? Ezt nem lehet visszavonni!')) {
+            await db.cats.delete(currentCatId);
+            // Delete associated events
+            const events = await db.events.where({ catId: currentCatId }).toArray();
+            for (let e of events) {
+                await db.events.delete(e.id);
+            }
+            showToast('Cica törölve!', 'info');
+            document.getElementById('detail-view').classList.add('hidden');
+            renderCatList();
         }
     });
 

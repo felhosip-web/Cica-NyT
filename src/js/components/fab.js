@@ -1,6 +1,7 @@
 import { db } from '../db.js';
 import { syncService } from '../services/sync-service.js';
 import { renderCatList } from './cat-list.js';
+import { showToast } from '../utils/toast.js';
 
 export function initModals() {
     // FAB Add Cat
@@ -254,6 +255,7 @@ export function initModals() {
                 await syncService.queueSync(newCat);
             }
 
+            showToast('Cica sikeresen mentve!', 'success');
             closeModal('modal-cat-form');
             renderCatList();
         });
