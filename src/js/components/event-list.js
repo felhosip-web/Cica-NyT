@@ -102,7 +102,7 @@ export async function renderEvents() {
     for (let group of groupOrder) {
         if (grouped[group].length > 0) {
             html += `<h3 class="font-bold text-gray-700 mt-4 mb-2 border-b pb-1 ${group === 'LEJÁRT' ? 'text-red-600 border-red-200' : ''}">${group}</h3>`;
-            html += `<div class="space-y-2">`;
+            html += `<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">`;
             for (let e of grouped[group]) {
                 const cat = catCache[e.catId];
                 const catName = escapeHtml(cat.nev);
