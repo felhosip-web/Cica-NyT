@@ -104,14 +104,14 @@ export function initDetail() {
                 }
             }
 
-            document.getElementById('cat-form-title').innerText = 'Cica Szerkesztése';
+            document.getElementById('cat-form-title').innerText = 'Szerkesztés';
             openModal('modal-cat-form');
         }
     });
 
     document.getElementById('btn-delete-cat').addEventListener('click', async () => {
         if (!currentCatId) return;
-        if (confirm('Biztosan törlöd ezt a cicát? Ezt nem lehet visszavonni!')) {
+        if (confirm("Biztos törlöd?")) {
             await db.cats.delete(currentCatId);
             // Delete associated events
             const events = await db.events.where({ catId: currentCatId }).toArray();
