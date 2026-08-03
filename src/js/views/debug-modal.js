@@ -126,16 +126,18 @@ export function initDebugModal() {
         });
     });
 
-    // Wire all Debug mode buttons to open the Debug & Audit modal directly
+    // Wire all Debug mode buttons to open the Debug auth modal first
     debugBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
             if (e) e.preventDefault();
             btn.blur();
-            if (sqlCodeEl) {
-                sqlCodeEl.textContent = SUPABASE_SQL_SCHEMA;
+            openModal('modal-debug-auth');
+            // Ensure pass error is hidden when opening fresh
+            if (passError) passError.classList.add('hidden');
+            if (passInput) {
+                passInput.value = '';
+                setTimeout(() => passInput.focus(), 100);
             }
-            openModal('modal-debug');
-            runDbAudit();
         });
     });
 
@@ -343,8 +345,5 @@ export async function runDbAudit() {
     } catch (err) {
         console.error('Audit failed:', err);
         summaryGrid.innerHTML = `<div class="col-span-4 text-red-500 text-sm">Audit hiba: ${err.message}</div>`;
-    }
-}
--4 text-red-500 text-sm">Audit hiba: ${err.message}</div>`;
     }
 }
