@@ -138,17 +138,16 @@
       <section class="bg-white rounded-xl shadow-sm p-4">
         <div class="flex justify-between items-center mb-4">
           <h3 class="font-bold text-gray-800 flex items-center gap-2">☁️ Felhő szinkron</h3>
-          <span class="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-bold rounded-full">Hamarosan</span>
         </div>
         <div class="space-y-4">
-          <label class="flex items-center gap-2 opacity-50 cursor-not-allowed">
-            <input type="checkbox" disabled class="rounded text-brand-pink focus:ring-brand-pink h-5 w-5">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="settings-cloud-enabled" class="rounded text-brand-pink focus:ring-brand-pink h-5 w-5 border-gray-300">
             <span class="text-sm font-medium text-gray-700">Felhő szinkron bekapcsolása</span>
           </label>
-          <p class="text-sm text-gray-600">Jelenleg offline (IndexedDB). Hamarosan: Supabase sync, eszközök közti megosztás.</p>
+          <p class="text-sm text-gray-600">Alapértelmezésben offline (IndexedDB). A bekapcsolással a Supabase szerverére mentődnek az adataid, így más eszközeiden is elérhetőek.</p>
 
           <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <p class="text-sm text-blue-800">Az adatok csak ezen az eszközön vannak. Rendszeres export ajánlott!</p>
+            <p class="text-sm text-blue-800">Rendszeres offline export továbbra is erősen ajánlott!</p>
           </div>
 
           <div class="grid grid-cols-2 gap-3 pt-2">

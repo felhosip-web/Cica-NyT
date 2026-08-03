@@ -42,6 +42,11 @@ export async function initSettings() {
             if (showDeceasedEl) {
                 showDeceasedEl.checked = settings.showDeceased ?? true;
             }
+
+            const cloudEnabledEl = document.getElementById('settings-cloud-enabled');
+            if (cloudEnabledEl) {
+                cloudEnabledEl.checked = settings.cloudEnabled ?? false;
+            }
         }
     } catch (e) {
         console.error('Failed to load settings', e);
@@ -71,14 +76,16 @@ export async function initSettings() {
         if (!currentSettings) currentSettings = { id: 'main' };
 
         const showDeceasedEl = document.getElementById('showDeceased');
+        const cloudEnabledEl = document.getElementById('settings-cloud-enabled');
+        const isCloudEnabled = cloudEnabledEl ? cloudEnabledEl.checked : false;
 
         const settingsObj = {
             ...currentSettings,
             id: 'main',
             orgName,
             orgRole,
-            cloudEnabled: false,
-            cloudProvider: null,
+            cloudEnabled: isCloudEnabled,
+            cloudProvider: isCloudEnabled ? 'supabase' : null,
             showDeceased: showDeceasedEl ? showDeceasedEl.checked : true
         };
 

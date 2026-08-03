@@ -42,11 +42,21 @@ export class SyncService {
         });
     }
 
-    updateSyncUI() {
+    async updateSyncUI() {
         const dot = document.getElementById('sync-dot');
         const text = document.getElementById('sync-text');
 
         if (!dot || !text) return;
+
+        let settings = await db.settings.get('main');
+        if (!settings) settings = await db.settings.get('org');
+        const cloudEnabled = settings?.cloudEnabled ?? false;
+
+        if (!cloudEnabled) {
+            dot.className = 'w-2.5 h-2.5 rounded-full bg-gray-400 inline-block';
+            text.textContent = 'Helyi (Felhő kikapcsolva)';
+            return;
+        }
 
         if (!navigator.onLine) {
             dot.className = 'w-2.5 h-2.5 rounded-full bg-yellow-500 inline-block';
@@ -55,8 +65,8 @@ export class SyncService {
         }
 
         if (!this.supabase) {
-            dot.className = 'w-2.5 h-2.5 rounded-full bg-green-500 inline-block';
-            text.textContent = 'Online (Helyi)';
+            dot.className = 'w-2.5 h-2.5 rounded-full bg-yellow-500 inline-block';
+            text.textContent = 'Beállítás hiányzik';
             return;
         }
 
@@ -84,6 +94,14 @@ export class SyncService {
     }
 
     async syncPending() {
+        let settings = await db.settings.get('main');
+        if (!settings) settings = await db.settings.get('org');
+
+        if (!settings?.cloudEnabled) {
+            this.updateSyncUI();
+            return;
+        }
+
         if (!this.supabase || !navigator.onLine || this.syncing) return;
 
         this.syncing = true;

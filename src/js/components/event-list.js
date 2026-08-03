@@ -132,7 +132,7 @@ export async function renderEvents() {
 
                 html += `
                     <div class="event-card ${bgClass} border rounded-lg p-3 shadow-sm flex items-center justify-between cursor-pointer hover:shadow-md transition group" data-id="${e.id}">
-                        <div class="flex items-center gap-3 overflow-hidden flex-1" onclick="window.handleEventClick(event, ${e.id})">
+                        <div class="event-click-area flex items-center gap-3 overflow-hidden flex-1" data-id="${e.id}">
                             <div class="text-2xl">${icon}</div>
                             <div class="flex-1 min-w-0">
                                 <div class="font-medium text-sm truncate">${catName}${chipStr}</div>
@@ -183,6 +183,86 @@ export async function renderEvents() {
             }
         });
     });
+
+    // Bind card clicks for selection and editing
+    let lastClickTime = 0;
+    let lastClickedId = null;
+    document.querySelectorAll('.event-click-area').forEach(area => {
+        let pressTimer = null;
+        let startY = 0;
+        let startX = 0;
+
+        area.addEventListener('touchstart', (ev) => {
+            startY = ev.touches[0].clientY;
+            startX = ev.touches[0].clientX;
+            pressTimer = window.setTimeout(async () => {
+                pressTimer = null;
+                const id = parseInt(area.dataset.id, 10);
+                await handleEventEdit(id);
+            }, 600);
+        }, { passive: true });
+
+        area.addEventListener('touchmove', (ev) => {
+            const moveY = ev.touches[0].clientY;
+            const moveX = ev.touches[0].clientX;
+            if (Math.abs(moveY - startY) > 10 || Math.abs(moveX - startX) > 10) {
+                if (pressTimer) {
+                    clearTimeout(pressTimer);
+                    pressTimer = null;
+                }
+            }
+        }, { passive: true });
+
+        area.addEventListener('touchend', () => {
+            if (pressTimer) {
+                clearTimeout(pressTimer);
+                pressTimer = null;
+            }
+        });
+
+        area.addEventListener('click', async (ev) => {
+            if (ev.target.type === 'checkbox' || ev.target.closest('.btn-delete-list-event')) return;
+            ev.preventDefault();
+
+            const currentTime = new Date().getTime();
+            const id = parseInt(area.dataset.id, 10);
+
+            if (currentTime - lastClickTime < 300 && lastClickedId === id) {
+                // Double click (same item)
+                lastClickTime = 0;
+                lastClickedId = null;
+                await handleEventEdit(id);
+            } else {
+                // Single click
+                lastClickTime = currentTime;
+                lastClickedId = id;
+
+                // Clear selection from all cards
+                document.querySelectorAll('.event-card').forEach(card => {
+                    card.classList.remove('ring-2', 'ring-brand-pink', 'border-brand-pink');
+                    const delBtn = card.querySelector('.btn-delete-list-event');
+                    if(delBtn) delBtn.classList.remove('!opacity-100');
+                });
+
+                // Select current card
+                const card = area.closest('.event-card');
+                if (card) {
+                    card.classList.add('ring-2', 'ring-brand-pink', 'border-brand-pink');
+                    const delBtn = card.querySelector('.btn-delete-list-event');
+                    if(delBtn) delBtn.classList.add('!opacity-100');
+                }
+            }
+        });
+    });
+}
+
+async function handleEventEdit(id) {
+    const eventObj = await db.events.get(id);
+    if (eventObj && eventObj.status === 'done') {
+        showToast('Ez az esemény már teljesítve van, nem szerkeszthető.', 'warning');
+        return;
+    }
+    openEventModal(id);
 }
 
 function openConfirmDoneModal(eventId, checkboxEl) {
@@ -211,19 +291,6 @@ function openConfirmDoneModal(eventId, checkboxEl) {
         await markEventDone(eventId);
     });
 }
-
-window.handleEventClick = async function(ev, id) {
-    if (ev.target.type === 'checkbox' || ev.target.closest('.btn-delete-list-event')) return; // let the specific elements handle it
-
-    // Check if event is done
-    const eventObj = await db.events.get(id);
-    if (eventObj && eventObj.status === 'done') {
-        showToast('Ez az esemény már teljesítve van, nem szerkeszthető.', 'warning');
-        return;
-    }
-
-    openEventModal(id);
-};
 
 async function markEventDone(id) {
     const e = await db.events.get(id);
