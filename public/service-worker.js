@@ -1,11 +1,11 @@
 const CACHE_NAME = 'cica-nyt-v1.6.4';
 const STATIC_ASSETS = [
-    '/Cica-NyT/',
-    '/Cica-NyT/index.html',
-    '/Cica-NyT/offline.html',
-    '/Cica-NyT/manifest.json',
-    '/Cica-NyT/favicon.svg',
-    '/Cica-NyT/icons.svg'
+    '/',
+    '/index.html',
+    '/offline.html',
+    '/manifest.json',
+    '/favicon.svg',
+    '/icons.svg'
 ];
 
 self.addEventListener('install', event => {
@@ -36,7 +36,13 @@ self.addEventListener('fetch', event => {
     if (url.pathname.endsWith('version.json')) {
         event.respondWith(
             fetch(event.request)
-                .catch(() => caches.match(event.request))
+                .catch(async () => {
+                    const cached = await caches.match(event.request);
+                    if (cached) return cached;
+                    return new Response(JSON.stringify({ version: "offline", build: "" }), {
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                })
         );
         return;
     }

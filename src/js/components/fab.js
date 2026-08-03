@@ -19,6 +19,18 @@ export function initModals() {
                 kiskonyvFields.classList.remove('max-h-[500px]');
             }
 
+            const chipFields = document.getElementById('chip-fields');
+            if (chipFields) {
+                chipFields.classList.add('max-h-0', 'opacity-0');
+                chipFields.classList.remove('max-h-[500px]');
+            }
+
+            const passportFields = document.getElementById('passport-fields');
+            if (passportFields) {
+                passportFields.classList.add('max-h-0', 'opacity-0');
+                passportFields.classList.remove('max-h-[500px]');
+            }
+
             const chipError = document.getElementById('chip-error');
             if (chipError) {
                 chipError.classList.add('hidden');
@@ -113,11 +125,60 @@ export function initModals() {
         });
     }
 
+    // Chip toggle listener
+    const chipCheckbox = document.getElementById('cat-has-chip');
+    const chipFields = document.getElementById('chip-fields');
+    if (chipCheckbox && chipFields) {
+        chipCheckbox.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                chipFields.classList.remove('max-h-0', 'opacity-0');
+                chipFields.classList.add('max-h-[500px]');
+            } else {
+                chipFields.classList.add('max-h-0', 'opacity-0');
+                chipFields.classList.remove('max-h-[500px]');
+            }
+        });
+    }
+
+    // Passport toggle listener
+    const passportCheckbox = document.getElementById('cat-has-passport');
+    const passportFields = document.getElementById('passport-fields');
+    if (passportCheckbox && passportFields) {
+        passportCheckbox.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                passportFields.classList.remove('max-h-0', 'opacity-0');
+                passportFields.classList.add('max-h-[500px]');
+            } else {
+                passportFields.classList.add('max-h-0', 'opacity-0');
+                passportFields.classList.remove('max-h-[500px]');
+            }
+        });
+    }
+
     // Cat Form Submit
     const formCat = document.getElementById('form-cat');
     if (formCat) {
         formCat.addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            const nameInput = document.getElementById('cat-nev').value.trim();
+            if (!nameInput) {
+                alert('Add meg a cica nevét!');
+                return;
+            }
+
+            const modalForm = document.getElementById('modal-cat-form');
+            const editId = modalForm.dataset.editId;
+
+            const duplicateCats = await db.cats.filter(cat => cat.nev.trim().toLowerCase() === nameInput.toLowerCase()).toArray();
+            const isDuplicate = editId 
+                ? duplicateCats.some(cat => cat.id !== editId)
+                : duplicateCats.length > 0;
+
+            if (isDuplicate) {
+                showToast('Már létezik cica ezzel a névvel!', 'error');
+                return;
+            }
 
             const idInput = document.getElementById('cat-id').value;
             const status = document.getElementById('cat-status').value;
@@ -171,12 +232,14 @@ export function initModals() {
             }
 
             const hasKiskonyv = document.getElementById('cat-has-kiskonyv').checked;
+            const hasPassport = document.getElementById('cat-has-passport').checked;
+            const hasChip = document.getElementById('cat-has-chip').checked;
 
             const chipNumberInput = document.getElementById('cat-chip-number').value.trim();
             const chipError = document.getElementById('chip-error');
             if (chipError) chipError.classList.add('hidden');
 
-            if (chipNumberInput && chipNumberInput !== '') {
+            if (hasChip && chipNumberInput && chipNumberInput !== '') {
                 if (!/^(900|348)\d{12}$/.test(chipNumberInput)) {
                     if (chipError) chipError.classList.remove('hidden');
                     return false;
@@ -199,9 +262,13 @@ export function initModals() {
                 hasKiskonyv: hasKiskonyv,
                 kiskonyvSzam: hasKiskonyv ? document.getElementById('cat-kiskonyv-szam').value : null,
                 kiskonyvDate: hasKiskonyv ? document.getElementById('cat-kiskonyv-date').value : null,
-                chipNumber: chipNumberInput || null,
-                chipDate: chipNumberInput ? document.getElementById('cat-chip-date').value : null,
-                chipLocation: chipNumberInput ? document.getElementById('cat-chip-location').value : null,
+                hasPassport: hasPassport,
+                passportSzam: hasPassport ? document.getElementById('cat-passport-szam').value : null,
+                passportDate: hasPassport ? document.getElementById('cat-passport-date').value : null,
+                hasChip: hasChip,
+                chipNumber: hasChip ? (chipNumberInput || null) : null,
+                chipDate: hasChip ? (document.getElementById('cat-chip-date').value || null) : null,
+                chipLocation: hasChip ? (document.getElementById('cat-chip-location').value || null) : null,
             };
 
             if (status === 'gazdis') {
@@ -226,9 +293,7 @@ export function initModals() {
                 catData.elhunytNotes = null;
             }
 
-            const modalForm = document.getElementById('modal-cat-form');
-            const editId = modalForm.dataset.editId;
-
+            // Use already declared modalForm and editId from above
             if (editId) {
                 // Edit existing
                 const existing = await db.cats.get(editId);

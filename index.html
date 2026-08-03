@@ -11,6 +11,134 @@
     /* Prevent pull-to-refresh on mobile */
     body { overscroll-behavior-y: contain; }
   </style>
+  <script>
+    // Quick inline script to prevent flash of unstyled theme
+    (function() {
+      const themes = {
+        original: {
+          primary: '#ec4899',
+          'brand-pink': '#ec4899',
+          'brand-orange': '#f97316',
+          'pink-50': '#fdf2f8',
+          'pink-100': '#fce7f3',
+          'pink-200': '#fbcfe8',
+          'pink-300': '#f9a8d4',
+          'pink-400': '#f472b6',
+          'pink-500': '#ec4899',
+          'pink-600': '#db2777',
+          'pink-700': '#be185d',
+          'pink-800': '#9d174d',
+          'pink-900': '#831843',
+          'pink-950': '#500724',
+          'blue-50': '#f0f9ff',
+          'blue-100': '#e0f2fe',
+          'blue-200': '#bae6fd',
+          'blue-300': '#7dd3fc',
+          'blue-400': '#38bdf8',
+          'blue-500': '#0ea5e9',
+          'blue-600': '#0284c7',
+          'blue-700': '#0369a1',
+          'blue-800': '#075985',
+          'blue-900': '#0c4a6e',
+          'blue-950': '#082f49',
+          'gray-50': '#fafafa',
+          'gray-100': '#f5f5f5',
+          'gray-200': '#e5e7eb',
+          'gray-300': '#d1d5db',
+          'gray-400': '#9ca3af',
+          'gray-500': '#6b7280',
+          'gray-600': '#4b5563',
+          'gray-700': '#374151',
+          'gray-800': '#1f2937',
+          'gray-900': '#111827',
+          'gray-950': '#030712'
+        },
+        olive: {
+          primary: '#8A9A5B',
+          'brand-pink': '#8A9A5B',
+          'brand-orange': '#D2B48C',
+          'pink-50': '#F4F6F0',
+          'pink-100': '#E9ECE0',
+          'pink-200': '#D3DBC3',
+          'pink-300': '#BDC9A7',
+          'pink-400': '#A7B88A',
+          'pink-500': '#8A9A5B',
+          'pink-600': '#73834C',
+          'pink-700': '#5C6A3C',
+          'pink-800': '#464F2D',
+          'pink-900': '#2F351E',
+          'pink-950': '#171B0F',
+          'blue-50': '#F7F6F2',
+          'blue-100': '#ECE9DF',
+          'blue-200': '#D5CFC0',
+          'blue-300': '#BEB4A1',
+          'blue-400': '#A69A82',
+          'blue-500': '#8E7F63',
+          'blue-600': '#756851',
+          'blue-700': '#5C523F',
+          'blue-800': '#433C2E',
+          'blue-900': '#2A261C',
+          'blue-950': '#110F0B',
+          'gray-50': '#FDFCF9',
+          'gray-100': '#F5F3ED',
+          'gray-200': '#EAE6DB',
+          'gray-300': '#DCD6C9',
+          'gray-400': '#C5BCAE',
+          'gray-500': '#A89F90',
+          'gray-600': '#8C8274',
+          'gray-700': '#6E6559',
+          'gray-800': '#4A443F',
+          'gray-900': '#322E2B',
+          'gray-950': '#1D1B19'
+        },
+        lavender: {
+          primary: '#8B5CF6',
+          'brand-pink': '#8B5CF6',
+          'brand-orange': '#EC4899',
+          'pink-50': '#f5f3ff',
+          'pink-100': '#ede9fe',
+          'pink-200': '#ddd6fe',
+          'pink-300': '#c4b5fd',
+          'pink-400': '#a78bfa',
+          'pink-500': '#8b5cf6',
+          'pink-600': '#7c3aed',
+          'pink-700': '#6d28d9',
+          'pink-800': '#5b21b6',
+          'pink-900': '#4c1d95',
+          'pink-950': '#2e1065',
+          'blue-50': '#f0fdfa',
+          'blue-100': '#ccfbf1',
+          'blue-200': '#99f6e4',
+          'blue-300': '#5eead4',
+          'blue-400': '#2dd4bf',
+          'blue-500': '#14b8a6',
+          'blue-600': '#0d9488',
+          'blue-700': '#0f766e',
+          'blue-800': '#115e59',
+          'blue-900': '#134e4a',
+          'blue-950': '#042f2e',
+          'gray-50': '#fafafa',
+          'gray-100': '#f4f4f5',
+          'gray-200': '#e4e4e7',
+          'gray-300': '#d4d4d8',
+          'gray-400': '#a1a1aa',
+          'gray-500': '#71717a',
+          'gray-600': '#52525b',
+          'gray-700': '#3f3f46',
+          'gray-800': '#27272a',
+          'gray-900': '#18181b',
+          'gray-950': '#09090b'
+        }
+      };
+      const themeId = localStorage.getItem('cica-nyt-theme') || 'original';
+      const theme = themes[themeId] || themes.original;
+      const root = document.documentElement;
+      root.setAttribute('data-theme', themeId);
+      for (const [key, val] of Object.entries(theme)) {
+        root.style.setProperty('--color-' + key, val);
+      }
+    })();
+  </script>
 </head>
 <body class="min-h-screen bg-gray-50 pb-[70px] md:pb-[60px] text-gray-800 font-sans antialiased flex flex-col">
   <!-- PWA Update Banner -->
@@ -95,6 +223,19 @@
            <p class="text-gray-500 text-sm">Betöltés...</p>
         </div>
       </section>
+
+      <!-- Fejlesztői Eszközök & Debug -->
+      <section class="bg-white rounded-xl shadow-sm p-5 border border-purple-100">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 class="text-gray-900 font-bold flex items-center gap-2">🛠️ Fejlesztői Eszközök & Audit</h3>
+            <p class="text-xs text-gray-500 mt-1">Helyi adatbázis diagnosztika, állapot ellenőrzés és Supabase SQL séma generálás.</p>
+          </div>
+          <button type="button" id="btn-open-debug-pass" class="btn-open-debug-pass px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium text-sm rounded-lg shadow-sm transition-colors flex items-center justify-center gap-1.5 shrink-0">
+            🔑 Debug Mód
+          </button>
+        </div>
+      </section>
     </main>
   </div>
 
@@ -113,6 +254,15 @@
           <span class="text-sm font-medium text-gray-700">Elhunyt cicák mutatása listában</span>
           <input type="checkbox" id="showDeceased" class="rounded text-brand-pink focus:ring-brand-pink h-5 w-5 border-gray-300">
         </label>
+      </section>
+
+      <!-- Színséma -->
+      <section class="bg-white rounded-xl shadow-sm p-4">
+        <h3 class="font-bold text-gray-800 mb-3 flex items-center gap-2">🎨 Színséma</h3>
+        <p class="text-sm text-gray-600 mb-4">Válaszd ki az alkalmazás megjelenését:</p>
+        <div class="grid grid-cols-1 gap-3" id="settings-theme-list">
+          <!-- Dynamically populated in settings-view.js -->
+        </div>
       </section>
 
       <!-- Szervezet beállításai -->
@@ -137,17 +287,38 @@
       <!-- Felhő szinkron -->
       <section class="bg-white rounded-xl shadow-sm p-4">
         <div class="flex justify-between items-center mb-4">
-          <h3 class="font-bold text-gray-800 flex items-center gap-2">☁️ Felhő szinkron</h3>
+          <h3 class="font-bold text-gray-800 flex items-center gap-2">☁️ Felhő szinkron (Supabase)</h3>
         </div>
         <div class="space-y-4">
           <label class="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" id="settings-cloud-enabled" class="rounded text-brand-pink focus:ring-brand-pink h-5 w-5 border-gray-300">
             <span class="text-sm font-medium text-gray-700">Felhő szinkron bekapcsolása</span>
           </label>
-          <p class="text-sm text-gray-600">Alapértelmezésben offline (IndexedDB). A bekapcsolással a Supabase szerverére mentődnek az adataid, így más eszközeiden is elérhetőek.</p>
+          <p class="text-sm text-gray-600">Alapértelmezésben offline (IndexedDB). A bekapcsolással a Supabase szerverére mentődnek az adataid, így több eszköz között automatikusan szinkronizálódik.</p>
+
+          <div id="supabase-config-fields" class="space-y-3 bg-gray-50 p-3 rounded-lg border border-gray-200 hidden">
+            <h4 class="font-bold text-sm text-gray-700 flex items-center gap-1.5">⚡ Supabase Kapcsolati Adatok</h4>
+            <div>
+              <label class="block text-xs font-medium text-gray-700 mb-1">Supabase URL</label>
+              <input type="url" id="settings-supabase-url" class="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink font-mono" placeholder="https://xyz.supabase.co">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-700 mb-1">Supabase Anon API Key</label>
+              <input type="password" id="settings-supabase-key" class="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink font-mono" placeholder="eyJhbGciOiJIUzI1NiI...">
+            </div>
+            <div class="flex gap-2 pt-1">
+              <button type="button" id="btn-test-supabase" class="flex-1 py-1.5 px-3 bg-white border border-gray-300 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-100 flex items-center justify-center gap-1 shadow-sm">
+                🔍 Kapcsolat tesztelése
+              </button>
+              <button type="button" id="btn-manual-sync" class="flex-1 py-1.5 px-3 bg-brand-pink text-white rounded-lg text-xs font-medium hover:bg-pink-600 flex items-center justify-center gap-1 shadow-sm">
+                🔄 Szinkronizálás most
+              </button>
+            </div>
+            <div id="supabase-test-result" class="text-xs p-2 rounded-lg hidden"></div>
+          </div>
 
           <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <p class="text-sm text-blue-800">Rendszeres offline export továbbra is erősen ajánlott!</p>
+            <p class="text-sm text-blue-800">Rendszeres offline export (JSON) továbbra is erősen ajánlott!</p>
           </div>
 
           <div class="grid grid-cols-2 gap-3 pt-2">
@@ -173,6 +344,19 @@
                 💰 Könyvelői PDF
              </button>
           </div>
+        </div>
+      </section>
+
+      <!-- Fejlesztői Eszközök & Debug -->
+      <section class="bg-white rounded-xl shadow-sm p-4 border border-purple-100">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 class="font-bold text-gray-800 flex items-center gap-2">🛠️ Fejlesztői Eszközök & Audit</h3>
+            <p class="text-xs text-gray-500 mt-1">Helyi adatbázis diagnosztika, állapot ellenőrzés és Supabase SQL séma generálás.</p>
+          </div>
+          <button type="button" class="btn-open-debug-pass px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium text-sm rounded-lg shadow-sm transition-colors flex items-center justify-center gap-1.5 shrink-0">
+            🔑 Debug Mód
+          </button>
         </div>
       </section>
 
@@ -336,6 +520,16 @@
 
       <!-- Kiskonyv Info Card -->
       <div id="detail-kiskonyv-info" class="bg-white rounded-xl shadow-sm p-4 text-sm flex items-center justify-between border-l-4">
+         <!-- Populated via JS -->
+      </div>
+
+      <!-- Passport Info Card -->
+      <div id="detail-passport-info" class="bg-white rounded-xl shadow-sm p-4 text-sm flex items-center justify-between border-l-4 border-gray-300">
+         <!-- Populated via JS -->
+      </div>
+
+      <!-- Chip Info Card -->
+      <div id="detail-chip-info" class="bg-white rounded-xl shadow-sm p-4 text-sm flex items-center justify-between border-l-4 border-gray-300">
          <!-- Populated via JS -->
       </div>
 
@@ -620,7 +814,11 @@
           <hr class="border-gray-200">
           <div>
             <h4 class="font-bold text-gray-800 mb-2 flex items-center gap-2">🔖 Azonosítás (Chip)</h4>
-            <div class="space-y-3">
+            <label class="flex items-center gap-2 cursor-pointer mb-2">
+              <input type="checkbox" id="cat-has-chip" class="w-5 h-5 text-brand-pink rounded border-gray-300 focus:ring-brand-pink">
+              <span class="text-sm font-medium text-gray-700">Van chipje</span>
+            </label>
+            <div id="chip-fields" class="space-y-3 overflow-hidden transition-all duration-300 max-h-0 opacity-0 ml-7">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Chip száma</label>
                 <input type="text" id="cat-chip-number" maxlength="15" pattern="[0-9]*" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink" placeholder="15 jegyű szám (pl. 900...)">
@@ -667,18 +865,39 @@
           <hr class="border-gray-200">
           <div>
              <h4 class="font-bold text-gray-800 mb-2 flex items-center gap-2">📘 Dokumentumok</h4>
-             <label class="flex items-center gap-2 cursor-pointer mb-2">
-               <input type="checkbox" id="cat-has-kiskonyv" class="w-5 h-5 text-brand-pink rounded border-gray-300 focus:ring-brand-pink">
-               <span class="text-sm font-medium text-gray-700">Van kiskönyve (oltási könyv)</span>
-             </label>
-             <div id="kiskonyv-fields" class="space-y-3 overflow-hidden transition-all duration-300 max-h-0 opacity-0 ml-7">
+             <div class="space-y-4">
                <div>
-                 <label class="block text-sm font-medium text-gray-700 mb-1">Kiskönyv száma</label>
-                 <input type="text" id="cat-kiskonyv-szam" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink" placeholder="pl. 12345/2026">
+                 <label class="flex items-center gap-2 cursor-pointer mb-2">
+                   <input type="checkbox" id="cat-has-kiskonyv" class="w-5 h-5 text-brand-pink rounded border-gray-300 focus:ring-brand-pink">
+                   <span class="text-sm font-medium text-gray-700">Van kiskönyve (oltási könyv)</span>
+                 </label>
+                 <div id="kiskonyv-fields" class="space-y-3 overflow-hidden transition-all duration-300 max-h-0 opacity-0 ml-7">
+                   <div>
+                     <label class="block text-sm font-medium text-gray-700 mb-1">Kiskönyv száma</label>
+                     <input type="text" id="cat-kiskonyv-szam" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink" placeholder="pl. 12345/2026">
+                   </div>
+                   <div>
+                     <label class="block text-sm font-medium text-gray-700 mb-1">Kiskönyv kiállítás dátuma</label>
+                     <input type="date" id="cat-kiskonyv-date" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink">
+                   </div>
+                 </div>
                </div>
+
                <div>
-                 <label class="block text-sm font-medium text-gray-700 mb-1">Kiskönyv kiállítás dátuma</label>
-                 <input type="date" id="cat-kiskonyv-date" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink">
+                 <label class="flex items-center gap-2 cursor-pointer mb-2">
+                   <input type="checkbox" id="cat-has-passport" class="w-5 h-5 text-brand-pink rounded border-gray-300 focus:ring-brand-pink">
+                   <span class="text-sm font-medium text-gray-700">Van útlevele</span>
+                 </label>
+                 <div id="passport-fields" class="space-y-3 overflow-hidden transition-all duration-300 max-h-0 opacity-0 ml-7">
+                   <div>
+                     <label class="block text-sm font-medium text-gray-700 mb-1">Útlevél száma</label>
+                     <input type="text" id="cat-passport-szam" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink" placeholder="pl. HU123456">
+                   </div>
+                   <div>
+                     <label class="block text-sm font-medium text-gray-700 mb-1">Útlevél kiállítás dátuma</label>
+                     <input type="date" id="cat-passport-date" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink">
+                   </div>
+                 </div>
                </div>
              </div>
           </div>
@@ -828,6 +1047,108 @@
       <div class="p-4 border-t bg-gray-50 flex justify-end gap-3 rounded-b-2xl">
         <button type="button" class="px-4 py-2 text-gray-600 font-medium modal-close">Mégse</button>
         <button type="submit" form="form-event" class="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium shadow">Mentés</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Debug Auth Modal -->
+  <div id="modal-debug-auth" class="hidden fixed inset-0 bg-black/50 z-[80] flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="font-bold text-lg text-gray-800 flex items-center gap-2">🔑 Jelszó megadása</h3>
+        <button type="button" class="text-gray-400 hover:text-gray-600 p-1 modal-close">✕</button>
+      </div>
+      <p class="text-xs text-gray-500 mb-4">A fejlesztői és audit funkciók eléréséhez add meg a root jelszót (teszt: <code class="bg-gray-100 px-1 rounded text-purple-700 font-mono font-bold">1342</code>):</p>
+      <form id="form-debug-auth" class="space-y-4">
+        <div>
+          <input type="password" id="input-debug-pass" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500 text-sm font-mono" placeholder="Gyári jelszó: 1342" required>
+          <p id="debug-auth-error" class="text-xs text-red-500 mt-1.5 hidden font-medium">⚠️ Hibás jelszó! Próbáld újra.</p>
+        </div>
+        <div class="flex justify-end gap-2">
+          <button type="button" class="px-4 py-2 text-gray-600 font-medium text-sm modal-close">Mégse</button>
+          <button type="submit" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium text-sm shadow-sm">Belépés</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Debug & Database Audit Modal -->
+  <div id="modal-debug" class="hidden fixed inset-0 bg-black/50 z-[75] flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white rounded-t-2xl sm:rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-xl">
+      <!-- Modal Header -->
+      <div class="p-4 sm:p-6 border-b flex justify-between items-center bg-gray-50 rounded-t-2xl">
+        <div>
+          <h3 class="font-bold text-lg text-gray-800 flex items-center gap-2">🛠️ Debug & Adatbázis Audit</h3>
+          <p class="text-xs text-gray-500">Rendszerállapot, IndexedDB rekord-audit és Supabase SQL generálás</p>
+        </div>
+        <button type="button" class="text-gray-400 hover:text-gray-600 p-2 modal-close">✕</button>
+      </div>
+
+      <!-- Modal Body (Tabs) -->
+      <div class="p-4 sm:p-6 overflow-y-auto flex-1 space-y-6">
+        <!-- Tabs Navigation -->
+        <div class="flex border-b border-gray-200 gap-2">
+          <button type="button" id="tab-btn-db-audit" class="py-2.5 px-4 border-b-2 border-purple-600 font-bold text-sm text-purple-600 flex items-center gap-2">
+            📊 DB Audit & Állapot
+          </button>
+          <button type="button" id="tab-btn-sql-gen" class="py-2.5 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 flex items-center gap-2">
+            ⚡ Supabase SQL Séma
+          </button>
+        </div>
+
+        <!-- TAB 1: DB Audit -->
+        <div id="tab-content-db-audit" class="space-y-4">
+          <div class="flex justify-between items-center">
+            <h4 class="font-bold text-sm text-gray-700">Dexie (IndexedDB) Helyi Rekordok</h4>
+            <button type="button" id="btn-refresh-db-audit" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium flex items-center gap-1 transition-colors">
+              🔄 Audit frissítése
+            </button>
+          </div>
+          
+          <!-- Audit Summary Cards Grid -->
+          <div id="db-audit-summary-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <!-- JS populated -->
+          </div>
+
+          <!-- Detailed DB Audit Table / Cards -->
+          <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-2">
+            <h5 class="font-bold text-xs text-gray-600 uppercase tracking-wider mb-2">Adatbázis táblák állapota</h5>
+            <div id="db-audit-tables-details" class="space-y-2 text-sm text-gray-700">
+              <!-- JS populated -->
+            </div>
+          </div>
+
+          <!-- Health Check / Diagnostics -->
+          <div class="bg-purple-50 border border-purple-200 rounded-xl p-4">
+            <h5 class="font-bold text-xs text-purple-800 uppercase tracking-wider mb-2">🔍 Integritás ellenőrzés (Health Check)</h5>
+            <div id="db-audit-health-status" class="text-xs text-purple-900 space-y-1">
+              <!-- JS populated -->
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: Supabase SQL Generator -->
+        <div id="tab-content-sql-gen" class="hidden space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h4 class="font-bold text-sm text-gray-800">Supabase SQL DDL Script</h4>
+              <p class="text-xs text-gray-500">Másold ki és illeszd be a Supabase SQL Editor-ba a szükséges táblák, indexek és RLS szabályok létrehozásához.</p>
+            </div>
+            <button type="button" id="btn-copy-sql" class="px-3.5 py-2 bg-brand-pink hover:bg-pink-600 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm shrink-0 transition-colors">
+              📋 SQL Másolása
+            </button>
+          </div>
+
+          <div class="relative">
+            <pre id="supabase-sql-code" class="p-4 bg-gray-900 text-green-400 font-mono text-xs rounded-xl overflow-x-auto max-h-[380px] leading-relaxed border border-gray-800 select-all"></pre>
+          </div>
+          <p class="text-xs text-gray-500 italic">💡 Ez a séma tartalmazza az összes mezőt (beleértve a kiskönyv, útlevél, chip, oltások, tesztek, kezelések JSON mezőket is), az indexeket és az automatikus módosítási trigger-t.</p>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 border-t bg-gray-50 rounded-b-2xl flex justify-end">
+        <button type="button" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium text-sm rounded-lg modal-close transition-colors">Bezárás</button>
       </div>
     </div>
   </div>

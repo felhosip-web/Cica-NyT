@@ -21,7 +21,8 @@ export class PwaManager {
     async checkForUpdates() {
         try {
             const currentVersion = localStorage.getItem('appVersion');
-            const response = await fetch('/version.json?v=1.0.1&t=' + new Date().getTime());
+            const baseUrl = import.meta.env.BASE_URL || '/';
+            const response = await fetch(baseUrl + 'version.json?v=1.0.1&t=' + new Date().getTime());
             if (!response.ok) return;
 
             const data = await response.json();
@@ -35,7 +36,7 @@ export class PwaManager {
                 }
             }
         } catch (error) {
-            console.error('Failed to check for updates', error);
+            console.warn('Failed to check for updates:', error.message || error);
         }
     }
 

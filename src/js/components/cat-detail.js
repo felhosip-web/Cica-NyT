@@ -37,9 +37,48 @@ export function openCatModal(cat) {
             }
         }
 
-        document.getElementById('cat-chip-number').value = cat.chipNumber || '';
-        document.getElementById('cat-chip-date').value = cat.chipDate || '';
-        document.getElementById('cat-chip-location').value = cat.chipLocation || '';
+        // Passport fields
+        const hasPassportEl = document.getElementById('cat-has-passport');
+        if (hasPassportEl) {
+            hasPassportEl.checked = !!cat.hasPassport;
+            const passportFields = document.getElementById('passport-fields');
+            if (passportFields) {
+                if (cat.hasPassport) {
+                    passportFields.classList.remove('max-h-0', 'opacity-0');
+                    passportFields.classList.add('max-h-[500px]');
+                    document.getElementById('cat-passport-szam').value = cat.passportSzam || '';
+                    document.getElementById('cat-passport-date').value = cat.passportDate || '';
+                } else {
+                    passportFields.classList.add('max-h-0', 'opacity-0');
+                    passportFields.classList.remove('max-h-[500px]');
+                    document.getElementById('cat-passport-szam').value = '';
+                    document.getElementById('cat-passport-date').value = '';
+                }
+            }
+        }
+
+        // Chip fields
+        const hasChipEl = document.getElementById('cat-has-chip');
+        if (hasChipEl) {
+            const catHasChip = cat.hasChip !== undefined ? !!cat.hasChip : !!cat.chipNumber;
+            hasChipEl.checked = catHasChip;
+            const chipFields = document.getElementById('chip-fields');
+            if (chipFields) {
+                if (catHasChip) {
+                    chipFields.classList.remove('max-h-0', 'opacity-0');
+                    chipFields.classList.add('max-h-[500px]');
+                    document.getElementById('cat-chip-number').value = cat.chipNumber || '';
+                    document.getElementById('cat-chip-date').value = cat.chipDate || '';
+                    document.getElementById('cat-chip-location').value = cat.chipLocation || '';
+                } else {
+                    chipFields.classList.add('max-h-0', 'opacity-0');
+                    chipFields.classList.remove('max-h-[500px]');
+                    document.getElementById('cat-chip-number').value = '';
+                    document.getElementById('cat-chip-date').value = '';
+                    document.getElementById('cat-chip-location').value = '';
+                }
+            }
+        }
 
         // Set Intake fields
         const intakeType = cat.intakeType || 'befogott';
@@ -353,6 +392,60 @@ export async function openDetailView(catId) {
         kiskonyvContainer.innerHTML = `
             <div class="text-gray-500 flex items-center gap-2 font-medium">📕 Nincs kiskönyv</div>
         `;
+    }
+
+    // Passport Info setup
+    const passportContainer = document.getElementById('detail-passport-info');
+    if (passportContainer) {
+        if (cat.hasPassport) {
+            const szamInfo = cat.passportSzam ? `<div class="text-gray-600 text-xs mt-1 font-mono">Szám: ${escapeHtml(cat.passportSzam)}</div>` : '';
+            const dateInfo = cat.passportDate ? `<div class="text-gray-500 text-xs">Kiállítva: ${formatDate(cat.passportDate)}</div>` : '';
+
+            passportContainer.classList.remove('border-gray-300');
+            passportContainer.classList.add('border-purple-400');
+            passportContainer.innerHTML = `
+                <div>
+                    <div class="font-bold text-purple-700 flex items-center gap-2">🛂 Van útlevél</div>
+                    ${szamInfo}
+                    ${dateInfo}
+                </div>
+                <div class="text-2xl opacity-50">🌍</div>
+            `;
+        } else {
+            passportContainer.classList.remove('border-purple-400');
+            passportContainer.classList.add('border-gray-300');
+            passportContainer.innerHTML = `
+                <div class="text-gray-500 flex items-center gap-2 font-medium">🛂 Nincs útlevél</div>
+            `;
+        }
+    }
+
+    // Chip Info setup
+    const chipContainer = document.getElementById('detail-chip-info');
+    if (chipContainer) {
+        const catHasChip = cat.hasChip !== undefined ? !!cat.hasChip : !!cat.chipNumber;
+        if (catHasChip && cat.chipNumber) {
+            const dateInfo = cat.chipDate ? `<div class="text-gray-500 text-xs">Beültetve: ${formatDate(cat.chipDate)}</div>` : '';
+            const locInfo = cat.chipLocation ? `<div class="text-gray-600 text-xs mt-1">Helye: ${escapeHtml(cat.chipLocation)}</div>` : '';
+
+            chipContainer.classList.remove('border-gray-300');
+            chipContainer.classList.add('border-blue-400');
+            chipContainer.innerHTML = `
+                <div>
+                    <div class="font-bold text-blue-700 flex items-center gap-2">🔖 Van chip</div>
+                    <div class="text-gray-600 text-xs mt-1 font-mono">Szám: ${escapeHtml(cat.chipNumber)}</div>
+                    ${locInfo}
+                    ${dateInfo}
+                </div>
+                <div class="text-2xl opacity-50">📍</div>
+            `;
+        } else {
+            chipContainer.classList.remove('border-blue-400');
+            chipContainer.classList.add('border-gray-300');
+            chipContainer.innerHTML = `
+                <div class="text-gray-500 flex items-center gap-2 font-medium">🔖 Nincs chip</div>
+            `;
+        }
     }
 
     // Intake Info Card setup

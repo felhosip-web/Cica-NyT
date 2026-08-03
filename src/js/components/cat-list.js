@@ -23,37 +23,7 @@ export function getFilteredCats() {
 }
 
 export async function initList() {
-    await renderCatList();
-
-    const searchInput = document.getElementById('search-input');
-    if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            renderCatList();
-        });
-    }
-
-    const filterChips = document.querySelectorAll('.filter-chip');
-    filterChips.forEach(chip => {
-        chip.addEventListener('click', (e) => {
-            // Update active state
-            filterChips.forEach(c => {
-                c.classList.remove('bg-gray-800', 'text-white');
-                c.classList.add('bg-gray-200', 'text-gray-700');
-            });
-            const clicked = e.target;
-            clicked.classList.remove('bg-gray-200', 'text-gray-700');
-            clicked.classList.add('bg-gray-800', 'text-white');
-
-            currentChipFilter = clicked.dataset.filter;
-            renderCatList();
-        });
-    });
-
-    // Selection mode buttons
-    const btnSelectionMode = document.getElementById('btn-selection-mode');
-    const btnCancelSelection = document.getElementById('btn-cancel-selection');
-
-    // Tab buttons
+    // 1. Tab buttons (Set up synchronously so navigation is immediately functional!)
     const tabAnimals = document.getElementById('tab-animals');
     const tabEvents = document.getElementById('tab-events');
     const animalsView = document.getElementById('animals-view');
@@ -80,8 +50,42 @@ export async function initList() {
 
             eventsView.classList.remove('hidden');
             animalsView.classList.add('hidden');
+
+            // Force a re-render of events to display up-to-date data
+            if (typeof window.renderEvents === 'function') {
+                window.renderEvents();
+            }
         });
     }
+
+    // 2. Search & Filter Inputs
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            renderCatList();
+        });
+    }
+
+    const filterChips = document.querySelectorAll('.filter-chip');
+    filterChips.forEach(chip => {
+        chip.addEventListener('click', (e) => {
+            // Update active state
+            filterChips.forEach(c => {
+                c.classList.remove('bg-gray-800', 'text-white');
+                c.classList.add('bg-gray-200', 'text-gray-700');
+            });
+            const clicked = e.target;
+            clicked.classList.remove('bg-gray-200', 'text-gray-700');
+            clicked.classList.add('bg-gray-800', 'text-white');
+
+            currentChipFilter = clicked.dataset.filter;
+            renderCatList();
+        });
+    });
+
+    // 3. Selection mode buttons
+    const btnSelectionMode = document.getElementById('btn-selection-mode');
+    const btnCancelSelection = document.getElementById('btn-cancel-selection');
 
     if (btnSelectionMode) {
         btnSelectionMode.addEventListener('click', () => {
@@ -101,6 +105,13 @@ export async function initList() {
             renderCatList();
             updateSelectionActionBar();
         });
+    }
+
+    // 4. Load & Render list from Dexie DB (with error handling)
+    try {
+        await renderCatList();
+    } catch (e) {
+        console.error('Failed to render cat list during initialization:', e);
     }
 }
 
@@ -265,7 +276,13 @@ export async function renderCatList() {
             rightOffset += 24;
         }
 
-        if (cat.chipNumber) {
+        if (cat.hasPassport) {
+            kiskonyvIcon += `<span title="Van útlevele" class="text-lg absolute top-2" style="right: ${rightOffset}px; font-size: 1.1rem; line-height: 1;">🌍</span>`;
+            rightOffset += 24;
+        }
+
+        const catHasChip = cat.hasChip !== undefined ? !!cat.hasChip : !!cat.chipNumber;
+        if (catHasChip || cat.chipNumber) {
             kiskonyvIcon += `<span title="Chipes" class="text-lg absolute top-2" style="right: ${rightOffset}px; font-size: 1.1rem; line-height: 1;">🔖</span>`;
         }
 

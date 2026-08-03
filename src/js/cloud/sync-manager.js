@@ -1,4 +1,5 @@
 import { db } from '../db.js';
+import { syncService } from '../services/sync-service.js';
 
 class SyncManager {
     constructor() {
@@ -13,9 +14,11 @@ class SyncManager {
         }
         if (settings && settings.cloudEnabled && settings.cloudProvider === 'supabase') {
             this.provider = 'supabase';
+            await syncService.initFromSettings();
             console.log('[SyncManager] Supabase sync provider ready');
-            // Supabase init logic would go here
         } else {
+            this.provider = null;
+            syncService.updateSyncUI();
             console.log('[SyncManager] Sync is disabled or no provider configured');
         }
     }
@@ -35,14 +38,15 @@ class SyncManager {
     async push() {
         if (!this.isEnabled()) return;
         console.log('[SyncManager] Pushing local changes to cloud...');
-        // Logic to push to Supabase
+        await syncService.syncPending();
     }
 
     async pull() {
         if (!this.isEnabled()) return;
         console.log('[SyncManager] Pulling remote changes from cloud...');
-        // Logic to pull from Supabase
+        await syncService.pullRemote();
     }
 }
 
 export const cloudSyncManager = new SyncManager();
+

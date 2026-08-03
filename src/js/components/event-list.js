@@ -7,6 +7,7 @@ import { showToast } from '../utils/toast.js';
 let currentFilter = 'all';
 
 export function initEventList() {
+    window.renderEvents = renderEvents;
     const filterButtons = document.querySelectorAll('[data-event-filter]');
     filterButtons.forEach(btn => {
         btn.addEventListener('click', (e) => {

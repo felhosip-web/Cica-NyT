@@ -1,7 +1,7 @@
 {
   "name": "Cica-NyT",
   "short_name": "Cica-NyT",
-  "start_url": "/Cica-NyT/",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#f472b6",
@@ -16,5 +16,7 @@
       "sizes": "512x512",
       "type": "image/svg+xml"
     }
+  ]
+}  }
   ]
 }

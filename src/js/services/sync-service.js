@@ -8,18 +8,29 @@ export class SyncService {
         this.deviceId = this.getOrCreateDeviceId();
         this.syncing = false;
 
-        const url = import.meta.env.VITE_SUPABASE_URL;
-        const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+        this.initFromSettings();
+        this.setupOnlineListener();
+    }
+
+    async initFromSettings() {
+        let settings = await db.settings.get('main');
+        if (!settings) settings = await db.settings.get('org');
+
+        const url = settings?.supabaseUrl || import.meta.env.VITE_SUPABASE_URL;
+        const key = settings?.supabaseKey || import.meta.env.VITE_SUPABASE_ANON_KEY;
 
         if (url && key) {
             try {
                 this.supabase = createClient(url, key);
+                console.log('[SyncService] Supabase client initialized');
             } catch (e) {
-                console.error("Supabase init failed", e);
+                console.error("[SyncService] Supabase init failed", e);
+                this.supabase = null;
             }
+        } else {
+            this.supabase = null;
         }
 
-        this.setupOnlineListener();
         this.updateSyncUI();
     }
 
@@ -66,7 +77,7 @@ export class SyncService {
 
         if (!this.supabase) {
             dot.className = 'w-2.5 h-2.5 rounded-full bg-yellow-500 inline-block';
-            text.textContent = 'Beállítás hiányzik';
+            text.textContent = 'Hiányzó API kulcs';
             return;
         }
 
@@ -75,7 +86,24 @@ export class SyncService {
             text.textContent = 'Szinkron...';
         } else {
             dot.className = 'w-2.5 h-2.5 rounded-full bg-green-500 inline-block';
-            text.textContent = 'Szinkronizálva';
+            text.textContent = 'Szinkronizálva (Supabase)';
+        }
+    }
+
+    async testConnection(url, key) {
+        if (!url || !key) {
+            return { success: false, error: 'A Supabase URL és Anon API kulcs megadása kötelező.' };
+        }
+        try {
+            const testClient = createClient(url, key);
+            // Query cats table limit 1
+            const { error } = await testClient.from('cats').select('id').limit(1);
+            if (error && error.code !== 'PGRST116') {
+                return { success: false, error: error.message || 'Kapcsolódási hiba az adatbázishoz.' };
+            }
+            return { success: true };
+        } catch (e) {
+            return { success: false, error: e.message || 'Sikertelen kapcsolódás.' };
         }
     }
 
@@ -102,6 +130,10 @@ export class SyncService {
             return;
         }
 
+        if (!this.supabase) {
+            await this.initFromSettings();
+        }
+
         if (!this.supabase || !navigator.onLine || this.syncing) return;
 
         this.syncing = true;
@@ -111,7 +143,14 @@ export class SyncService {
             const pendingCats = await db.cats.where('syncStatus').equals('pending').toArray();
 
             for (const cat of pendingCats) {
-                const { id, sorszam, nev, ivar, szin, szuletes, created, updated, status, osszKoltseg, deviceId, oltasok, tesztek, kezelesek } = cat;
+                const {
+                    id, sorszam, nev, ivar, szin, szuletes, created, updated, status,
+                    osszKoltseg, deviceId, oltasok, tesztek, kezelesek,
+                    intakeType, gazdisDate, gazdisPerson,
+                    hasKiskonyv, kiskonyvSzam, kiskonyvDate,
+                    hasPassport, passportSzam, passportDate,
+                    hasChip, chipNumber, chipDate, chipLocation
+                } = cat;
 
                 // Upload to supabase
                 const { error } = await this.supabase
@@ -131,22 +170,64 @@ export class SyncService {
                         oltasok,
                         tesztek,
                         kezelesek,
+                        intakeType,
+                        gazdisDate,
+                        gazdisPerson,
+                        hasKiskonyv,
+                        kiskonyvSzam,
+                        kiskonyvDate,
+                        hasPassport,
+                        passportSzam,
+                        passportDate,
+                        hasChip,
+                        chipNumber,
+                        chipDate,
+                        chipLocation,
                         device_group: 'foundation'
                     });
 
                 if (!error) {
                     await db.cats.update(id, { syncStatus: 'synced' });
                 } else {
-                    console.error("Sync error:", error);
+                    console.error("[SyncService] Sync item error:", error);
                 }
             }
         } catch (e) {
-            console.error("Sync process failed", e);
+            console.error("[SyncService] Sync process failed", e);
         } finally {
             this.syncing = false;
             this.updateSyncUI();
         }
     }
+
+    async pullRemote() {
+        let settings = await db.settings.get('main');
+        if (!settings) settings = await db.settings.get('org');
+
+        if (!settings?.cloudEnabled || !this.supabase || !navigator.onLine) return;
+
+        try {
+            const { data, error } = await this.supabase
+                .from('cats')
+                .select('*');
+
+            if (!error && Array.isArray(data)) {
+                for (const remoteCat of data) {
+                    const localCat = await db.cats.get(remoteCat.id);
+                    if (!localCat) {
+                        remoteCat.syncStatus = 'synced';
+                        await db.cats.put(remoteCat);
+                    } else if (remoteCat.updated && localCat.updated && new Date(remoteCat.updated) > new Date(localCat.updated)) {
+                        remoteCat.syncStatus = 'synced';
+                        await db.cats.put(remoteCat);
+                    }
+                }
+            }
+        } catch (e) {
+            console.error("[SyncService] Pull remote failed", e);
+        }
+    }
 }
 
 export const syncService = new SyncService();
+

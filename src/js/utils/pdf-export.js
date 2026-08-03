@@ -2,6 +2,14 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { formatDate } from './cost.js';
 import { ORG_ROLES } from '../views/settings-view.js';
+import { THEMES, getCurrentThemeId } from './theme-manager.js';
+
+function hexToRgb(hex) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return [r, g, b];
+}
 
 // Convert Hungarian specific characters to closest ASCII match to avoid jsPDF font issues
 // or we can use replace logic for just standard text.
@@ -137,13 +145,18 @@ export class PdfExporter {
             }
         });
 
+        const activeThemeId = getCurrentThemeId();
+        const activeTheme = THEMES[activeThemeId] || THEMES.original;
+        const brandPinkHex = activeTheme.colors['brand-pink'];
+        const brandPinkRgb = hexToRgb(brandPinkHex);
+
         // Generate Table
         const tableOptions = {
             startY: startY,
             head: head,
             body: body,
             theme: 'grid',
-            headStyles: { fillColor: [236, 72, 153] }, // brand-pink
+            headStyles: { fillColor: brandPinkRgb },
             styles: { fontSize: 8, cellPadding: 2 },
             margin: { top: 15, left: 14, right: 14 },
             didDrawPage: function (data) {

@@ -2,6 +2,9 @@ import { db } from '../db.js';
 import { renderOrgDisplay } from './org-display.js';
 import { prepareExportModal } from './export-modal.js';
 import { openModal } from '../components/fab.js';
+import { THEMES, applyTheme, getCurrentThemeId, saveTheme } from '../utils/theme-manager.js';
+import { syncService } from '../services/sync-service.js';
+import { cloudSyncManager } from '../cloud/sync-manager.js';
 
 export const ORG_ROLES = [
   {value:'tulajdonos', label:'Tulajdonos', icon:'👤'},
@@ -16,8 +19,82 @@ export async function initSettings() {
     const orgRoleSelect = document.getElementById('settings-org-role');
     const form = document.getElementById('form-settings-org');
 
+    const cloudEnabledEl = document.getElementById('settings-cloud-enabled');
+    const supabaseConfigFields = document.getElementById('supabase-config-fields');
+    const supabaseUrlEl = document.getElementById('settings-supabase-url');
+    const supabaseKeyEl = document.getElementById('settings-supabase-key');
+    const btnTestSupabase = document.getElementById('btn-test-supabase');
+    const btnManualSync = document.getElementById('btn-manual-sync');
+    const supabaseTestResult = document.getElementById('supabase-test-result');
+
     if (orgRoleSelect) {
         orgRoleSelect.innerHTML = ORG_ROLES.map(opt => `<option value="${opt.value}">${opt.icon} ${opt.label}</option>`).join('');
+    }
+
+    // Toggle Supabase config fields visibility
+    const toggleSupabaseFields = (enabled) => {
+        if (supabaseConfigFields) {
+            if (enabled) {
+                supabaseConfigFields.classList.remove('hidden');
+            } else {
+                supabaseConfigFields.classList.add('hidden');
+            }
+        }
+    };
+
+    if (cloudEnabledEl) {
+        cloudEnabledEl.addEventListener('change', (e) => {
+            toggleSupabaseFields(e.target.checked);
+        });
+    }
+
+    // Render theme selector list
+    const themeListContainer = document.getElementById('settings-theme-list');
+    if (themeListContainer) {
+        const renderThemeSelector = () => {
+            const activeThemeId = getCurrentThemeId();
+            themeListContainer.innerHTML = Object.values(THEMES).map(theme => {
+                const isActive = theme.id === activeThemeId;
+                const pinkColor = theme.colors['brand-pink'];
+                const orangeColor = theme.colors['brand-orange'];
+                
+                return `
+                    <div id="theme-card-${theme.id}" class="flex items-center justify-between p-3 border-2 ${isActive ? 'border-pink-500 bg-pink-50/30' : 'border-gray-200 bg-white'} rounded-xl cursor-pointer hover:bg-gray-50 transition-all duration-200 shadow-sm">
+                        <div class="flex-1">
+                            <div class="font-bold text-sm text-gray-800 flex items-center gap-2">
+                                ${theme.name}
+                                ${isActive ? '<span class="text-xs bg-pink-500 text-white px-2 py-0.5 rounded-full font-medium">Aktív</span>' : ''}
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1">${theme.description}</div>
+                        </div>
+                        <div class="flex items-center gap-1.5 pl-3">
+                            <span class="w-5 h-5 rounded-full border border-gray-300 inline-block" style="background-color: ${pinkColor}"></span>
+                            <span class="w-5 h-5 rounded-full border border-gray-300 inline-block" style="background-color: ${orangeColor}"></span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Add click listeners to theme cards
+            Object.values(THEMES).forEach(theme => {
+                const card = document.getElementById(`theme-card-${theme.id}`);
+                if (card) {
+                    card.addEventListener('click', () => {
+                        saveTheme(theme.id);
+                        renderThemeSelector();
+                        
+                        // Simple elegant toast notification
+                        const toast = document.createElement('div');
+                        toast.className = 'fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-lg shadow z-50 text-sm font-medium';
+                        toast.textContent = `Színséma módosítva: ${theme.name}`;
+                        document.body.appendChild(toast);
+                        setTimeout(() => toast.remove(), 2000);
+                    });
+                }
+            });
+        };
+
+        renderThemeSelector();
     }
 
     // Load initial settings
@@ -43,13 +120,68 @@ export async function initSettings() {
                 showDeceasedEl.checked = settings.showDeceased ?? true;
             }
 
-            const cloudEnabledEl = document.getElementById('settings-cloud-enabled');
             if (cloudEnabledEl) {
-                cloudEnabledEl.checked = settings.cloudEnabled ?? false;
+                const isCloud = settings.cloudEnabled ?? false;
+                cloudEnabledEl.checked = isCloud;
+                toggleSupabaseFields(isCloud);
+            }
+
+            if (supabaseUrlEl) {
+                supabaseUrlEl.value = settings.supabaseUrl || import.meta.env.VITE_SUPABASE_URL || '';
+            }
+            if (supabaseKeyEl) {
+                supabaseKeyEl.value = settings.supabaseKey || import.meta.env.VITE_SUPABASE_ANON_KEY || '';
             }
         }
     } catch (e) {
         console.error('Failed to load settings', e);
+    }
+
+    // Test Supabase connection button
+    if (btnTestSupabase) {
+        btnTestSupabase.addEventListener('click', async () => {
+            const url = supabaseUrlEl ? supabaseUrlEl.value.trim() : '';
+            const key = supabaseKeyEl ? supabaseKeyEl.value.trim() : '';
+
+            btnTestSupabase.innerText = 'Tesztelés...';
+            btnTestSupabase.disabled = true;
+
+            const res = await syncService.testConnection(url, key);
+
+            btnTestSupabase.innerText = '🔍 Kapcsolat tesztelése';
+            btnTestSupabase.disabled = false;
+
+            if (supabaseTestResult) {
+                supabaseTestResult.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+                if (res.success) {
+                    supabaseTestResult.classList.add('bg-green-100', 'text-green-800');
+                    supabaseTestResult.innerText = '✅ Sikeres kapcsolódás a Supabase adatbázishoz!';
+                } else {
+                    supabaseTestResult.classList.add('bg-red-100', 'text-red-800');
+                    supabaseTestResult.innerText = `❌ Kapcsolódási hiba: ${res.error}`;
+                }
+            }
+        });
+    }
+
+    // Manual sync button
+    if (btnManualSync) {
+        btnManualSync.addEventListener('click', async () => {
+            btnManualSync.innerText = 'Szinkronizálás...';
+            btnManualSync.disabled = true;
+
+            await cloudSyncManager.init();
+            await cloudSyncManager.sync();
+
+            btnManualSync.innerText = '🔄 Szinkronizálás most';
+            btnManualSync.disabled = false;
+
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-lg shadow z-50 text-sm font-medium';
+            toast.textContent = 'Szinkronizálás befejeződött';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        });
     }
 
     const showDeceasedEl = document.getElementById('showDeceased');
@@ -76,8 +208,10 @@ export async function initSettings() {
         if (!currentSettings) currentSettings = { id: 'main' };
 
         const showDeceasedEl = document.getElementById('showDeceased');
-        const cloudEnabledEl = document.getElementById('settings-cloud-enabled');
         const isCloudEnabled = cloudEnabledEl ? cloudEnabledEl.checked : false;
+
+        const supabaseUrl = supabaseUrlEl ? supabaseUrlEl.value.trim() : '';
+        const supabaseKey = supabaseKeyEl ? supabaseKeyEl.value.trim() : '';
 
         const settingsObj = {
             ...currentSettings,
@@ -86,11 +220,16 @@ export async function initSettings() {
             orgRole,
             cloudEnabled: isCloudEnabled,
             cloudProvider: isCloudEnabled ? 'supabase' : null,
+            supabaseUrl: supabaseUrl,
+            supabaseKey: supabaseKey,
             showDeceased: showDeceasedEl ? showDeceasedEl.checked : true
         };
 
         try {
             await db.settings.put(settingsObj);
+
+            // Re-init sync with new settings
+            await cloudSyncManager.init();
 
             // Dispatch custom event as requested
             const event = new CustomEvent('orgSettingsChanged');
@@ -109,6 +248,7 @@ export async function initSettings() {
         }
     });
 }
+
 
 async function updateStorageStats() {
     const statsEl = document.getElementById('storage-stats');
