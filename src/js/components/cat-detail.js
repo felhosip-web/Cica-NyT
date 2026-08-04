@@ -424,6 +424,32 @@ export async function openDetailView(catId) {
         }
     }
 
+    // Spayed Info setup
+    const spayedContainer = document.getElementById('detail-spayed-info');
+    if (spayedContainer) {
+        if (cat.isSpayed) {
+            const dateInfo = cat.spayedDate ? `<div class="text-gray-500 text-xs">Mikor: ${formatDate(cat.spayedDate)}</div>` : '';
+            const locInfo = cat.spayedLocation ? `<div class="text-gray-600 text-xs mt-1">Hol: ${escapeHtml(cat.spayedLocation)}</div>` : '';
+
+            spayedContainer.classList.remove('border-gray-300');
+            spayedContainer.classList.add('border-green-400');
+            spayedContainer.innerHTML = `
+                <div>
+                    <div class="font-bold text-green-700 flex items-center gap-2">✂️ Ivartalanítva</div>
+                    ${locInfo}
+                    ${dateInfo}
+                </div>
+                <div class="text-2xl opacity-50">✓</div>
+            `;
+        } else {
+            spayedContainer.classList.remove('border-green-400');
+            spayedContainer.classList.add('border-gray-300');
+            spayedContainer.innerHTML = `
+                <div class="text-gray-500 flex items-center gap-2 font-medium">✂️ Nincs ivartalanítva</div>
+            `;
+        }
+    }
+
     // Chip Info setup
     const chipContainer = document.getElementById('detail-chip-info');
     if (chipContainer) {

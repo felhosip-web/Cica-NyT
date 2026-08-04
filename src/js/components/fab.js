@@ -31,6 +31,12 @@ export function initModals() {
                 passportFields.classList.remove('max-h-[500px]');
             }
 
+            const spayedFields = document.getElementById('spayed-fields');
+            if (spayedFields) {
+                spayedFields.classList.add('max-h-0', 'opacity-0');
+                spayedFields.classList.remove('max-h-[500px]');
+            }
+
             const chipError = document.getElementById('chip-error');
             if (chipError) {
                 chipError.classList.add('hidden');
@@ -269,6 +275,9 @@ export function initModals() {
                 chipNumber: hasChip ? (chipNumberInput || null) : null,
                 chipDate: hasChip ? (document.getElementById('cat-chip-date').value || null) : null,
                 chipLocation: hasChip ? (document.getElementById('cat-chip-location').value || null) : null,
+                isSpayed: isSpayed,
+                spayedDate: isSpayed ? (document.getElementById('cat-spayed-date').value || null) : null,
+                spayedLocation: isSpayed ? (document.getElementById('cat-spayed-location').value || null) : null,
             };
 
             if (status === 'gazdis') {
