@@ -72,6 +72,17 @@ try {
             if (cat.chipLocation === undefined) cat.chipLocation = null;
           });
         });
+
+        dbInstance.version(8).stores({
+          cats: 'id, sorszam, nev, ivar, szin, szuletes, created, syncStatus, status, gazdisDate, gazdisPerson, intakeType, hasKiskonyv, chipNumber, chipDate, chipLocation, isSpayed',
+          events: '++id, catId, type, date, status, createdAt'
+        }).upgrade(tx => {
+          return tx.cats.toCollection().modify(cat => {
+            if (cat.isSpayed === undefined) cat.isSpayed = false;
+            if (cat.spayedDate === undefined) cat.spayedDate = null;
+            if (cat.spayedLocation === undefined) cat.spayedLocation = null;
+          });
+        });
     }
 } catch (e) {
     console.warn("Failed to define versions because the database is already open/initialized:", e);

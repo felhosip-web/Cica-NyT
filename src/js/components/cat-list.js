@@ -90,11 +90,13 @@ export function getFilteredCats() {
 export async function initList() {
     // 1. Tab buttons (Set up synchronously so navigation is immediately functional!)
     const tabAnimals = document.getElementById('tab-animals');
+    const tabStats = document.getElementById('tab-stats');
     const tabEvents = document.getElementById('tab-events');
     const animalsView = document.getElementById('animals-view');
     const eventsView = document.getElementById('events-view');
+    const statsView = document.getElementById('stats-view');
 
-    if (tabAnimals && tabEvents && animalsView && eventsView) {
+    if (tabAnimals && tabEvents && tabStats && animalsView && eventsView && statsView) {
         tabAnimals.addEventListener('click', () => {
             tabAnimals.classList.add('font-bold', 'text-brand-pink', 'border-brand-pink');
             tabAnimals.classList.remove('font-medium', 'text-gray-500', 'border-transparent');
@@ -102,8 +104,12 @@ export async function initList() {
             tabEvents.classList.add('font-medium', 'text-gray-500', 'border-transparent');
             tabEvents.classList.remove('font-bold', 'text-brand-pink', 'border-brand-pink');
 
+            tabStats.classList.add('font-medium', 'text-gray-500', 'border-transparent');
+            tabStats.classList.remove('font-bold', 'text-brand-pink', 'border-brand-pink');
+
             animalsView.classList.remove('hidden');
             eventsView.classList.add('hidden');
+            statsView.classList.add('hidden');
         });
 
         tabEvents.addEventListener('click', () => {
@@ -113,12 +119,39 @@ export async function initList() {
             tabAnimals.classList.add('font-medium', 'text-gray-500', 'border-transparent');
             tabAnimals.classList.remove('font-bold', 'text-brand-pink', 'border-brand-pink');
 
+            tabStats.classList.add('font-medium', 'text-gray-500', 'border-transparent');
+            tabStats.classList.remove('font-bold', 'text-brand-pink', 'border-brand-pink');
+
             eventsView.classList.remove('hidden');
             animalsView.classList.add('hidden');
+            statsView.classList.add('hidden');
 
             // Force a re-render of events to display up-to-date data
             if (typeof window.renderEvents === 'function') {
                 window.renderEvents();
+            }
+        });
+
+        tabStats.addEventListener('click', async () => {
+            tabStats.classList.add('font-bold', 'text-brand-pink', 'border-brand-pink');
+            tabStats.classList.remove('font-medium', 'text-gray-500', 'border-transparent');
+
+            tabAnimals.classList.add('font-medium', 'text-gray-500', 'border-transparent');
+            tabAnimals.classList.remove('font-bold', 'text-brand-pink', 'border-brand-pink');
+
+            tabEvents.classList.add('font-medium', 'text-gray-500', 'border-transparent');
+            tabEvents.classList.remove('font-bold', 'text-brand-pink', 'border-brand-pink');
+
+            statsView.classList.remove('hidden');
+            animalsView.classList.add('hidden');
+            eventsView.classList.add('hidden');
+
+            // Dynamically import and render stats when tab is activated
+            try {
+                const { renderStats } = await import('../views/stats-view.js');
+                await renderStats();
+            } catch (err) {
+                console.error("Failed to load stats view:", err);
             }
         });
     }
