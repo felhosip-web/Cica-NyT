@@ -25,6 +25,11 @@ export function calculateTotalCost(cat) {
             total += Number(item.koltseg) || 0;
         });
     }
+    if (cat.kiadasok) {
+        cat.kiadasok.forEach(item => {
+            total += Number(item.koltseg) || 0;
+        });
+    }
 
     return total;
 }

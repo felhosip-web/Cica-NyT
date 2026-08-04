@@ -464,16 +464,23 @@
 
     <!-- Events View -->
     <div id="events-view" class="hidden p-4">
-      <div class="flex justify-between items-center mb-4">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
         <div class="flex gap-2">
           <button data-event-filter="all" class="active px-2 py-1 rounded">Összes</button>
           <button data-event-filter="pending" class="px-2 py-1 rounded">⏳ Függő</button>
           <button data-event-filter="expired" class="text-red-600 px-2 py-1 rounded">⚠️ Lejárt</button>
           <button data-event-filter="done" class="px-2 py-1 rounded">✅ Kész</button>
         </div>
-        <button id="btn-add-event-view" class="px-3 py-1 bg-blue-600 text-white rounded shadow text-sm font-medium hover:bg-blue-700">+ Új esemény</button>
+        <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+          <div class="flex bg-gray-200 p-1 rounded-lg">
+            <button id="btn-view-mode-list" class="px-3 py-1 text-sm font-medium rounded-md bg-white shadow-sm transition-colors">Lista nézet</button>
+            <button id="btn-view-mode-calendar" class="px-3 py-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">Naptár nézet</button>
+          </div>
+          <button id="btn-add-event-view" class="px-3 py-1 bg-blue-600 text-white rounded shadow text-sm font-medium hover:bg-blue-700">+ Új esemény</button>
+        </div>
       </div>
       <div id="events-list"></div>
+      <div id="events-calendar" class="hidden bg-white p-4 rounded-xl shadow-sm border border-gray-200"></div>
     </div>
 
     <!-- FAB -->
@@ -592,6 +599,18 @@
           <div id="acc-kezelesek" class="hidden border-t px-4 py-3 bg-gray-50">
              <ul id="list-kezelesek" class="space-y-2 mb-3"></ul>
              <button class="w-full py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-medium border border-blue-200 hover:bg-blue-100 btn-add-event" data-type="kezeles">+ Kezelés hozzáadása</button>
+          </div>
+        </div>
+
+        <!-- Kiadások -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden mt-4">
+          <button class="accordion-btn w-full p-4 flex justify-between items-center text-left font-medium" data-target="acc-kiadasok">
+            <span>💰 Egyedi Kiadások (<span id="count-kiadasok">0</span>)</span>
+            <span class="transform transition-transform text-gray-400">▼</span>
+          </button>
+          <div id="acc-kiadasok" class="hidden border-t px-4 py-3 bg-gray-50">
+             <ul id="list-kiadasok" class="space-y-2 mb-3"></ul>
+             <button class="w-full py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-medium border border-blue-200 hover:bg-blue-100 btn-add-event" data-type="kiadas">+ Kiadás hozzáadása</button>
           </div>
         </div>
 

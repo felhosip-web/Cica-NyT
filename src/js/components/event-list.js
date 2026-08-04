@@ -3,8 +3,10 @@ import { escapeHtml } from '../utils/escape.js';
 import { updateEventBadge } from '../utils/event-check.js';
 import { openEventModal } from './event-form.js';
 import { showToast } from '../utils/toast.js';
+import { renderCalendarView } from './calendar-view.js';
 
 let currentFilter = 'all';
+let currentViewMode = 'list'; // 'list' or 'calendar'
 
 export function initEventList() {
     window.renderEvents = renderEvents;
@@ -21,6 +23,35 @@ export function initEventList() {
             renderEvents();
         });
     });
+
+    const btnList = document.getElementById('btn-view-mode-list');
+    const btnCalendar = document.getElementById('btn-view-mode-calendar');
+
+    if (btnList && btnCalendar) {
+        btnList.addEventListener('click', () => {
+            currentViewMode = 'list';
+            btnList.classList.replace('text-gray-600', 'bg-white');
+            btnList.classList.add('shadow-sm');
+            btnCalendar.classList.replace('bg-white', 'text-gray-600');
+            btnCalendar.classList.remove('shadow-sm');
+
+            document.getElementById('events-list').classList.remove('hidden');
+            document.getElementById('events-calendar').classList.add('hidden');
+            renderEvents();
+        });
+
+        btnCalendar.addEventListener('click', () => {
+            currentViewMode = 'calendar';
+            btnCalendar.classList.replace('text-gray-600', 'bg-white');
+            btnCalendar.classList.add('shadow-sm');
+            btnList.classList.replace('bg-white', 'text-gray-600');
+            btnList.classList.remove('shadow-sm');
+
+            document.getElementById('events-list').classList.add('hidden');
+            document.getElementById('events-calendar').classList.remove('hidden');
+            renderEvents();
+        });
+    }
 }
 
 function getRelativeDateLabel(dateStr) {
@@ -50,6 +81,11 @@ function getRelativeDateLabel(dateStr) {
 }
 
 export async function renderEvents() {
+    if (currentViewMode === 'calendar') {
+        renderCalendarView('events-calendar', currentFilter);
+        return;
+    }
+
     const listEl = document.getElementById('events-list');
     if (!listEl) return;
 

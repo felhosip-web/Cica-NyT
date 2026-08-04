@@ -212,6 +212,9 @@ export function initDetail() {
             } else if (type === 'kezeles') {
                 title = 'Új Kezelés';
                 document.getElementById('event-extra-kezeles').classList.remove('hidden');
+            } else if (type === 'kiadas') {
+                title = 'Új Kiadás';
+                label = 'Megnevezés';
             }
 
             document.getElementById('event-form-title').innerText = title;
@@ -249,6 +252,7 @@ export function initDetail() {
         if (type === 'oltas') targetArray = cat.oltasok = cat.oltasok || [];
         if (type === 'teszt') targetArray = cat.tesztek = cat.tesztek || [];
         if (type === 'kezeles') targetArray = cat.kezelesek = cat.kezelesek || [];
+        if (type === 'kiadas') targetArray = cat.kiadasok = cat.kiadasok || [];
 
         if (indexStr !== '') {
             targetArray[parseInt(indexStr)] = eventData;
@@ -484,6 +488,7 @@ export async function openDetailView(catId) {
     renderEventList('oltasok', cat.oltasok || []);
     renderEventList('tesztek', cat.tesztek || []);
     renderEventList('kezelesek', cat.kezelesek || []);
+    renderEventList('kiadasok', cat.kiadasok || []);
 
     document.getElementById('detail-ossz-koltseg').innerText = formatCurrency(cat.osszKoltseg || 0);
 
@@ -600,6 +605,7 @@ function renderEventList(type, items) {
                 if (itemType === 'oltasok') cat.oltasok.splice(itemIndex, 1);
                 if (itemType === 'tesztek') cat.tesztek.splice(itemIndex, 1);
                 if (itemType === 'kezelesek') cat.kezelesek.splice(itemIndex, 1);
+                if (itemType === 'kiadasok') cat.kiadasok.splice(itemIndex, 1);
 
                 cat.osszKoltseg = calculateTotalCost(cat);
                 await syncService.queueSync(cat);
