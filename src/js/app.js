@@ -24,6 +24,7 @@ function setupDeviceIcon() {
     if (iconSpan) {
         iconSpan.textContent = window.innerWidth <= 768 ? '📱' : '💻';
     }
+}
 
 function setupRouting() {
     const mainView = document.getElementById('main-view');
