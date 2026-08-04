@@ -7,6 +7,7 @@ import { updateFooterStats } from '../utils/stats.js';
 let allCats = [];
 
 let currentChipFilter = 'mind'; // mind, befogott, behozott, gazdis
+let currentQuickFilter = null; // expired, no-chip, adoptable
 
 // Expose state globally for PDF export module
 window.AppState = window.AppState || {};
@@ -79,6 +80,46 @@ export async function initList() {
             clicked.classList.add('bg-gray-800', 'text-white');
 
             currentChipFilter = clicked.dataset.filter;
+
+            // clear quick filter when a normal filter is clicked
+            currentQuickFilter = null;
+            document.querySelectorAll('.quick-filter-card').forEach(c => {
+                c.classList.remove('ring-2', 'ring-brand-pink', 'scale-105');
+            });
+
+            renderCatList();
+        });
+    });
+
+    // Quick filters
+    const quickFilters = document.querySelectorAll('.quick-filter-card');
+    quickFilters.forEach(card => {
+        card.addEventListener('click', (e) => {
+            const clickedCard = e.currentTarget;
+            const filterType = clickedCard.dataset.quickFilter;
+
+            if (currentQuickFilter === filterType) {
+                // Toggle off
+                currentQuickFilter = null;
+                clickedCard.classList.remove('ring-2', 'ring-brand-pink', 'scale-105');
+            } else {
+                // Toggle on
+                currentQuickFilter = filterType;
+                quickFilters.forEach(c => c.classList.remove('ring-2', 'ring-brand-pink', 'scale-105'));
+                clickedCard.classList.add('ring-2', 'ring-brand-pink', 'scale-105');
+
+                // Clear chip filter visually
+                filterChips.forEach(c => {
+                    c.classList.remove('bg-gray-800', 'text-white');
+                    c.classList.add('bg-gray-200', 'text-gray-700');
+                });
+                const mindChip = document.querySelector('.filter-chip[data-filter="mind"]');
+                if (mindChip) {
+                    mindChip.classList.remove('bg-gray-200', 'text-gray-700');
+                    mindChip.classList.add('bg-gray-800', 'text-white');
+                }
+                currentChipFilter = 'mind';
+            }
             renderCatList();
         });
     });
@@ -144,6 +185,47 @@ export async function renderCatList() {
     console.log(`Rendering ${allCats.length} cats`);
 
     let filteredCats = allCats;
+
+
+    // Calculate Quick Filter Stats
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const expiredEvents = await db.events
+        .where('status').equals('expired')
+        .toArray();
+
+    const pendingExpiredEvents = await db.events
+        .where('status').equals('pending')
+        .filter(e => new Date(e.date) < today)
+        .toArray();
+
+    const allExpiredEvents = [...expiredEvents, ...pendingExpiredEvents];
+    const catsWithExpiredEvents = new Set(allExpiredEvents.map(e => e.catId));
+
+    const countExpired = catsWithExpiredEvents.size;
+
+    const countNoChip = allCats.filter(c => c.status !== 'elhunyt' && !c.hasChip && !c.chipNumber).length;
+    const countAdoptable = allCats.filter(c => c.status === 'befogadható').length;
+
+    const elExpiredCount = document.getElementById('qf-expired-count');
+    if (elExpiredCount) elExpiredCount.textContent = countExpired;
+
+    const elNoChipCount = document.getElementById('qf-no-chip-count');
+    if (elNoChipCount) elNoChipCount.textContent = countNoChip;
+
+    const elAdoptableCount = document.getElementById('qf-adoptable-count');
+    if (elAdoptableCount) elAdoptableCount.textContent = countAdoptable;
+
+
+    // Quick Filter
+    if (currentQuickFilter === 'expired') {
+        filteredCats = filteredCats.filter(cat => catsWithExpiredEvents.has(cat.id));
+    } else if (currentQuickFilter === 'no-chip') {
+        filteredCats = filteredCats.filter(cat => cat.status !== 'elhunyt' && !cat.hasChip && !cat.chipNumber);
+    } else if (currentQuickFilter === 'adoptable') {
+        filteredCats = filteredCats.filter(cat => cat.status === 'befogadható');
+    }
 
     // 0. Hide deceased if setting says so and filter not active
     let showDeceased = true;
