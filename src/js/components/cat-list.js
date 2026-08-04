@@ -1,4 +1,68 @@
-import { db } from '../db.js';
+
+    import { AVAILABLE_QUICK_FILTERS } from '../views/settings-view.js';
+
+    async function renderQuickFilters(catsWithExpiredEvents, countExpired, countNoChip, countAdoptable, allCats) {
+        const container = document.getElementById('quick-filters');
+        if (!container) return;
+
+        let settings = await db.settings.get('main');
+        let activeFilterIds = settings?.quickFilters || ['expired', 'no-chip', 'adoptable'];
+
+        let html = '';
+        activeFilterIds.forEach(id => {
+            const filterDef = AVAILABLE_QUICK_FILTERS.find(f => f.id === id);
+            if (!filterDef) return;
+
+            let count = 0;
+            if (id === 'expired') count = countExpired;
+            else if (id === 'no-chip') count = countNoChip;
+            else if (id === 'adoptable') count = countAdoptable;
+            else if (id === 'captured') count = allCats.filter(c => c.intakeType === 'befogott').length;
+            else if (id === 'brought-in') count = allCats.filter(c => c.intakeType === 'behozott').length;
+            else if (id === 'adopted') count = allCats.filter(c => c.status === 'gazdis').length;
+
+            const isActive = currentQuickFilter === id;
+            const ringClass = isActive ? 'ring-2 ring-brand-pink scale-105' : '';
+
+            html += `
+                <div class="${filterDef.bgClass} border ${filterDef.borderClass} ${ringClass} rounded-xl p-2 flex flex-col items-center justify-center cursor-pointer transition-all hover:opacity-80 quick-filter-card text-center" data-quick-filter="${id}">
+                    <span class="text-xs ${filterDef.colorClass} font-bold leading-tight">${filterDef.icon} ${filterDef.label}</span>
+                    <span class="text-lg font-black ${filterDef.colorClass} mt-1">${count}</span>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+
+        // Re-attach listeners
+        const quickFilters = document.querySelectorAll('.quick-filter-card');
+        quickFilters.forEach(card => {
+            card.addEventListener('click', (e) => {
+                const clickedCard = e.currentTarget;
+                const filterType = clickedCard.dataset.quickFilter;
+
+                if (currentQuickFilter === filterType) {
+                    currentQuickFilter = null;
+                } else {
+                    currentQuickFilter = filterType;
+
+                    // Clear chip filter visually
+                    document.querySelectorAll('.filter-chip').forEach(c => {
+                        c.classList.remove('bg-gray-800', 'text-white');
+                        c.classList.add('bg-gray-200', 'text-gray-700');
+                    });
+                    const mindChip = document.querySelector('.filter-chip[data-filter="mind"]');
+                    if (mindChip) {
+                        mindChip.classList.remove('bg-gray-200', 'text-gray-700');
+                        mindChip.classList.add('bg-gray-800', 'text-white');
+                    }
+                    currentChipFilter = 'mind';
+                }
+                renderCatList();
+            });
+        });
+    }
+  import { db } from '../db.js';
 import { calculateAge } from '../utils/age.js';
 import { escapeHtml } from '../utils/escape.js';
 import { openDetailView } from './cat-detail.js';
@@ -91,38 +155,7 @@ export async function initList() {
         });
     });
 
-    // Quick filters
-    const quickFilters = document.querySelectorAll('.quick-filter-card');
-    quickFilters.forEach(card => {
-        card.addEventListener('click', (e) => {
-            const clickedCard = e.currentTarget;
-            const filterType = clickedCard.dataset.quickFilter;
-
-            if (currentQuickFilter === filterType) {
-                // Toggle off
-                currentQuickFilter = null;
-                clickedCard.classList.remove('ring-2', 'ring-brand-pink', 'scale-105');
-            } else {
-                // Toggle on
-                currentQuickFilter = filterType;
-                quickFilters.forEach(c => c.classList.remove('ring-2', 'ring-brand-pink', 'scale-105'));
-                clickedCard.classList.add('ring-2', 'ring-brand-pink', 'scale-105');
-
-                // Clear chip filter visually
-                filterChips.forEach(c => {
-                    c.classList.remove('bg-gray-800', 'text-white');
-                    c.classList.add('bg-gray-200', 'text-gray-700');
-                });
-                const mindChip = document.querySelector('.filter-chip[data-filter="mind"]');
-                if (mindChip) {
-                    mindChip.classList.remove('bg-gray-200', 'text-gray-700');
-                    mindChip.classList.add('bg-gray-800', 'text-white');
-                }
-                currentChipFilter = 'mind';
-            }
-            renderCatList();
-        });
-    });
+    // Quick filter listeners are now handled in renderQuickFilters
 
     // 3. Selection mode buttons
     const btnSelectionMode = document.getElementById('btn-selection-mode');
@@ -208,14 +241,7 @@ export async function renderCatList() {
     const countNoChip = allCats.filter(c => c.status !== 'elhunyt' && !c.hasChip && !c.chipNumber).length;
     const countAdoptable = allCats.filter(c => c.status === 'befogadható').length;
 
-    const elExpiredCount = document.getElementById('qf-expired-count');
-    if (elExpiredCount) elExpiredCount.textContent = countExpired;
-
-    const elNoChipCount = document.getElementById('qf-no-chip-count');
-    if (elNoChipCount) elNoChipCount.textContent = countNoChip;
-
-    const elAdoptableCount = document.getElementById('qf-adoptable-count');
-    if (elAdoptableCount) elAdoptableCount.textContent = countAdoptable;
+    await renderQuickFilters(catsWithExpiredEvents, countExpired, countNoChip, countAdoptable, allCats);
 
 
     // Quick Filter
@@ -225,6 +251,12 @@ export async function renderCatList() {
         filteredCats = filteredCats.filter(cat => cat.status !== 'elhunyt' && !cat.hasChip && !cat.chipNumber);
     } else if (currentQuickFilter === 'adoptable') {
         filteredCats = filteredCats.filter(cat => cat.status === 'befogadható');
+    } else if (currentQuickFilter === 'captured') {
+        filteredCats = filteredCats.filter(cat => cat.intakeType === 'befogott');
+    } else if (currentQuickFilter === 'brought-in') {
+        filteredCats = filteredCats.filter(cat => cat.intakeType === 'behozott');
+    } else if (currentQuickFilter === 'adopted') {
+        filteredCats = filteredCats.filter(cat => cat.status === 'gazdis');
     }
 
     // 0. Hide deceased if setting says so and filter not active

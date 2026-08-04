@@ -15,6 +15,7 @@ export const ORG_ROLES = [
 ];
 
 export async function initSettings() {
+    renderQuickFilterSettings();
     const orgNameInput = document.getElementById('settings-org-name');
     const orgRoleSelect = document.getElementById('settings-org-role');
     const form = document.getElementById('form-settings-org');
@@ -373,5 +374,61 @@ export function initSettingsActions() {
                 alert('Hiba az adatok törlésekor.');
             }
         }
+    });
+}
+
+export const AVAILABLE_QUICK_FILTERS = [
+    { id: 'expired', label: 'Lejárt oltások', icon: '🔴', colorClass: 'text-red-600', bgClass: 'bg-red-50', borderClass: 'border-red-200' },
+    { id: 'no-chip', label: 'Chipre vár', icon: '🟡', colorClass: 'text-yellow-700', bgClass: 'bg-yellow-50', borderClass: 'border-yellow-200' },
+    { id: 'adoptable', label: 'Gazdisodhat', icon: '🟢', colorClass: 'text-green-700', bgClass: 'bg-green-50', borderClass: 'border-green-200' },
+    { id: 'captured', label: 'Befogott', icon: '🐾', colorClass: 'text-blue-700', bgClass: 'bg-blue-50', borderClass: 'border-blue-200' },
+    { id: 'brought-in', label: 'Behozott', icon: '📦', colorClass: 'text-orange-700', bgClass: 'bg-orange-50', borderClass: 'border-orange-200' },
+    { id: 'adopted', label: 'Gazdis', icon: '🏠', colorClass: 'text-purple-700', bgClass: 'bg-purple-50', borderClass: 'border-purple-200' }
+];
+
+async function renderQuickFilterSettings() {
+    const container = document.getElementById('settings-quick-filters-list');
+    if (!container) return;
+
+    let settings = await db.settings.get('main');
+    let activeFilters = settings?.quickFilters || ['expired', 'no-chip', 'adoptable'];
+
+    let html = '';
+    AVAILABLE_QUICK_FILTERS.forEach(filter => {
+        const isChecked = activeFilters.includes(filter.id);
+        html += `
+            <label class="flex items-center justify-between p-3 border ${isChecked ? 'border-brand-pink bg-pink-50' : 'border-gray-200'} rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                <div class="flex items-center gap-2">
+                    <span>${filter.icon}</span>
+                    <span class="text-sm font-medium text-gray-700">${filter.label}</span>
+                </div>
+                <input type="checkbox" value="${filter.id}" class="qf-checkbox rounded text-brand-pink focus:ring-brand-pink h-5 w-5 border-gray-300" ${isChecked ? 'checked' : ''}>
+            </label>
+        `;
+    });
+    container.innerHTML = html;
+
+    const checkboxes = container.querySelectorAll('.qf-checkbox');
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', async (e) => {
+            const checked = Array.from(checkboxes).filter(c => c.checked);
+            if (checked.length > 3) {
+                e.preventDefault();
+                cb.checked = false;
+                alert('Maximum 3 gyorsszűrőt választhatsz!');
+                return;
+            }
+
+            const newFilters = checked.map(c => c.value);
+            settings = await db.settings.get('main') || { id: 'main' };
+            settings.quickFilters = newFilters;
+            await db.settings.put(settings);
+
+            // Re-render to update border classes
+            renderQuickFilterSettings();
+
+            // Trigger refresh in main view
+            window.dispatchEvent(new Event('orgSettingsChanged'));
+        });
     });
 }
