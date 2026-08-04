@@ -19,6 +19,12 @@ import { showToast } from './utils/toast.js';
 import { requestPermission, scheduleLocalCheck } from './utils/push.js';
 import { updateFooterStats } from './utils/stats.js';
 
+function setupDeviceIcon() {
+    const iconSpan = document.getElementById('device-icon');
+    if (iconSpan) {
+        iconSpan.textContent = window.innerWidth <= 768 ? '📱' : '💻';
+    }
+
 function setupRouting() {
     const mainView = document.getElementById('main-view');
     const settingsView = document.getElementById('settings-view');
@@ -86,6 +92,8 @@ function setupRouting() {
 }
 
 async function initApp() {
+    setupDeviceIcon();
+    window.addEventListener('resize', setupDeviceIcon);
     // Apply selected theme
     applyTheme(getCurrentThemeId());
 
