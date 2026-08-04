@@ -56,8 +56,26 @@ export class SyncService {
     async updateSyncUI() {
         const dot = document.getElementById('sync-dot');
         const text = document.getElementById('sync-text');
+        const queueEl = document.getElementById('sync-queue');
 
         if (!dot || !text) return;
+
+        let pendingCount = 0;
+        try {
+            pendingCount = await db.cats.where('syncStatus').equals('pending').count();
+        } catch (e) {
+            console.error("[SyncService] Failed to get pending count", e);
+        }
+
+        if (queueEl) {
+            if (pendingCount > 0) {
+                queueEl.textContent = '(' + pendingCount + ')';
+                queueEl.classList.remove('hidden');
+            } else {
+                queueEl.classList.add('hidden');
+                queueEl.textContent = '';
+            }
+        }
 
         let settings = await db.settings.get('main');
         if (!settings) settings = await db.settings.get('org');
@@ -86,7 +104,7 @@ export class SyncService {
             text.textContent = 'Szinkron...';
         } else {
             dot.className = 'w-2.5 h-2.5 rounded-full bg-green-500 inline-block';
-            text.textContent = 'Szinkronizálva (Supabase)';
+            text.textContent = pendingCount > 0 ? 'Feltöltésre vár' : 'Szinkronizálva (Supabase)';
         }
     }
 
