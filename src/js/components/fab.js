@@ -38,8 +38,13 @@ export function initModals() {
             }
 
             const chronicEl = document.getElementById('cat-is-chronic');
+            const chronicFields = document.getElementById('chronic-fields');
             if (chronicEl) {
                 chronicEl.checked = false;
+                if (chronicFields) {
+                    chronicFields.classList.add('max-h-0', 'opacity-0');
+                    chronicFields.classList.remove('max-h-[500px]');
+                }
             }
 
             const chipError = document.getElementById('chip-error');
@@ -142,11 +147,30 @@ export function initModals() {
     if (spayedCheckbox && spayedFields) {
         spayedCheckbox.addEventListener('change', (e) => {
             if (e.target.checked) {
-                spayedFields.classList.remove('hidden');
+                spayedFields.classList.remove('max-h-0', 'opacity-0');
+                spayedFields.classList.add('max-h-[500px]');
             } else {
-                spayedFields.classList.add('hidden');
+                spayedFields.classList.add('max-h-0', 'opacity-0');
+                spayedFields.classList.remove('max-h-[500px]');
                 document.getElementById('cat-spayed-date').value = '';
                 document.getElementById('cat-spayed-location').value = '';
+            }
+        });
+    }
+
+    // Chronic toggle listener
+    const chronicCheckbox = document.getElementById('cat-is-chronic');
+    const chronicFields = document.getElementById('chronic-fields');
+    if (chronicCheckbox && chronicFields) {
+        chronicCheckbox.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                chronicFields.classList.remove('max-h-0', 'opacity-0');
+                chronicFields.classList.add('max-h-[500px]');
+            } else {
+                chronicFields.classList.add('max-h-0', 'opacity-0');
+                chronicFields.classList.remove('max-h-[500px]');
+                document.getElementById('cat-chronic-type').value = '';
+                document.getElementById('cat-chronic-date').value = '';
             }
         });
     }
@@ -300,6 +324,8 @@ export function initModals() {
                 spayedDate: isSpayed ? (document.getElementById('cat-spayed-date').value || null) : null,
                 spayedLocation: isSpayed ? (document.getElementById('cat-spayed-location').value || null) : null,
                 isChronic: document.getElementById('cat-is-chronic').checked,
+                chronicType: document.getElementById('cat-is-chronic').checked ? (document.getElementById('cat-chronic-type').value || null) : null,
+                chronicDate: document.getElementById('cat-is-chronic').checked ? (document.getElementById('cat-chronic-date').value || null) : null,
             };
 
             if (status === 'gazdis') {

@@ -585,6 +585,10 @@
          <!-- Populated via JS -->
       </div>
 
+      <div id="detail-chronic-info" class="bg-white rounded-xl shadow-sm p-4 text-sm flex items-center justify-between border-l-4 border-gray-300 mb-4 hidden">
+         <!-- Populated via JS -->
+      </div>
+
       <!-- Info Card -->
       <div class="bg-white rounded-xl shadow-sm p-4 space-y-3">
          <div class="flex flex-wrap gap-2 mb-2" id="detail-badges">
@@ -870,10 +874,20 @@
             </div>
 
             <div class="pt-2">
-              <label class="flex items-center gap-2 cursor-pointer">
+              <label class="flex items-center gap-2 cursor-pointer mb-2">
                 <input type="checkbox" id="cat-is-chronic" class="w-5 h-5 text-brand-pink rounded border-gray-300 focus:ring-brand-pink">
                 <span class="text-sm font-medium text-gray-700">Tartós beteg</span>
               </label>
+              <div id="chronic-fields" class="space-y-3 overflow-hidden transition-all duration-300 max-h-0 opacity-0 ml-7">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Betegség jellege</label>
+                  <input type="text" id="cat-chronic-type" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink" placeholder="Pl. Fiv+, vesebeteg, stb.">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Diagnosztizálás dátuma</label>
+                  <input type="date" id="cat-chronic-date" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink">
+                </div>
+              </div>
             </div>
           </div>
 
