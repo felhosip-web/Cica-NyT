@@ -234,7 +234,7 @@ export function initDetail() {
         btn.addEventListener('click', () => {
             const type = btn.dataset.type;
             document.getElementById('form-event').reset();
-            document.getElementById('event-type').value = type;
+            document.getElementById('cat-event-type').value = type;
             document.getElementById('event-index').value = '';
 
             let title = '';
@@ -272,7 +272,7 @@ export function initDetail() {
         const cat = await db.cats.get(currentCatId);
         if (!cat) return;
 
-        const type = document.getElementById('event-type').value;
+        const type = document.getElementById('cat-event-type').value;
         const indexStr = document.getElementById('event-index').value;
 
         const eventData = {
