@@ -20,6 +20,13 @@
             else if (id === 'captured') count = allCats.filter(c => c.intakeType === 'befogott').length;
             else if (id === 'brought-in') count = allCats.filter(c => c.intakeType === 'behozott').length;
             else if (id === 'adopted') count = allCats.filter(c => c.status === 'gazdis').length;
+            else if (id === 'has-kiskonyv') count = allCats.filter(c => c.hasKiskonyv === true).length;
+            else if (id === 'no-kiskonyv') count = allCats.filter(c => !c.hasKiskonyv).length;
+            else if (id === 'vaccinated') count = allCats.filter(c => c.oltasok && c.oltasok.length > 0).length;
+            else if (id === 'not-vaccinated') count = allCats.filter(c => !c.oltasok || c.oltasok.length === 0).length;
+            else if (id === 'chronic-illness') count = allCats.filter(c => c.isChronic === true).length;
+            else if (id === 'male') count = allCats.filter(c => c.ivar === 'kandúr').length;
+            else if (id === 'female') count = allCats.filter(c => c.ivar === 'nőstény').length;
 
             const isActive = currentQuickFilter === id;
             const ringClass = isActive ? 'ring-2 ring-brand-pink scale-105' : '';
@@ -290,6 +297,20 @@ export async function renderCatList() {
         filteredCats = filteredCats.filter(cat => cat.intakeType === 'behozott');
     } else if (currentQuickFilter === 'adopted') {
         filteredCats = filteredCats.filter(cat => cat.status === 'gazdis');
+    } else if (currentQuickFilter === 'has-kiskonyv') {
+        filteredCats = filteredCats.filter(cat => cat.hasKiskonyv === true);
+    } else if (currentQuickFilter === 'no-kiskonyv') {
+        filteredCats = filteredCats.filter(cat => !cat.hasKiskonyv);
+    } else if (currentQuickFilter === 'vaccinated') {
+        filteredCats = filteredCats.filter(cat => cat.oltasok && cat.oltasok.length > 0);
+    } else if (currentQuickFilter === 'not-vaccinated') {
+        filteredCats = filteredCats.filter(cat => !cat.oltasok || cat.oltasok.length === 0);
+    } else if (currentQuickFilter === 'chronic-illness') {
+        filteredCats = filteredCats.filter(cat => cat.isChronic === true);
+    } else if (currentQuickFilter === 'male') {
+        filteredCats = filteredCats.filter(cat => cat.ivar === 'kandúr');
+    } else if (currentQuickFilter === 'female') {
+        filteredCats = filteredCats.filter(cat => cat.ivar === 'nőstény');
     }
 
     // 0. Hide deceased if setting says so and filter not active

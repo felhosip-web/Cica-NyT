@@ -37,6 +37,11 @@ export function initModals() {
                 spayedFields.classList.remove('max-h-[500px]');
             }
 
+            const chronicEl = document.getElementById('cat-is-chronic');
+            if (chronicEl) {
+                chronicEl.checked = false;
+            }
+
             const chipError = document.getElementById('chip-error');
             if (chipError) {
                 chipError.classList.add('hidden');
@@ -240,6 +245,7 @@ export function initModals() {
             const hasKiskonyv = document.getElementById('cat-has-kiskonyv').checked;
             const hasPassport = document.getElementById('cat-has-passport').checked;
             const hasChip = document.getElementById('cat-has-chip').checked;
+            const isSpayed = document.getElementById('cat-is-spayed').checked;
 
             const chipNumberInput = document.getElementById('cat-chip-number').value.trim();
             const chipError = document.getElementById('chip-error');
@@ -278,6 +284,7 @@ export function initModals() {
                 isSpayed: isSpayed,
                 spayedDate: isSpayed ? (document.getElementById('cat-spayed-date').value || null) : null,
                 spayedLocation: isSpayed ? (document.getElementById('cat-spayed-location').value || null) : null,
+                isChronic: document.getElementById('cat-is-chronic').checked,
             };
 
             if (status === 'gazdis') {

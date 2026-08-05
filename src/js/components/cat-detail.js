@@ -57,6 +57,31 @@ export function openCatModal(cat) {
             }
         }
 
+        // Spayed and Chronic
+        const isSpayedEl = document.getElementById('cat-is-spayed');
+        if (isSpayedEl) {
+            isSpayedEl.checked = !!cat.isSpayed;
+            const spayedFields = document.getElementById('spayed-fields');
+            if (spayedFields) {
+                if (cat.isSpayed) {
+                    spayedFields.classList.remove('max-h-0', 'opacity-0');
+                    spayedFields.classList.add('max-h-[500px]');
+                    document.getElementById('cat-spayed-date').value = cat.spayedDate || '';
+                    document.getElementById('cat-spayed-location').value = cat.spayedLocation || '';
+                } else {
+                    spayedFields.classList.add('max-h-0', 'opacity-0');
+                    spayedFields.classList.remove('max-h-[500px]');
+                    document.getElementById('cat-spayed-date').value = '';
+                    document.getElementById('cat-spayed-location').value = '';
+                }
+            }
+        }
+
+        const isChronicEl = document.getElementById('cat-is-chronic');
+        if (isChronicEl) {
+            isChronicEl.checked = !!cat.isChronic;
+        }
+
         // Chip fields
         const hasChipEl = document.getElementById('cat-has-chip');
         if (hasChipEl) {
