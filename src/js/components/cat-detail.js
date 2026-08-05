@@ -80,6 +80,20 @@ export function openCatModal(cat) {
         const isChronicEl = document.getElementById('cat-is-chronic');
         if (isChronicEl) {
             isChronicEl.checked = !!cat.isChronic;
+            const chronicFields = document.getElementById('chronic-fields');
+            if (chronicFields) {
+                if (cat.isChronic) {
+                    chronicFields.classList.remove('max-h-0', 'opacity-0');
+                    chronicFields.classList.add('max-h-[500px]');
+                    document.getElementById('cat-chronic-type').value = cat.chronicType || '';
+                    document.getElementById('cat-chronic-date').value = cat.chronicDate || '';
+                } else {
+                    chronicFields.classList.add('max-h-0', 'opacity-0');
+                    chronicFields.classList.remove('max-h-[500px]');
+                    document.getElementById('cat-chronic-type').value = '';
+                    document.getElementById('cat-chronic-date').value = '';
+                }
+            }
         }
 
         // Chip fields
@@ -472,6 +486,28 @@ export async function openDetailView(catId) {
             spayedContainer.innerHTML = `
                 <div class="text-gray-500 flex items-center gap-2 font-medium">✂️ Nincs ivartalanítva</div>
             `;
+        }
+    }
+
+    // Chronic Info setup
+    const chronicContainer = document.getElementById('detail-chronic-info');
+    if (chronicContainer) {
+        if (cat.isChronic) {
+            const dateInfo = cat.chronicDate ? `<div class="text-gray-500 text-xs">Diagnosztizálva: ${formatDate(cat.chronicDate)}</div>` : '';
+            const typeInfo = cat.chronicType ? `<div class="text-gray-600 text-xs mt-1">Jelleg: ${escapeHtml(cat.chronicType)}</div>` : '';
+
+            chronicContainer.classList.remove('border-gray-300', 'hidden');
+            chronicContainer.classList.add('border-red-400');
+            chronicContainer.innerHTML = `
+                <div>
+                    <div class="font-bold text-red-700 flex items-center gap-2">⚠️ Tartós beteg</div>
+                    ${typeInfo}
+                    ${dateInfo}
+                </div>
+                <div class="text-2xl opacity-50">⚕️</div>
+            `;
+        } else {
+            chronicContainer.classList.add('hidden');
         }
     }
 
