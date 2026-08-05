@@ -665,3 +665,13 @@ function renderEventList(type, items) {
         });
     });
 }
+
+// Re-render detail view when the cat is updated elsewhere (e.g. edit modal)
+document.addEventListener('catUpdated', (e) => {
+    if (currentCatId && e.detail && e.detail.catId === currentCatId) {
+        const detailViewEl = document.getElementById('cat-detail-view');
+        if (detailViewEl && !detailViewEl.classList.contains('hidden')) {
+            openDetailView(currentCatId);
+        }
+    }
+});

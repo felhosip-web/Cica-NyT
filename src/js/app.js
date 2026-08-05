@@ -2,7 +2,7 @@ import '../style.css'
 import { db } from './db.js';
 import { applyTheme, getCurrentThemeId } from './utils/theme-manager.js';
 import { syncService } from './services/sync-service.js';
-import { initList } from './components/cat-list.js';
+import { initList, renderCatList } from './components/cat-list.js';
 import { initModals } from './components/fab.js';
 import { initDetail } from './components/cat-detail.js';
 import './components/update-banner.js';
@@ -191,6 +191,7 @@ async function initApp() {
             await cloudSyncManager.init();
             syncService.updateSyncUI();
             syncService.syncPending();
+            await renderCatList();
         } catch (e) {
             console.error('Error handling org settings change:', e);
         }
