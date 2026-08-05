@@ -16,6 +16,13 @@ export const ORG_ROLES = [
 
 export async function initSettings() {
     renderQuickFilterSettings();
+    const btnQuickFilterModal = document.getElementById('btn-quick-filter-modal');
+    if (btnQuickFilterModal) {
+        btnQuickFilterModal.addEventListener('click', () => {
+            openModal('modal-quick-filters');
+        });
+    }
+
     const orgNameInput = document.getElementById('settings-org-name');
     const orgRoleSelect = document.getElementById('settings-org-role');
     const form = document.getElementById('form-settings-org');
@@ -383,7 +390,14 @@ export const AVAILABLE_QUICK_FILTERS = [
     { id: 'adoptable', label: 'Gazdisodhat', icon: '🟢', colorClass: 'text-green-700', bgClass: 'bg-green-50', borderClass: 'border-green-200' },
     { id: 'captured', label: 'Befogott', icon: '🐾', colorClass: 'text-blue-700', bgClass: 'bg-blue-50', borderClass: 'border-blue-200' },
     { id: 'brought-in', label: 'Behozott', icon: '📦', colorClass: 'text-orange-700', bgClass: 'bg-orange-50', borderClass: 'border-orange-200' },
-    { id: 'adopted', label: 'Gazdis', icon: '🏠', colorClass: 'text-purple-700', bgClass: 'bg-purple-50', borderClass: 'border-purple-200' }
+    { id: 'adopted', label: 'Gazdis', icon: '🏠', colorClass: 'text-purple-700', bgClass: 'bg-purple-50', borderClass: 'border-purple-200' },
+    { id: 'has-kiskonyv', label: 'Van kiskönyve', icon: '📘', colorClass: 'text-indigo-700', bgClass: 'bg-indigo-50', borderClass: 'border-indigo-200' },
+    { id: 'no-kiskonyv', label: 'Nincs kiskönyve', icon: '📕', colorClass: 'text-red-700', bgClass: 'bg-red-50', borderClass: 'border-red-200' },
+    { id: 'vaccinated', label: 'Oltott', icon: '💉', colorClass: 'text-teal-700', bgClass: 'bg-teal-50', borderClass: 'border-teal-200' },
+    { id: 'not-vaccinated', label: 'Nem oltott', icon: '🦠', colorClass: 'text-rose-700', bgClass: 'bg-rose-50', borderClass: 'border-rose-200' },
+    { id: 'chronic-illness', label: 'Tartós beteg', icon: '❤️‍🩹', colorClass: 'text-pink-700', bgClass: 'bg-pink-50', borderClass: 'border-pink-200' },
+    { id: 'male', label: 'Kandúr', icon: '♂️', colorClass: 'text-blue-600', bgClass: 'bg-blue-50', borderClass: 'border-blue-200' },
+    { id: 'female', label: 'Nőstény', icon: '♀️', colorClass: 'text-pink-600', bgClass: 'bg-pink-50', borderClass: 'border-pink-200' }
 ];
 
 async function renderQuickFilterSettings() {

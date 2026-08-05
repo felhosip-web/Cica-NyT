@@ -270,9 +270,10 @@
       <section class="bg-white rounded-xl shadow-sm p-4">
         <h3 class="font-bold text-gray-800 mb-3 flex items-center gap-2">⚡ Gyorsszűrők</h3>
         <p class="text-sm text-gray-600 mb-4">Válaszd ki azt a 3 szűrőt, ami megjelenjen a főoldalon:</p>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="settings-quick-filters-list">
-          <!-- Dynamically populated -->
-        </div>
+        <button id="btn-quick-filter-modal" class="w-full py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-xl flex items-center justify-center gap-2 transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+            Gyorsszűrők kiválasztása
+        </button>
       </section>
 
       <!-- Szervezet beállításai -->
@@ -849,21 +850,30 @@
           </div>
 
           <hr class="border-gray-200">
-          <div>
-            <h4 class="font-bold text-gray-800 mb-2 flex items-center gap-2">✂️ Ivartalanítás</h4>
-            <label class="flex items-center gap-2 cursor-pointer mb-2">
-              <input type="checkbox" id="cat-is-spayed" class="w-5 h-5 text-brand-pink rounded border-gray-300 focus:ring-brand-pink">
-              <span class="text-sm font-medium text-gray-700">Ivartalanítva</span>
-            </label>
-            <div id="spayed-fields" class="space-y-3 overflow-hidden transition-all duration-300 max-h-0 opacity-0 ml-7">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Mikor?</label>
-                <input type="date" id="cat-spayed-date" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink">
+          <div class="grid grid-cols-1 gap-4">
+            <div>
+              <h4 class="font-bold text-gray-800 mb-2 flex items-center gap-2">✂️ Ivartalanítás</h4>
+              <label class="flex items-center gap-2 cursor-pointer mb-2">
+                <input type="checkbox" id="cat-is-spayed" class="w-5 h-5 text-brand-pink rounded border-gray-300 focus:ring-brand-pink">
+                <span class="text-sm font-medium text-gray-700">Ivartalanítva</span>
+              </label>
+              <div id="spayed-fields" class="space-y-3 overflow-hidden transition-all duration-300 max-h-0 opacity-0 ml-7">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Mikor?</label>
+                  <input type="date" id="cat-spayed-date" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Hol?</label>
+                  <input type="text" id="cat-spayed-location" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink" placeholder="Pl. Állatkórház neve">
+                </div>
               </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Hol?</label>
-                <input type="text" id="cat-spayed-location" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-pink focus:border-brand-pink" placeholder="Pl. Állatkórház neve">
-              </div>
+            </div>
+
+            <div class="pt-2">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="cat-is-chronic" class="w-5 h-5 text-brand-pink rounded border-gray-300 focus:ring-brand-pink">
+                <span class="text-sm font-medium text-gray-700">Tartós beteg</span>
+              </label>
             </div>
           </div>
 
@@ -1009,6 +1019,25 @@
       <div class="p-4 border-t bg-gray-50 flex justify-end gap-3 rounded-b-2xl">
         <button type="button" class="px-4 py-2 text-gray-600 font-medium modal-close">Mégse</button>
         <button type="submit" form="form-cat" class="px-6 py-2 bg-gradient-to-r from-brand-pink to-brand-orange text-white rounded-lg font-medium shadow">Mentés</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Filters Modal -->
+  <div id="modal-quick-filters" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white w-full max-w-lg mx-auto rounded-t-2xl sm:rounded-2xl flex flex-col max-h-[90vh]">
+      <div class="p-4 border-b flex justify-between items-center bg-gray-50 rounded-t-2xl">
+        <h3 class="text-lg font-bold">Gyorsszűrők kiválasztása</h3>
+        <button type="button" class="text-gray-400 hover:text-gray-600 p-2 modal-close">✕</button>
+      </div>
+      <div class="p-4 overflow-y-auto flex-1">
+        <p class="text-sm text-gray-600 mb-4">Maximum 3 szűrőt választhatsz, melyek a főoldalon fognak megjelenni:</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="settings-quick-filters-list">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+      <div class="p-4 border-t bg-gray-50 flex justify-end gap-3 rounded-b-2xl">
+        <button type="button" class="px-4 py-2 bg-gradient-to-r from-brand-pink to-brand-orange text-white rounded-lg font-medium shadow modal-close">Kész</button>
       </div>
     </div>
   </div>
