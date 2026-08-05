@@ -136,6 +136,21 @@ export function initModals() {
         });
     }
 
+    // Spayed toggle listener
+    const spayedCheckbox = document.getElementById('cat-is-spayed');
+    const spayedFields = document.getElementById('spayed-fields');
+    if (spayedCheckbox && spayedFields) {
+        spayedCheckbox.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                spayedFields.classList.remove('hidden');
+            } else {
+                spayedFields.classList.add('hidden');
+                document.getElementById('cat-spayed-date').value = '';
+                document.getElementById('cat-spayed-location').value = '';
+            }
+        });
+    }
+
     // Chip toggle listener
     const chipCheckbox = document.getElementById('cat-has-chip');
     const chipFields = document.getElementById('chip-fields');
@@ -344,6 +359,10 @@ export function initModals() {
             showToast('Cica sikeresen mentve!', 'success');
             closeModal('modal-cat-form');
             renderCatList();
+
+            if (editId) {
+                document.dispatchEvent(new CustomEvent('catUpdated', { detail: { catId: Number(editId) } }));
+            }
         });
     }
 }
