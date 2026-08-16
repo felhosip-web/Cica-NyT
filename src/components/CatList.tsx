@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { motion, AnimatePresence } from 'motion/react';
-import { db } from '../js/db.js';
+import { db } from '../lib/db';
 import { CatCard, Cat } from './CatCard';
 import { useAppStore, QuickFilterCardConfig, getCardStyles } from '../store/useAppStore';
 import { getTagStyle, getTagIcon } from '../utils/tagUtils';

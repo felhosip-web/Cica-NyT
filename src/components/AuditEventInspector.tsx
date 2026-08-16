@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { db } from '../js/db.js';
+import { db } from '../lib/db';
 import { formatAuditDate } from '../utils/audit';
 import { useAppStore } from '../store/useAppStore';
 import { UserAccount, UserRole } from '../types';

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { motion, AnimatePresence } from 'motion/react';
-import { db } from '../js/db.js';
+import { db } from '../lib/db';
 import { sendEventPushNotification, requestNotificationPermission } from '../utils/pushNotification';
 
 interface EventStartupToastProps {

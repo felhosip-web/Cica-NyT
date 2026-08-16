@@ -1,5 +1,5 @@
 import React from 'react';
-import { calculateAge } from '../js/utils/age.js';
+import { calculateAge } from '../utils/age';
 import { useAppStore } from '../store/useAppStore';
 import { getTagStyle, getTagIcon } from '../utils/tagUtils';
 

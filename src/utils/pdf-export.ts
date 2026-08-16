@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { formatDate } from './cost.js';
+import { formatDate } from './cost';
 
 
 const ORG_ROLES = [

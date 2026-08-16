@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../js/db.js';
+import { db } from '../lib/db';
 import { APP_VERSION } from '../version';
 import { useAppStore } from '../store/useAppStore';
 

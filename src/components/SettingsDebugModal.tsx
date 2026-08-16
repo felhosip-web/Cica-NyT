@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../js/db.js';
+import { db } from '../lib/db';
 import { useAppStore, ViewOverrideMode } from '../store/useAppStore';
 import { UserPermissionsManager } from './UserPermissionsManager';
 import { AuditEventInspector } from './AuditEventInspector';

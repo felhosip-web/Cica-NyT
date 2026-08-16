@@ -1,6 +1,6 @@
 import { PatchPlugin, GenericPatchValidationReport } from '../types/patchPlugin';
 import { runPatchConnectedElements } from '../services/patchUpgradeService';
-import { db } from '../js/db.js';
+import { db } from '../lib/db';
 
 export const patchConnectedElements: PatchPlugin = {
   id: 'patch_connected_elements_v1',

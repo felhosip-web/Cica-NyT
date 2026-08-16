@@ -1,4 +1,4 @@
-import { db } from '../js/db.js';
+import { db } from '../lib/db';
 import { UserAccount, UserRole, UserPermissions } from '../types';
 import { getAuthAuditLogs, AuthAuditLogEntry } from './authAuditService';
 

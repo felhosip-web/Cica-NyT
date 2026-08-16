@@ -1,5 +1,5 @@
-import { db } from '../db.js';
-import { syncService } from '../services/sync-service.js';
+import { db } from '../lib/db';
+import { syncService } from './sync-service';
 
 class SyncManager {
     constructor() {

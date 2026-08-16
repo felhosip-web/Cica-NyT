@@ -8,8 +8,8 @@ import {
   PaymentMethod,
   FinancialTransaction,
 } from '../types';
-import { db } from '../js/db.js';
-import { syncService } from '../js/services/sync-service.js';
+import { db } from '../lib/db';
+import { syncService } from '../services/sync-service';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useAppStore } from '../store/useAppStore';
 import { CustomSelect } from './CustomSelect';

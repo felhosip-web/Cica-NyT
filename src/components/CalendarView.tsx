@@ -3,8 +3,8 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../js/db.js';
-import { escapeHtml } from '../js/utils/escape.js';
+import { db } from '../lib/db';
+import { escapeHtml } from '../utils/escape';
 import { EventTemplateManagerModal } from './EventTemplateManagerModal';
 import { CustomSelect } from './CustomSelect';
 

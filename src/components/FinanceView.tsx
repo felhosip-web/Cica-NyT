@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../js/db.js';
+import { db } from '../lib/db';
 import {
   FinancialTransaction,
   FinanceType,

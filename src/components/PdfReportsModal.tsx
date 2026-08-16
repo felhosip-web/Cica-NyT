@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { db } from '../js/db.js';
+import { db } from '../lib/db';
 import { useAppStore } from '../store/useAppStore';
 import { Cat, TnrRecord } from '../types';
 import { CustomSelect } from './CustomSelect';
