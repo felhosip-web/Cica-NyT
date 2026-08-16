@@ -261,7 +261,7 @@ export const CatDetailModal: React.FC<CatDetailModalProps> = ({
   const handleExportPdf = async () => {
     if (!cat) return;
     try {
-      await generateCatPdf(cat, catEvents);
+      await generateCatPdf(cat);
     } catch (err) {
       alert('PDF generálási hiba!');
     }

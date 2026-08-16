@@ -230,7 +230,6 @@ export function initModals() {
                 return;
             }
 
-            const idInput = document.getElementById('cat-id').value;
             const status = document.getElementById('cat-status').value;
             const intakeType = document.querySelector('input[name="intakeType"]:checked')?.value || 'befogott';
 

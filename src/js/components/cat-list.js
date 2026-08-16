@@ -456,8 +456,6 @@ export async function renderCatList() {
 
         // Ensure previously selected cards remain selected during re-render
         const isAlreadySelected = window.AppState.selectedCatIds.has(cat.id);
-        const selBorder = isAlreadySelected ? 'border-blue-500' : '';
-        const selBg = isAlreadySelected ? 'bg-blue-50' : '';
         if (isAlreadySelected) {
             card.classList.add('border-blue-500', 'bg-blue-50');
         }

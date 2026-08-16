@@ -185,7 +185,7 @@ export class PdfExporter {
             } else {
                 autoTable(doc, tableOptions);
             }
-        } catch (e) {
+        } catch {
             autoTable(doc, tableOptions);
         }
 
@@ -194,7 +194,7 @@ export class PdfExporter {
     }
 }
 
-export async function generateCatPdf(cat, events = []) {
+export async function generateCatPdf(cat) {
     if (!cat) return;
     const doc = new jsPDF('p', 'mm', 'a4');
     const name = cat.nev || 'Névtelen';
