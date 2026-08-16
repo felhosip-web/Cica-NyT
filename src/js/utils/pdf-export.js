@@ -1,8 +1,25 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { formatDate } from './cost.js';
-import { ORG_ROLES } from '../views/settings-view.js';
-import { THEMES, getCurrentThemeId } from './theme-manager.js';
+
+
+const ORG_ROLES = [
+    { value: 'shelter_admin', label: 'Menhely Vezető / Adminisztrátor' },
+    { value: 'foundation_admin', label: 'Alapítvány / Adminisztrátor' },
+    { value: 'foundation_member', label: 'Alapítvány / Tag' },
+    { value: 'vet', label: 'Állatorvos / Egészségügyi Felelős' },
+    { value: 'caretaker', label: 'Gondozó / Önkéntes' }
+];
+
+const THEMES = {
+    original: { 'brand-pink': '#ec4899' },
+    olive: { 'brand-pink': '#8A9A5B' },
+    lavender: { 'brand-pink': '#8B5CF6' }
+};
+
+function getCurrentThemeId() {
+    return localStorage.getItem('cica_theme') || localStorage.getItem('cica-nyt-theme') || 'original';
+}
 
 function hexToRgb(hex) {
     const r = parseInt(hex.slice(1, 3), 16);
@@ -42,8 +59,8 @@ export class PdfExporter {
         let orgRole = '';
         if (orgSettings?.orgRole) {
             let roleValue = orgSettings.orgRole;
-            if (roleValue === 'allatmenhely' || roleValue.includes('/')) {
-                roleValue = 'menhely';
+            if (roleValue === 'allatmenhely' || roleValue === 'menhely' || roleValue.includes('/')) {
+                roleValue = 'shelter_admin';
             }
             const roleDef = ORG_ROLES.find(r => r.value === roleValue);
             orgRole = roleDef ? stripAccents(roleDef.label) : stripAccents(roleValue);
@@ -152,7 +169,7 @@ export class PdfExporter {
 
         const activeThemeId = getCurrentThemeId();
         const activeTheme = THEMES[activeThemeId] || THEMES.original;
-        const brandPinkHex = activeTheme.colors['brand-pink'];
+        const brandPinkHex = activeTheme['brand-pink'];
         const brandPinkRgb = hexToRgb(brandPinkHex);
 
         // Generate Table
