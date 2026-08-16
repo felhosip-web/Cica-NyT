@@ -1,8 +1,26 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { formatDate } from './cost.js';
-import { ORG_ROLES } from '../views/settings-view.js';
-import { THEMES, getCurrentThemeId } from './theme-manager.js';
+
+
+const ORG_ROLES = [
+    { value: 'maganszemely', label: 'Magánszemély / Önkéntes' },
+    { value: 'allatvedo_egyesulet', label: 'Állatvédő Egyesület' },
+    { value: 'alapitvany', label: 'Alapítvány' },
+    { value: 'allatmenhely', label: 'Állatmenhely / Gyepmesteri telep' },
+    { value: 'allatorvos', label: 'Állatorvosi Rendelő' },
+    { value: 'egyeb', label: 'Egyéb Szervezet' }
+];
+
+const THEMES = {
+    original: { colors: { 'brand-pink': '#ec4899' } },
+    olive: { colors: { 'brand-pink': '#8A9A5B' } },
+    lavender: { colors: { 'brand-pink': '#8B5CF6' } }
+};
+
+function getCurrentThemeId() {
+    return localStorage.getItem('cica-nyt-theme') || 'original';
+}
 
 function hexToRgb(hex) {
     const r = parseInt(hex.slice(1, 3), 16);
