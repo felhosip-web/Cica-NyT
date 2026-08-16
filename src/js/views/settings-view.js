@@ -1,8 +1,7 @@
 import { db } from '../db.js';
-import { renderOrgDisplay } from './org-display.js';
 import { prepareExportModal } from './export-modal.js';
 import { openModal, closeModal } from '../components/fab.js';
-import { THEMES, applyTheme, getCurrentThemeId, saveTheme } from '../utils/theme-manager.js';
+import { THEMES, getCurrentThemeId, saveTheme } from '../utils/theme-manager.js';
 import { syncService } from '../services/sync-service.js';
 import { cloudSyncManager } from '../cloud/sync-manager.js';
 

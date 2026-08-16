@@ -278,7 +278,7 @@ export function initDebugModal() {
         btnCopySql.addEventListener('click', async () => {
             try {
                 await navigator.clipboard.writeText(SUPABASE_SQL_SCHEMA);
-            } catch (err) {
+            } catch {
                 // Fallback for older browsers / iframe permission quirks
                 const textarea = document.createElement('textarea');
                 textarea.value = SUPABASE_SQL_SCHEMA;
