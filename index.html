@@ -128,7 +128,7 @@
           'gray-950': '#09090b'
         }
       };
-      const themeId = localStorage.getItem('cica-nyt-theme') || 'original';
+      const themeId = localStorage.getItem('cica_theme') || localStorage.getItem('cica-nyt-theme') || 'original';
       const theme = themes[themeId] || themes.original;
       const root = document.documentElement;
       root.setAttribute('data-theme', themeId);
