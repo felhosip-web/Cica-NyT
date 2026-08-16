@@ -3,8 +3,10 @@ import { escapeHtml } from '../utils/escape.js';
 import { updateEventBadge } from '../utils/event-check.js';
 import { openEventModal } from './event-form.js';
 import { showToast } from '../utils/toast.js';
+import { renderCalendarView } from './calendar-view.js';
 
 let currentFilter = 'all';
+let currentViewMode = 'list'; // 'list' or 'calendar'
 
 export function initEventList() {
     window.renderEvents = renderEvents;
@@ -20,6 +22,39 @@ export function initEventList() {
             currentFilter = e.target.dataset.eventFilter;
             renderEvents();
         });
+    });
+
+    const btnList = document.getElementById('btn-view-mode-list');
+    const btnCalendar = document.getElementById('btn-view-mode-calendar');
+
+    if (btnList && btnCalendar) {
+        btnList.addEventListener('click', () => {
+            currentViewMode = 'list';
+            btnList.classList.replace('text-gray-600', 'bg-white');
+            btnList.classList.add('shadow-sm');
+            btnCalendar.classList.replace('bg-white', 'text-gray-600');
+            btnCalendar.classList.remove('shadow-sm');
+
+            document.getElementById('events-list').classList.remove('hidden');
+            document.getElementById('events-calendar').classList.add('hidden');
+            renderEvents();
+        });
+
+        btnCalendar.addEventListener('click', () => {
+            currentViewMode = 'calendar';
+            btnCalendar.classList.replace('text-gray-600', 'bg-white');
+            btnCalendar.classList.add('shadow-sm');
+            btnList.classList.replace('bg-white', 'text-gray-600');
+            btnList.classList.remove('shadow-sm');
+
+            document.getElementById('events-list').classList.add('hidden');
+            document.getElementById('events-calendar').classList.remove('hidden');
+            renderEvents();
+        });
+    }
+
+    document.addEventListener('eventsChanged', () => {
+        renderEvents();
     });
 }
 
@@ -50,6 +85,11 @@ function getRelativeDateLabel(dateStr) {
 }
 
 export async function renderEvents() {
+    if (currentViewMode === 'calendar') {
+        renderCalendarView('events-calendar', currentFilter);
+        return;
+    }
+
     const listEl = document.getElementById('events-list');
     if (!listEl) return;
 
@@ -132,22 +172,28 @@ export async function renderEvents() {
                 }
 
                 html += `
-                    <div class="event-card ${bgClass} border rounded-lg p-3 shadow-sm flex items-center justify-between cursor-pointer hover:shadow-md transition group" data-id="${e.id}">
-                        <div class="event-click-area flex items-center gap-3 overflow-hidden flex-1" data-id="${e.id}">
-                            <div class="text-2xl">${icon}</div>
-                            <div class="flex-1 min-w-0">
-                                <div class="font-medium text-sm truncate">${catName}${chipStr}</div>
-                                <div class="font-bold truncate text-gray-800">${titleStr}</div>
-                                <div class="text-xs text-gray-500">${dateDisplay}</div>
+                    <div class="event-card border rounded-lg shadow-sm cursor-pointer hover:shadow-md transition group relative overflow-hidden" data-id="${e.id}">
+                        <div class="absolute inset-0 flex justify-between z-0">
+                            <button type="button" class="bg-green-500 text-white w-20 flex items-center justify-center font-bold text-sm event-swipe-done" data-id="${e.id}">Kész</button>
+                            <div class="flex">
+                                <button type="button" class="bg-gray-300 text-gray-800 w-16 flex items-center justify-center font-bold text-sm event-swipe-edit" data-id="${e.id}">Szerk</button>
+                                <button type="button" class="bg-red-500 text-white w-16 flex items-center justify-center font-bold text-sm event-swipe-delete" data-id="${e.id}">Törlés</button>
                             </div>
                         </div>
-                        <div class="ml-2 flex items-center gap-3">
-                            <button type="button" class="text-red-400 hover:text-red-600 p-1 bg-white rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity btn-delete-list-event" data-id="${e.id}" title="Törlés">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                            </button>
-                            <input type="checkbox" class="w-6 h-6 rounded border-gray-300 text-brand-pink focus:ring-brand-pink cursor-pointer event-done-cb"
-                                ${isDone ? 'checked disabled' : ''}
-                                data-id="${e.id}">
+                        <div class="event-click-area ${bgClass} relative z-10 flex items-center justify-between p-3 w-full transition-transform duration-300 touch-pan-y" data-id="${e.id}">
+                            <div class="flex items-center gap-3 overflow-hidden flex-1 pointer-events-none">
+                                <div class="text-2xl">${icon}</div>
+                                <div class="flex-1 min-w-0 pointer-events-none">
+                                    <div class="font-medium text-sm truncate">${catName}${chipStr}</div>
+                                    <div class="font-bold truncate text-gray-800">${titleStr}</div>
+                                    <div class="text-xs text-gray-500">${dateDisplay}</div>
+                                </div>
+                            </div>
+                            <div class="ml-2 flex items-center gap-3">
+                                <input type="checkbox" class="w-6 h-6 rounded border-gray-300 text-brand-pink focus:ring-brand-pink cursor-pointer event-done-cb"
+                                    ${isDone ? 'checked disabled' : ''}
+                                    data-id="${e.id}">
+                            </div>
                         </div>
                     </div>
                 `;
@@ -158,10 +204,10 @@ export async function renderEvents() {
 
     listEl.innerHTML = html;
 
-    // Bind delete buttons
-    document.querySelectorAll('.btn-delete-list-event').forEach(btn => {
+    // Bind swipe action buttons
+    document.querySelectorAll('.event-swipe-delete').forEach(btn => {
         btn.addEventListener('click', async (ev) => {
-            ev.stopPropagation(); // prevent card click
+            ev.stopPropagation();
             const id = parseInt(ev.currentTarget.dataset.id, 10);
             if (confirm('Biztosan törlöd ezt az eseményt?')) {
                 await db.events.delete(id);
@@ -170,6 +216,22 @@ export async function renderEvents() {
                 document.dispatchEvent(new CustomEvent('eventsChanged'));
                 showToast('Esemény törölve', 'info');
             }
+        });
+    });
+
+    document.querySelectorAll('.event-swipe-edit').forEach(btn => {
+        btn.addEventListener('click', async (ev) => {
+            ev.stopPropagation();
+            const id = parseInt(ev.currentTarget.dataset.id, 10);
+            await handleEventEdit(id);
+        });
+    });
+
+    document.querySelectorAll('.event-swipe-done').forEach(btn => {
+        btn.addEventListener('click', async (ev) => {
+            ev.stopPropagation();
+            const id = parseInt(ev.currentTarget.dataset.id, 10);
+            openConfirmDoneModal(id, null); // passing null for checkbox
         });
     });
 
@@ -203,21 +265,53 @@ export async function renderEvents() {
             }, 600);
         }, { passive: true });
 
+        let currentTranslate = 0;
+        let isSwiping = false;
+
         area.addEventListener('touchmove', (ev) => {
             const moveY = ev.touches[0].clientY;
             const moveX = ev.touches[0].clientX;
-            if (Math.abs(moveY - startY) > 10 || Math.abs(moveX - startX) > 10) {
+
+            if (!isSwiping && Math.abs(moveX - startX) > Math.abs(moveY - startY) && Math.abs(moveX - startX) > 10) {
+                isSwiping = true;
                 if (pressTimer) {
                     clearTimeout(pressTimer);
                     pressTimer = null;
                 }
             }
-        }, { passive: true });
+
+            if (isSwiping) {
+                ev.preventDefault(); // prevent scrolling while swiping horizontally
+                area.style.transition = 'none';
+                let diffX = moveX - startX;
+                currentTranslate = diffX;
+                area.style.transform = `translateX(${currentTranslate}px)`;
+            } else if (Math.abs(moveY - startY) > 10 || Math.abs(moveX - startX) > 10) {
+                if (pressTimer) {
+                    clearTimeout(pressTimer);
+                    pressTimer = null;
+                }
+            }
+        }, { passive: false }); // Needs to be non-passive to preventDefault on swipe
 
         area.addEventListener('touchend', () => {
             if (pressTimer) {
                 clearTimeout(pressTimer);
                 pressTimer = null;
+            }
+            if (isSwiping) {
+                isSwiping = false;
+                area.style.transition = 'transform 0.3s ease-out';
+                if (currentTranslate > 60) {
+                    // snapped to right, revealing left button (Done)
+                    area.style.transform = `translateX(80px)`;
+                } else if (currentTranslate < -60) {
+                    // snapped to left, revealing right buttons (Edit, Delete)
+                    area.style.transform = `translateX(-128px)`;
+                } else {
+                    // snap back
+                    area.style.transform = `translateX(0px)`;
+                }
             }
         });
 
@@ -249,8 +343,6 @@ export async function renderEvents() {
                 const card = area.closest('.event-card');
                 if (card) {
                     card.classList.add('ring-2', 'ring-brand-pink', 'border-brand-pink');
-                    const delBtn = card.querySelector('.btn-delete-list-event');
-                    if(delBtn) delBtn.classList.add('!opacity-100');
                 }
             }
         });

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cica-nyt-v1.6.4';
+const CACHE_NAME = 'cica-nyt-v2.12.1';
 const STATIC_ASSETS = [
     '/',
     '/index.html',
@@ -7,6 +7,12 @@ const STATIC_ASSETS = [
     '/favicon.svg',
     '/icons.svg'
 ];
+
+self.addEventListener('message', event => {
+    if (event.data && (event.data.type === 'SKIP_WAITING' || event.data.action === 'skipWaiting')) {
+        self.skipWaiting();
+    }
+});
 
 self.addEventListener('install', event => {
     self.skipWaiting();
@@ -68,6 +74,38 @@ self.addEventListener('fetch', event => {
                     return caches.match('/Cica-NyT/offline.html');
                 }
             });
+        })
+    );
+});
+
+// Push Notifications Event Handling
+self.addEventListener('push', event => {
+    let data = { title: 'Cica-NyT Értesítés', body: 'Új oltási vagy egészségügyi esemény esedékes! 🐾' };
+    if (event.data) {
+        try {
+            data = event.data.json();
+        } catch (e) {
+            data.body = event.data.text();
+        }
+    }
+    const options = {
+        body: data.body,
+        icon: '/favicon.svg',
+        badge: '/favicon.svg',
+        vibrate: [100, 50, 100],
+        data: { url: '/' }
+    };
+    event.waitUntil(self.registration.showNotification(data.title, options));
+});
+
+self.addEventListener('notificationclick', event => {
+    event.notification.close();
+    event.waitUntil(
+        clients.matchAll({ type: 'window' }).then(clientList => {
+            for (const client of clientList) {
+                if (client.url === '/' && 'focus' in client) return client.focus();
+            }
+            if (clients.openWindow) return clients.openWindow('/');
         })
     );
 });

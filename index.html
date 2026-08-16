@@ -3,20 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Cica-NyT</title>
+  <title>Cica-NyT - Macskamenhely & Gondozó Nyilvántartó</title>
   <meta name="theme-color" content="#f472b6">
   <link rel="manifest" href="manifest.json">
-  <link href="/src/style.css" rel="stylesheet">
   <style>
-    /* Prevent pull-to-refresh on mobile */
     body { overscroll-behavior-y: contain; }
   </style>
-  <script>
-    // Quick inline script to prevent flash of unstyled theme
-    (function() {
-      const themes = {
-        original: {
-          primary: '#ec4899',
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased selection:bg-pink-500 selection:text-white">
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+</html>
+ry: '#ec4899',
           'brand-pink': '#ec4899',
           'brand-orange': '#f97316',
           'pink-50': '#fdf2f8',

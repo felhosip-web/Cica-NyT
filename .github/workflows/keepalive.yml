@@ -1,0 +1,34 @@
+name: OnRender & Supabase Keep-Alive
+
+on:
+  schedule:
+    # 14 percenkénti futás OnRender ébrentartáshoz
+    - cron: '*/14 * * * *'
+  workflow_dispatch: # Kézzel is indítható a GitHub felületén
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping OnRender Server
+        run: |
+          RENDER_URL="${{ secrets.RENDER_SERVER_URL }}"
+          if [ -n "$RENDER_URL" ]; then
+            echo "📡 OnRender szerver pingelése: $RENDER_URL"
+            curl -s -f -m 30 "$RENDER_URL/version.json" || echo "⚠️ OnRender nem válaszolt azonnal (lehet épp ébred)."
+          else
+            echo "ℹ️ RENDER_SERVER_URL secret nincs beállítva. Adj meg egy RENDER_SERVER_URL secretet a GitHub Repo Settings -> Secrets and variables -> Actions menüben!"
+          fi
+
+      - name: Ping Supabase Keep-Alive (Prevents 7-day Auto-Pause)
+        run: |
+          SUPABASE_URL="${{ secrets.SUPABASE_URL }}"
+          SUPABASE_KEY="${{ secrets.SUPABASE_ANON_KEY }}"
+          if [ -n "$SUPABASE_URL" ] && [ -n "$SUPABASE_KEY" ]; then
+            echo "⚡ Supabase pingelése az auto-pause elkerülésére..."
+            curl -s -f -X GET "$SUPABASE_URL/rest/v1/" \
+              -H "apikey: $SUPABASE_KEY" \
+              -H "Authorization: Bearer $SUPABASE_KEY" || echo "⚠️ Supabase ping sikertelen."
+          else
+            echo "ℹ️ SUPABASE_URL / SUPABASE_ANON_KEY secret nincs beállítva. (Opcionális, ha szeretnéd automatikusan életben tartani a Supabase-t)."
+          fi

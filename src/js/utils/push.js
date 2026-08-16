@@ -1,5 +1,6 @@
 import { db } from '../db.js';
 import { checkExpired, updateEventBadge } from './event-check.js';
+import { checkAndSendVaccinationPushNotifications } from './vaccination-alerts.js';
 
 export function requestPermission() {
     if (!('Notification' in window)) {
@@ -61,4 +62,10 @@ export async function scheduleLocalCheck() {
     }
 
     sessionStorage.setItem('notifiedEvents', JSON.stringify(notifiedEvents));
+
+    try {
+        await checkAndSendVaccinationPushNotifications();
+    } catch (err) {
+        console.warn('Vaccination push check failed in scheduleLocalCheck:', err);
+    }
 }

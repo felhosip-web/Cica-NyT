@@ -31,6 +31,22 @@ export function initModals() {
                 passportFields.classList.remove('max-h-[500px]');
             }
 
+            const spayedFields = document.getElementById('spayed-fields');
+            if (spayedFields) {
+                spayedFields.classList.add('max-h-0', 'opacity-0');
+                spayedFields.classList.remove('max-h-[500px]');
+            }
+
+            const chronicEl = document.getElementById('cat-is-chronic');
+            const chronicFields = document.getElementById('chronic-fields');
+            if (chronicEl) {
+                chronicEl.checked = false;
+                if (chronicFields) {
+                    chronicFields.classList.add('max-h-0', 'opacity-0');
+                    chronicFields.classList.remove('max-h-[500px]');
+                }
+            }
+
             const chipError = document.getElementById('chip-error');
             if (chipError) {
                 chipError.classList.add('hidden');
@@ -121,6 +137,40 @@ export function initModals() {
             } else {
                 kiskonyvFields.classList.add('max-h-0', 'opacity-0');
                 kiskonyvFields.classList.remove('max-h-[500px]');
+            }
+        });
+    }
+
+    // Spayed toggle listener
+    const spayedCheckbox = document.getElementById('cat-is-spayed');
+    const spayedFields = document.getElementById('spayed-fields');
+    if (spayedCheckbox && spayedFields) {
+        spayedCheckbox.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                spayedFields.classList.remove('max-h-0', 'opacity-0');
+                spayedFields.classList.add('max-h-[500px]');
+            } else {
+                spayedFields.classList.add('max-h-0', 'opacity-0');
+                spayedFields.classList.remove('max-h-[500px]');
+                document.getElementById('cat-spayed-date').value = '';
+                document.getElementById('cat-spayed-location').value = '';
+            }
+        });
+    }
+
+    // Chronic toggle listener
+    const chronicCheckbox = document.getElementById('cat-is-chronic');
+    const chronicFields = document.getElementById('chronic-fields');
+    if (chronicCheckbox && chronicFields) {
+        chronicCheckbox.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                chronicFields.classList.remove('max-h-0', 'opacity-0');
+                chronicFields.classList.add('max-h-[500px]');
+            } else {
+                chronicFields.classList.add('max-h-0', 'opacity-0');
+                chronicFields.classList.remove('max-h-[500px]');
+                document.getElementById('cat-chronic-type').value = '';
+                document.getElementById('cat-chronic-date').value = '';
             }
         });
     }
@@ -234,6 +284,7 @@ export function initModals() {
             const hasKiskonyv = document.getElementById('cat-has-kiskonyv').checked;
             const hasPassport = document.getElementById('cat-has-passport').checked;
             const hasChip = document.getElementById('cat-has-chip').checked;
+            const isSpayed = document.getElementById('cat-is-spayed').checked;
 
             const chipNumberInput = document.getElementById('cat-chip-number').value.trim();
             const chipError = document.getElementById('chip-error');
@@ -269,6 +320,12 @@ export function initModals() {
                 chipNumber: hasChip ? (chipNumberInput || null) : null,
                 chipDate: hasChip ? (document.getElementById('cat-chip-date').value || null) : null,
                 chipLocation: hasChip ? (document.getElementById('cat-chip-location').value || null) : null,
+                isSpayed: isSpayed,
+                spayedDate: isSpayed ? (document.getElementById('cat-spayed-date').value || null) : null,
+                spayedLocation: isSpayed ? (document.getElementById('cat-spayed-location').value || null) : null,
+                isChronic: document.getElementById('cat-is-chronic').checked,
+                chronicType: document.getElementById('cat-is-chronic').checked ? (document.getElementById('cat-chronic-type').value || null) : null,
+                chronicDate: document.getElementById('cat-is-chronic').checked ? (document.getElementById('cat-chronic-date').value || null) : null,
             };
 
             if (status === 'gazdis') {
@@ -328,6 +385,10 @@ export function initModals() {
             showToast('Cica sikeresen mentve!', 'success');
             closeModal('modal-cat-form');
             renderCatList();
+
+            if (editId) {
+                document.dispatchEvent(new CustomEvent('catUpdated', { detail: { catId: Number(editId) } }));
+            }
         });
     }
 }

@@ -72,6 +72,77 @@ try {
             if (cat.chipLocation === undefined) cat.chipLocation = null;
           });
         });
+
+        dbInstance.version(8).stores({
+          cats: 'id, sorszam, nev, ivar, szin, szuletes, created, syncStatus, status, gazdisDate, gazdisPerson, intakeType, hasKiskonyv, chipNumber, chipDate, chipLocation, isSpayed',
+          events: '++id, catId, type, date, status, createdAt'
+        }).upgrade(tx => {
+          return tx.cats.toCollection().modify(cat => {
+            if (cat.isSpayed === undefined) cat.isSpayed = false;
+            if (cat.spayedDate === undefined) cat.spayedDate = null;
+            if (cat.spayedLocation === undefined) cat.spayedLocation = null;
+          });
+        });
+
+        dbInstance.version(9).stores({
+          cats: 'id, sorszam, nev, ivar, szin, szuletes, created, syncStatus, status, gazdisDate, gazdisPerson, intakeType, hasKiskonyv, chipNumber, chipDate, chipLocation, isSpayed',
+          events: '++id, catId, type, date, status, createdAt',
+          tnr: 'id, locationTrapped, dateTrapped, trappedBy, clinicLocation, surgeonName, locationReleased, status, createdAt'
+        });
+
+        dbInstance.version(10).stores({
+          cats: 'id, sorszam, nev, ivar, szin, szuletes, created, syncStatus, status, gazdisDate, gazdisPerson, intakeType, hasKiskonyv, chipNumber, chipDate, chipLocation, isSpayed',
+          events: '++id, catId, type, date, status, createdAt',
+          tnr: 'id, locationTrapped, dateTrapped, trappedBy, clinicLocation, surgeonName, locationReleased, status, createdAt',
+          eventTemplates: '++id, name, type, defaultTitle, category, isBuiltIn'
+        });
+
+        dbInstance.version(11).stores({
+          cats: 'id, sorszam, nev, ivar, szin, szuletes, created, syncStatus, status, gazdisDate, gazdisPerson, intakeType, hasKiskonyv, chipNumber, chipDate, chipLocation, isSpayed, fosterId',
+          events: '++id, catId, type, date, status, createdAt',
+          tnr: 'id, locationTrapped, dateTrapped, trappedBy, clinicLocation, surgeonName, locationReleased, status, createdAt',
+          eventTemplates: '++id, name, type, defaultTitle, category, isBuiltIn',
+          fosterParents: 'id, name, phone, city, status, maxCapacity, createdAt',
+          fosterSupplies: '++id, fosterId, type, item, date, status',
+          fosterExpenses: '++id, fosterId, catId, category, amount, date'
+        });
+
+        dbInstance.version(12).stores({
+          cats: 'id, sorszam, nev, ivar, szin, szuletes, created, syncStatus, status, gazdisDate, gazdisPerson, intakeType, hasKiskonyv, chipNumber, chipDate, chipLocation, isSpayed, fosterId',
+          events: '++id, catId, type, date, status, createdAt',
+          tnr: 'id, locationTrapped, dateTrapped, trappedBy, clinicLocation, surgeonName, locationReleased, status, createdAt',
+          eventTemplates: '++id, name, type, defaultTitle, category, isBuiltIn',
+          fosterParents: 'id, name, phone, city, status, maxCapacity, createdAt',
+          fosterSupplies: '++id, fosterId, type, item, date, status',
+          fosterExpenses: '++id, fosterId, catId, category, amount, date',
+          inventory: '++id, direction, itemType, sourceType, date, sourceOrRecipient, syncStatus, createdAt'
+        });
+
+        dbInstance.version(13).stores({
+          cats: 'id, sorszam, nev, ivar, szin, szuletes, created, syncStatus, status, gazdisDate, gazdisPerson, intakeType, hasKiskonyv, chipNumber, chipDate, chipLocation, isSpayed, fosterId',
+          events: '++id, catId, type, date, status, createdAt',
+          tnr: 'id, locationTrapped, dateTrapped, trappedBy, clinicLocation, surgeonName, locationReleased, status, createdAt',
+          eventTemplates: '++id, name, type, defaultTitle, category, isBuiltIn',
+          fosterParents: 'id, name, phone, city, status, maxCapacity, createdAt',
+          fosterSupplies: '++id, fosterId, type, item, date, status',
+          fosterExpenses: '++id, fosterId, catId, category, amount, date',
+          inventory: '++id, direction, itemType, sourceType, date, sourceOrRecipient, syncStatus, createdAt',
+          autoBackups: '++id, timestamp, format, recordCount, triggerReason'
+        });
+
+        dbInstance.version(14).stores({
+          cats: 'id, sorszam, nev, ivar, szin, szuletes, created, syncStatus, status, gazdisDate, gazdisPerson, intakeType, hasKiskonyv, chipNumber, chipDate, chipLocation, isSpayed, fosterId',
+          events: '++id, catId, type, date, status, createdAt',
+          tnr: 'id, locationTrapped, dateTrapped, trappedBy, clinicLocation, surgeonName, locationReleased, status, createdAt',
+          eventTemplates: '++id, name, type, defaultTitle, category, isBuiltIn',
+          fosterParents: 'id, name, phone, city, status, maxCapacity, createdAt',
+          fosterSupplies: '++id, fosterId, type, item, date, status',
+          fosterExpenses: '++id, fosterId, catId, category, amount, date',
+          inventory: '++id, direction, itemType, sourceType, date, sourceOrRecipient, syncStatus, createdAt',
+          autoBackups: '++id, timestamp, format, recordCount, triggerReason',
+          finances: '++id, type, category, amount, date, catId, fosterId, status, paymentMethod, createdAt'
+        });
+
     }
 } catch (e) {
     console.warn("Failed to define versions because the database is already open/initialized:", e);

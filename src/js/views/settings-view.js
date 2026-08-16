@@ -1,7 +1,7 @@
 import { db } from '../db.js';
 import { renderOrgDisplay } from './org-display.js';
 import { prepareExportModal } from './export-modal.js';
-import { openModal } from '../components/fab.js';
+import { openModal, closeModal } from '../components/fab.js';
 import { THEMES, applyTheme, getCurrentThemeId, saveTheme } from '../utils/theme-manager.js';
 import { syncService } from '../services/sync-service.js';
 import { cloudSyncManager } from '../cloud/sync-manager.js';
@@ -11,10 +11,19 @@ export const ORG_ROLES = [
   {value:'ideiglenes_nevelo', label:'Ideiglenes nevelő / Befogadó', icon:'🏠'},
   {value:'menhely', label:'Menhely', icon:'🏚️'},
   {value:'alapitvany', label:'Alapítvány / Egyesület', icon:'🤝'},
-  {value:'maganszemely', label:'Magánszemély', icon:'🙋'}
+  {value:'maganszemely', label:'Magánszemély', icon:'🙋'},
+  {value:'root', label:'Root (Fejlesztő)', icon:'⚡'}
 ];
 
 export async function initSettings() {
+    renderQuickFilterSettings();
+    const btnQuickFilterModal = document.getElementById('btn-quick-filter-modal');
+    if (btnQuickFilterModal) {
+        btnQuickFilterModal.addEventListener('click', () => {
+            openModal('modal-quick-filters');
+        });
+    }
+
     const orgNameInput = document.getElementById('settings-org-name');
     const orgRoleSelect = document.getElementById('settings-org-role');
     const form = document.getElementById('form-settings-org');
@@ -27,8 +36,97 @@ export async function initSettings() {
     const btnManualSync = document.getElementById('btn-manual-sync');
     const supabaseTestResult = document.getElementById('supabase-test-result');
 
+    let previousSavedRole = 'maganszemely';
+
+    const formRootAuth = document.getElementById('form-root-auth');
+    const inputRootPass = document.getElementById('input-root-pass');
+    const rootAuthError = document.getElementById('root-auth-error');
+
+    let pendingRootActivation = false;
+
     if (orgRoleSelect) {
         orgRoleSelect.innerHTML = ORG_ROLES.map(opt => `<option value="${opt.value}">${opt.icon} ${opt.label}</option>`).join('');
+
+        orgRoleSelect.addEventListener('change', async (e) => {
+            const selectedVal = e.target.value;
+            if (selectedVal === 'root' && previousSavedRole !== 'root') {
+                pendingRootActivation = true;
+                openModal('modal-root-auth');
+                if (rootAuthError) rootAuthError.classList.add('hidden');
+                if (inputRootPass) {
+                    inputRootPass.value = '';
+                    setTimeout(() => inputRootPass.focus(), 100);
+                }
+            } else if (selectedVal !== 'root') {
+                previousSavedRole = selectedVal;
+                try {
+                    let mainSettings = await db.settings.get('main') || { id: 'main' };
+                    mainSettings.orgRole = selectedVal;
+                    await db.settings.put(mainSettings);
+
+                    let orgSettings = await db.settings.get('org');
+                    if (orgSettings) {
+                        orgSettings.orgRole = selectedVal;
+                        await db.settings.put(orgSettings);
+                    }
+                    document.dispatchEvent(new CustomEvent('orgSettingsChanged'));
+                } catch (err) {
+                    console.error('Error saving role change:', err);
+                }
+            }
+        });
+    }
+
+    const closeRootAuthModal = () => {
+        closeModal('modal-root-auth');
+        if (pendingRootActivation && previousSavedRole !== 'root') {
+            if (orgRoleSelect) orgRoleSelect.value = previousSavedRole;
+            pendingRootActivation = false;
+        }
+    };
+
+    document.querySelectorAll('#modal-root-auth .modal-close, #btn-cancel-root-auth').forEach(btn => {
+        btn.addEventListener('click', closeRootAuthModal);
+    });
+
+    if (formRootAuth) {
+        formRootAuth.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const passVal = inputRootPass ? inputRootPass.value.trim() : '';
+            if (passVal === '1342' || passVal === '') {
+                pendingRootActivation = false;
+                previousSavedRole = 'root';
+                if (orgRoleSelect) orgRoleSelect.value = 'root';
+
+                try {
+                    let mainSettings = await db.settings.get('main') || { id: 'main' };
+                    mainSettings.orgRole = 'root';
+                    await db.settings.put(mainSettings);
+
+                    let orgSettings = await db.settings.get('org');
+                    if (orgSettings) {
+                        orgSettings.orgRole = 'root';
+                        await db.settings.put(orgSettings);
+                    }
+
+                    closeModal('modal-root-auth');
+                    if (inputRootPass) inputRootPass.value = '';
+                    if (rootAuthError) rootAuthError.classList.add('hidden');
+
+                    document.dispatchEvent(new CustomEvent('orgSettingsChanged'));
+
+                    const toast = document.createElement('div');
+                    toast.className = 'fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-purple-800 text-white px-4 py-2 rounded-lg shadow z-50 text-sm font-medium';
+                    toast.textContent = '⚡ Root státusz sikeresen aktiválva!';
+                    document.body.appendChild(toast);
+                    setTimeout(() => toast.remove(), 2500);
+                } catch (err) {
+                    console.error('Error activating root role:', err);
+                }
+            } else {
+                if (rootAuthError) rootAuthError.classList.remove('hidden');
+            }
+        });
     }
 
     // Toggle Supabase config fields visibility
@@ -114,6 +212,7 @@ export async function initSettings() {
             }
 
             orgRoleSelect.value = savedRole;
+            previousSavedRole = savedRole;
 
             const showDeceasedEl = document.getElementById('showDeceased');
             if (showDeceasedEl) {
@@ -227,6 +326,15 @@ export async function initSettings() {
 
         try {
             await db.settings.put(settingsObj);
+
+            let orgSettings = await db.settings.get('org');
+            if (orgSettings) {
+                orgSettings.orgRole = orgRole;
+                orgSettings.orgName = orgName;
+                await db.settings.put(orgSettings);
+            }
+
+            previousSavedRole = orgRole;
 
             // Re-init sync with new settings
             await cloudSyncManager.init();
@@ -373,5 +481,68 @@ export function initSettingsActions() {
                 alert('Hiba az adatok törlésekor.');
             }
         }
+    });
+}
+
+export const AVAILABLE_QUICK_FILTERS = [
+    { id: 'expired', label: 'Lejárt oltások', icon: '🔴', colorClass: 'text-red-600', bgClass: 'bg-red-50', borderClass: 'border-red-200' },
+    { id: 'no-chip', label: 'Chipre vár', icon: '🟡', colorClass: 'text-yellow-700', bgClass: 'bg-yellow-50', borderClass: 'border-yellow-200' },
+    { id: 'adoptable', label: 'Gazdisodhat', icon: '🟢', colorClass: 'text-green-700', bgClass: 'bg-green-50', borderClass: 'border-green-200' },
+    { id: 'captured', label: 'Befogott', icon: '🐾', colorClass: 'text-blue-700', bgClass: 'bg-blue-50', borderClass: 'border-blue-200' },
+    { id: 'brought-in', label: 'Behozott', icon: '📦', colorClass: 'text-orange-700', bgClass: 'bg-orange-50', borderClass: 'border-orange-200' },
+    { id: 'adopted', label: 'Gazdis', icon: '🏠', colorClass: 'text-purple-700', bgClass: 'bg-purple-50', borderClass: 'border-purple-200' },
+    { id: 'has-kiskonyv', label: 'Van kiskönyve', icon: '📘', colorClass: 'text-indigo-700', bgClass: 'bg-indigo-50', borderClass: 'border-indigo-200' },
+    { id: 'no-kiskonyv', label: 'Nincs kiskönyve', icon: '📕', colorClass: 'text-red-700', bgClass: 'bg-red-50', borderClass: 'border-red-200' },
+    { id: 'vaccinated', label: 'Oltott', icon: '💉', colorClass: 'text-teal-700', bgClass: 'bg-teal-50', borderClass: 'border-teal-200' },
+    { id: 'not-vaccinated', label: 'Nem oltott', icon: '🦠', colorClass: 'text-rose-700', bgClass: 'bg-rose-50', borderClass: 'border-rose-200' },
+    { id: 'chronic-illness', label: 'Tartós beteg', icon: '❤️‍🩹', colorClass: 'text-pink-700', bgClass: 'bg-pink-50', borderClass: 'border-pink-200' },
+    { id: 'male', label: 'Kandúr', icon: '♂️', colorClass: 'text-blue-600', bgClass: 'bg-blue-50', borderClass: 'border-blue-200' },
+    { id: 'female', label: 'Nőstény', icon: '♀️', colorClass: 'text-pink-600', bgClass: 'bg-pink-50', borderClass: 'border-pink-200' }
+];
+
+async function renderQuickFilterSettings() {
+    const container = document.getElementById('settings-quick-filters-list');
+    if (!container) return;
+
+    let settings = await db.settings.get('main');
+    let activeFilters = settings?.quickFilters || ['expired', 'no-chip', 'adoptable'];
+
+    let html = '';
+    AVAILABLE_QUICK_FILTERS.forEach(filter => {
+        const isChecked = activeFilters.includes(filter.id);
+        html += `
+            <label class="flex items-center justify-between p-3 border ${isChecked ? 'border-brand-pink bg-pink-50' : 'border-gray-200'} rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                <div class="flex items-center gap-2">
+                    <span>${filter.icon}</span>
+                    <span class="text-sm font-medium text-gray-700">${filter.label}</span>
+                </div>
+                <input type="checkbox" value="${filter.id}" class="qf-checkbox rounded text-brand-pink focus:ring-brand-pink h-5 w-5 border-gray-300" ${isChecked ? 'checked' : ''}>
+            </label>
+        `;
+    });
+    container.innerHTML = html;
+
+    const checkboxes = container.querySelectorAll('.qf-checkbox');
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', async (e) => {
+            const checked = Array.from(checkboxes).filter(c => c.checked);
+            if (checked.length > 3) {
+                e.preventDefault();
+                cb.checked = false;
+                alert('Maximum 3 gyorsszűrőt választhatsz!');
+                return;
+            }
+
+            const newFilters = checked.map(c => c.value);
+            settings = await db.settings.get('main') || { id: 'main' };
+            settings.quickFilters = newFilters;
+            await db.settings.put(settings);
+
+            // Re-render to update border classes
+            renderQuickFilterSettings();
+
+            // Trigger refresh in main view
+            window.dispatchEvent(new Event('orgSettingsChanged'));
+        });
     });
 }

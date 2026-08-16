@@ -1,5 +1,211 @@
 [
   {
+    "version": "2.12.1",
+    "date": "2026-08-14",
+    "changes": [
+      "🔔 Értesítések, Push Preferenciák & Riasztási Küszöbök (Új!): Átfogó értesítéskezelő és küszöbérték-beállító almenü rendszer a Beállítások felületen",
+      "📱 Böngésző Web Push & In-App Riasztási Csatornák: Böngésző push engedély kezelése, közvetlen zárolt képernyős push, alkalmazáson belüli figyelmeztető sávok, egyéni hangjelzés és haptikus rezgésvezérlés",
+      "⏰ Időzítés, Napi Összefoglaló & Csendes Időszak: Testreszabható napi ellenőrzési időpont (pl. 08:00), riasztási frekvencia módok (Azonnali + Napi összefoglaló, Csak azonnali, Csak napi digest), valamint éjszakai 'Ne zavarjanak' (Quiet Hours) némítás",
+      "💉 Oltási és Orvosi Határidő Küszöbök: Általános előzetes figyelmeztetési napok (lead days), sürgős határidők (urgent days), lejárt oltások figyelése, és külön protokoll-időzítők (Kölyök cica protokoll, Veszettség elleni kötelező oltás, Éves ismétlő oltások)",
+      "📅 Eseménytípusonkénti Finomhangolás: Oltások, orvosi kezelések, műtétek/ivartalanítások, tesztek és egyedi feladatok egyenkénti ki/bekapcsolása, előzetes napjai és push/in-app csatornái gyorsválasztó gombokkal",
+      "📦 Raktárkészlet Biztonsági Küszöbök: Kategóriánkénti minimum készletszintek meghatározása (nedves táp, száraz táp, alom, gyógyszer, parazitamentesítő, fertőtlenítő, felszerelés, egyéb) élő raktári egyenlegekkel",
+      "⏳ Lejárat & Szavatosság Figyelő: Raktáron lévő tételek automatikus lejárati figyelmeztetése beállítható előzetes figyelmeztetési nappal és lejárt készlet riasztással",
+      "🧪 Élő Diagnosztikai Vizsgálat & Tesztelő: Egykattintásos valós idejű rendszervizsgálat esedékes oltásokra, készlethiányra és lejáró termékekre, teszt push küldési és alaphelyzetbe állítási lehetőséggel"
+    ]
+  },
+  {
+    "version": "2.12.0",
+    "date": "2026-08-14",
+    "changes": [
+      "🛡️ 360° Review & Audit Center (Új!): Átfogó, mélyreható auditáló és biztonsági diagnosztikai központ a rendszerintegritás felügyeletére",
+      "👥 Felhasználói Szintek & Jogosultság Audit (RBAC Audit): Teljes szerepkör- és felhasználói struktúra ellenőrzése, Biztonsági Index (Security Score 0-100%), PIN-kódos védettség vizsgálata, egyedi jogosultság-felülbírálások (custom overrides) és jogosultsági túlcsordulások azonnali kimutatása",
+      "🩺 Kezelések & Orvosi Napló Audit (Medical Integrity): Oltások, kezelések, laborvizsgálatok és egészségügyi események tételes vizsgálata (kezelőorvos hozzárendelés, költségek érvényessége, hibás dátumok kiszűrése)",
+      "⚡ Egykattintásos Orvosi Pecsétpótlás & Normalizálás: Automatikus segédeszköz a hiányzó audit időbélyegek, felelős orvosi/kezelői pecsétek és numerikus költségek pótlására az adatbázisban",
+      "🔑 Be- és Kiléptetések & Munkamenet Napló (Auth Audit): Valós idejű és historikus hozzáférési naplózás (sikeres belépések, PIN hibák, felhasználóváltások, Root hozzáférések, felhasználó/szerepkör létrehozás és módosítás)",
+      "⚡ 360° Egykattintásos Rendszeraudit Diagnosztika: Teljes adatbázis és jogosultsági felülvizsgálat összesített minőségi pontszámmal és azonnali észrevételekkel",
+      "💰 Cica Profil Összköltség Kimutatás (Patch C): Teljes pénzügyi és orvosi költségmérleg a cica profilban (orvosi beavatkozások, események és befogadói ellátások összesítése)"
+    ]
+  },
+  {
+    "version": "2.11.0",
+    "date": "2026-08-14",
+    "changes": [
+      "💰 Cica Profil Összköltség Kimutatás (Új!): Integrált pénzügyi és orvosi költségmérleg közvetlenül a Cica Profil alapon (Összes kiadás, Célzott támogatások, Nettó egyenleg, költségmegoszlási sáv és tételes orvosi/befogadói bontás)",
+      "🧩 Patch Upgrade & Verziókövető Rendszer: Dedikált menüfül és háttérszolgáltatás az adatbázis-rekordok inkrementális javítására és sémaintegritás ellenőrzésére",
+      "💰 Patch C (Pénzügyi & Költség Karton Audit): Főkönyvi tranzakciók, orvosi beavatkozások, eseményköltségek és befogadói ellátási kiadások egyeztetése és normalizálása",
+      "🐈 Patch A (Állatnyilvántartás & Egészségügyi Modul): Alapadatok, státuszok, kiskönyv/chip logikai értékek normalizálása, egyedi címkék (tags) tisztítása, oltási és kezelési költségek számszerűsítése és audit időbélyegek pótlása",
+      "📦 Patch B (Befogadó Hálózat, Raktár & Pénzügy): Befogadói szülők kapacitás- és státuszellenőrzése, raktárkészlet tranzakciók mennyiségeinek és mértékegységeinek érvényesítése, pénzügyi bevételek és kiadások tételeinek normalizálása",
+      "🔗 Kapcsolódó Elemek Patch (Relációs Kereszt-Entitás Indexelés): Macskák, naptári események, befogadói ellátmányok, raktári mozgások és pénzügyi tranzakciók közötti keresztkapcsolatok intelligens feloldása és indexelése",
+      "⚡ Valós Idejű Futtatási Konzol & Részletes Napló: Élő visszajelzés a patch műveletekről, érintett rekordok számlálójával, futásidővel és idempotens újrafuttatási lehetőséggel",
+      "🐾 Cica Adatlap Gyorsművelet: Közvetlen '⚡ Relációk Patch' gomb a Cica Részletes Nézet Kapcsolódó Elemek fülén az azonnali kapcsolat-újraindexeléshez"
+    ]
+  },
+  {
+    "version": "2.10.0",
+    "date": "2026-08-13",
+    "changes": [
+      "💳 Pénzügyi Kezelés Modul (Új!): Bevételek és kiadások tételes nyilvántartása, kategorizálása és kezelése az új 💳 Pénzügyek főmenü fülön",
+      "📈 Bevételek & Kiadások Rögzítése: Adományok, 1% felajánlások, örökbefogadások, pályázatok, orvosi számlák, táp/alom, rezsi, szállítás és TNR költségek",
+      "⚡ Gyors-Űrlap: Egykattintásos összeghozzáadás, fizetési módok (KP, Kártya, Átutalás, PayPal), bizonylatszám, partner és közvetlen Cica/Befogadó összekapcsolás",
+      "📊 Pénzügyi Mérleg & KPI Műszerfal: Valós idejű mutatók (Összes Bevétel, Kiadás, Nettó Egyenleg, Függő tételek), havi oszlopgrafikon és kategóriamegoszlási diagram",
+      "🔍 Időszakos Szűrők & Keresés: Éves, havi és egyéni dátumtartomány szűrő, kategóriaszűrők, státuszválasztó és azonnali szöveges kereső",
+      "📥 Exportálás & 🖨️ Nyomtatás: Szűrt tranzakciók CSV / Excel letöltése és hivatalos nyomtatható egyesületi pénzügyi kimutatás generálása",
+      "🔄 IndexedDB v14 & Felhő Szinkronizáció: Helyi 'finances' tábla, kétirányú Supabase és Google Drive integráció, PostgreSQL DDL generátor"
+    ]
+  },
+  {
+    "version": "2.9.1",
+    "date": "2026-08-13",
+    "changes": [
+      "🔍 Mentési Validáció & Különbség-Elemző Modal: Visszaállítás előtti automatikus összehasonlítás a helyi adatbázis és a kiválasztott mentési fájl között",
+      "📊 Rekordszám & Nettó Eltérés Elemzés: Megjeleníti a jelenlegi és mentésbeli rekordszámokat, valamint a nettó eltéréseket kategóriánként",
+      "🔎 Elem-Szintű Változás Kimutatás: Részletes lista az új elemekről (+ Új), módosuló adatokról (Módosul) és felülírt adatokról (Felülíródik)",
+      "🛡️ Kockázati Besorolás & Nyilatkozat: Alacsony, közepes és magas kockázati szintek jelzése; magas kockázat esetén kötelező megerősítéssel",
+      "🔄 Univerzális Integráció: Működik Google Drive mentéseknél, helyi auto-mentési pontoknál és kézi JSON fájl importnál is"
+    ]
+  },
+  {
+    "version": "2.9.0",
+    "date": "2026-08-13",
+    "changes": [
+      "⏱️ Inkrementális & Automatikus Mentési Rendszer: Háttérbeli ütemezett mentések téstreszabható gyakorisággal (Belépéskor, Óránként, 6 óránként, Naponta, Hetente)",
+      "🛡️ Inkrementális Változás-Észlelés: Intelligens hash ellenőrzéssel csak akkor ment, ha történt adatváltozás, elkerülve a felesleges duplikátumokat",
+      "🛠️ PostgreSQL / SQL Dump Export (.sql): Szabványos SQL adatbázis mentés beszúró script generálás Supabase / PostgreSQL rendszerekhez",
+      "💾 Célhely & Formátum Finomhangolás: Mentés helyi IndexedDB pillanatképekbe, Google Drive-ra, vagy mindkettőbe JSON és SQL formátumban",
+      "🕒 Helyi Mentési Pontok Története & 1-Kattintásos Visszaállítás: Visszaállítási felület rekordszámokkal, előnézettel, letöltési opcióval és megerősítéssel",
+      "🔍 Mentési Validáció & Különbség-Elemzés: Visszaállítás előtti automatikus összehasonlítás a helyi adatbázis és a mentési fájl között (nettó eltérések, új, módosuló és felülíródó elemek)"
+    ]
+  },
+  {
+    "version": "2.8.0",
+    "date": "2026-08-13",
+    "changes": [
+      "☁️ Személyes Google Drive Mentés & Visszaállítás: Teljes adatbázis manuális biztonsági mentése és helyreállítása közvetlenül a saját Google Drive tárhelyedről",
+      "🔐 Firebase Google OAuth Integráció: Biztonságos bejelentkezés szigorúan 'drive.file' csökkentett jogosultsággal",
+      "🔄 Kétirányú Supabase Szinkronizáció: Drive ➔ Supabase felhő frissítés visszaállításkor, valamint Supabase ➔ Drive egykattintásos mentés",
+      "⚠️ Interaktív Megerősítő Modallok: Részletes adatösszegzés és védelmi megerősítés a felülíró / törlő műveletek előtt",
+      "📁 Drive Fájlkezelő & Előnézet: Rekordszámok (macskák, események, befogadók, készlet) ellenőrzése mentés előtt"
+    ]
+  },
+  {
+    "version": "2.6.0",
+    "date": "2026-08-12",
+    "changes": [
+      "🏷️ Egyedi Címke (Tag) Rendszer: Macskák tetszőleges állapot szerinti csoportosítása (pl. karanténban, kezelés alatt, gazdihoz vár, félős, elkülönítve, diétás étrend)",
+      "⚡ Gyorsválasztó & Saját Címke Beviteli Mező: Előre konfigurált gyakori gombok és saját egyedi címke hozzáadása Enter / kattintás segítségével a cica felvételi és szerkesztési űrlapján",
+      "🎨 Színkódolt Vizuális Badge-ek: Ikonokkal ellátott színes jelvények a cica kártyákon, a cica részletes adatlapján és a táblázatos nézetben",
+      "🔍 Intelligens Címkeszűrő & Quick Tag Pills: Interaktív címkeszűrő sáv a cica listában, lebegő opcióválasztó, és keresőmező, mely a címkék nevére is azonnal keres",
+      "📜 Supabase PostgreSQL DDL Frissítés: 'cats' tábla kiterjesztése 'tags TEXT[] DEFAULT {}' mezővel a Beállítások menüben"
+    ]
+  },
+  {
+    "version": "2.5.0",
+    "date": "2026-08-12",
+    "changes": [
+      "📦 Alom és Táp Készletező Modul (Inventory Management): Új főmenü gomb és dedikált nézet az adományok, saját vásárlások (bejövő) és kiadások (kimenő pl. ideiglenes befogadóknak, helyi menhelynek) nyilvántartására",
+      "🥫 Elkülönített Nedves & Száraz Táp és Alom Készletkezelés: Nedves tápok (darabszám szerint), száraz tápok (kg vagy csomag/zsák), alomok (kg, zsák, liter, doboz) mértékegységgel és megjegyzés rögzítéssel",
+      "📊 Valós Idejű Raktár KPI Műszerfal: Bőséges / megfelelő / alacsony raktárkészlet állapotkijelző kártyák, kategória és mozgásirány szerinti szűrők, intelligens kereső",
+      "🔄 Teljes Offline IndexedDB Persistence & Supabase Felhő Szinkronizáció: Automatikus sorban álló szinkronizáció az új 'inventory' táblával",
+      "🎨 Felületi Kontraszt & Sötét Mód Fixek: A készletmozgás ablak fejlécének és beviteli mezőinek vizuális és kontraszt javítása kényszerített sötét módban is",
+      "📱 PWA & Service Worker v2.5.0: Pontos semver alapú frissítés-érzékelés a visszatérő frissítési toast hurok megszüntetésére"
+    ]
+  },
+  {
+    "version": "2.4.1",
+    "date": "2026-08-12",
+    "changes": [
+      "🔄 Helyi (IndexedDB) & Felhő (Supabase) Bidirekcionális Szinkronizáció: A Befogadó Hálózat adatainak (foster_parents, foster_supplies, foster_expenses) kiterjesztése a sorban állási és automatikus újrakapcsolódási szinkronizációra",
+      "📜 Frissített Supabase / PostgreSQL SQL DDL Séma Generátor: Foster care tábladefiníciók, PostgreSQL Row Level Security (RLS) szabályok, auditálás és foster.* jogosultsági mátrix generálása egy kattintásos másolással",
+      "📱 PWA Finomhangolás & Service Worker v2.4.1: Frissített gyorsítótár verziózás (Cache v2.4.1), intelligens offline tartalékképzés, gyorsabb alkalmazásbetöltés és háttérbeli frissítés-érzékelés"
+    ]
+  },
+  {
+    "version": "2.4.0",
+    "date": "2026-08-12",
+    "changes": [
+      "🏡 Ideiglenes Befogadó Hálózat Menedzsment Modul: Új főmenü lapfül, kapacitási és kihasználtsági KPI műszerfal, automatikus táp- és alomigény kalkulátor, támogatási napló és költségnyilvántartás bizonylatszámmal",
+      "🐈 Dinamikus Cica-Befogadó Hozzárendelés: Egykattintásos áthelyezés a gondozási központ és a befogadók között, élő létszámszámlálóval és különleges karantén/kölyök/beteg címkékkel",
+      "🌐 Állatok – Események – TNR Összefüggések Vizuális Canvas Munkaterület: Interaktív csomópont alapú (Node-Link SVG Canvas) felület az állatok, orvosi naplók és TNR beavatkozások kapcsolati hálójának vizuális áttekintésére és elemzésére",
+      "📋 Esemény Sablonkezelő & Gyors Kitöltő Rendszer: Előre konfigurált űrlap-sablonok gyakori beavatkozásokhoz (oltások, ivartalanítás, labor, parazitamentesítés) a gyors adatbevitelhez, saját sablonok mentésével és kezelésével"
+    ]
+  },
+  {
+    "version": "2.3.0",
+    "date": "2026-08-12",
+    "changes": [
+      "🎨 Vizuális Drag & Drop RBAC & RLS Canvas Munkaterület: Interaktív csomópont alapú (Node Canvas) felület a felhasználók, szerepkörök, atomi CRUD jogosultságok és Supabase PostgreSQL táblák vizuális összekötésére és szerkesztésére",
+      "📊 Interaktív CRUD Jogosultsági Mátrix: Részletes (R|C|U|D) és összegző [R|C|U|D] táblázatos áttekintő nézet az összes szerepkör és moduláris művelet jogosultsági lefedettségének ellenőrzésére",
+      "🧪 Live Role Simulator & Access Tester: Valós idejű szerepkör tesztelő konzol, amellyel bármely felhasználói szerepkör szimulálható a felületi elemek és adatbázis műveletek korlátozásának ellenőrzésére",
+      "📜 Supabase RLS SQL DDL Script Generátor: Automatizált PostgreSQL Row Level Security (RLS) SQL szabályok és check_user_permission segédfüggvények generálása egy kattintásos vágólapra másolással",
+      "📋 Mátrix Exportálása Markdown Formátumban: A teljes jogosultsági mátrix exportálása dokumentációs és auditálási célokra"
+    ]
+  },
+  {
+    "version": "2.2.3",
+    "date": "2026-08-10",
+    "changes": [
+      "☰ Főmenü rendszer és navigációs gomb elhelyezése a fejlécedben (Slide-over fiókkal és gyorsművelet gombokkal)",
+      "📱 Mobil nézet tisztítása és vízszintes görgetési problémák (overflow-x) teljes felszámolása",
+      "📄 Új Hatósági & Belső PDF Riport Generáló modul (Hiteles igazolás iktatószámmal/adószámmal vs. Nem hiteles munkapéldány)",
+      "🎨 Alkalmazás témaválasztó (Rózsaszín, Olíva, Levendula, Sötét mód) áthelyezése a Beállítások modulba",
+      "⚙️ Verziószám dinamizálása és automatikus v2.2.3 frissítési státusz szinkronizáció"
+    ]
+  },
+  {
+    "version": "2.2.2",
+    "date": "2026-08-08",
+    "changes": [
+      "🔑 Felhasználói szerepkörök (ROOT, OWNER, STAFF, FOSTER, VOLUNTEER, GUEST) logikája és engedély-kezelése a store-ban",
+      "⚙️ Szerepkörök és felhasználói fiókok kezelése a Settings modulban kizárólag ROOT szintű (1342) belépéssel",
+      "🛡️ Audit Event Lekérdezés & Napló (Audit Log) a Debug panelben a rendszeresemények és módosítások nyomon követésére",
+      "📋 Supabase / PostgreSQL Row Level Security (RLS) SQL script generálás és vágólapra másolható utasítás a Debug modulban",
+      "⚖️ Új bekerülési típus: 'Elkobzott' kategória a cica rögzítésnél, szűréseknél, adatlapokon, statisztikákban és PDF exportokban"
+    ]
+  },
+  {
+    "version": "2.2.1",
+    "date": "2026-08-06",
+    "changes": [
+      "✂️ TNR (Befog-Ivartalanít-Elenged) nyilvántartó modul és új főmenü lapfül",
+      "🎴 Dual felületi nézetek: Kártyás (Grid) és Listás (Táblázatos) felület gyors-váltóval",
+      "📍 Részletes TNR adatrögzítés: Befogás helye/ideje/befogója, Műtét helye/orvosa, Elengedés helye/ideje, fülcsipke jelzés és megjegyzések",
+      "🛡️ Jogosultságkezelési integráció: TNR rögzítési és módosítási engedély (canManageTnr) beépítése a szerepkörökbe",
+      "📄 Hatósági PDF Exportálás: Tetszőleges időszakra vonatkozó TNR jegyzőkönyv és hivatalos kimutatás generálása aláírási rovatokkal",
+      "📊 Dinamikus TNR statisztikai összefoglaló kártyák és státusz-alapú szűrés (Befogva, Műtét alatt, Elengedve)",
+      "🏷️ Állat kártyák 3 Infó Zseb beállítása: A beállításokban a 'Felületi elemek testreszabása' menüben egyedileg választható ki és rendezhető az állatok kártyáján megjelenő 3 infó zseb jelvény (Chip, Oltás, Ivartalanítás, Szín, Kiskönyv, Tesztek, Beérkezés, Életkor)"
+    ]
+  },
+  {
+    "version": "2.1.1",
+    "date": "2026-08-06",
+    "changes": [
+      "👥 Több-felhasználós üzemmód (Multi-User Mode) & PIN kóddal védett profilváltás",
+      "🛡️ Hozzáférési jogosultsági szintek: Rendszergazda (Root), Főgondozó, Gondozó és Csak Megtekintő szerepkörök",
+      "🔑 Egyedi jogosultság-felülbírálások és műveleti gombok (új cica, szerkesztés, törlés, pénzügy) dinamikus zárolása",
+      "⚙️ Beállítások felület bővítés: Új 'Felhasználók & Jogosultságok' kezelő lapfül"
+    ]
+  },
+  {
+    "version": "2.0.2",
+    "date": "2026-08-06",
+    "changes": [
+      "📱 Automatikus Mobil & Desktop nézet detektálás",
+      "🖥️/📱 Nézet mód választó és státusz ikon a fejlécedben",
+      "🔑 Root hozzáférési mód finomhangolási és SQL séma konzollal"
+    ]
+  },
+  {
+    "version": "2.0.1",
+    "date": "2026-08-06",
+    "changes": [
+      "🚀 2.0.1 Teljes React 19 + TypeScript + Vite PWA modernizáció",
+      "Offline-first IndexedDB (Dexie.js) biztonságos adatkezelés",
+      "Modern FullCalendar interaktív naptár és eseménykezelő",
+      "Továbbfejlesztett Súgó & Változási napló (Change Log)",
+      "Frissített témák, reszponzív felület és PDF exportálási funkciók"
+    ]
+  },
+  {
     "version": "1.6.4",
     "date": "2026-08-02",
     "changes": [

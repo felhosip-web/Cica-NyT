@@ -73,7 +73,8 @@ export class PdfExporter {
         if (type === 'financial') {
             const total = cats.length;
             const befogott = cats.filter(c => c.intakeType === 'befogott').length;
-            const behozott = cats.filter(c => c.intakeType === 'behozott').length;
+            const behozott = cats.filter(c => c.intakeType === 'behozott' || c.intakeType === 'leadott').length;
+            const elkobzott = cats.filter(c => c.intakeType === 'elkobzott').length;
             const gazdis = cats.filter(c => c.status === 'gazdis').length;
             const aktiv = cats.filter(c => c.status !== 'gazdis' && c.status !== 'elhunyt').length;
             const hasKiskonyvCount = cats.filter(c => c.hasKiskonyv).length;
@@ -98,7 +99,7 @@ export class PdfExporter {
 
             doc.setFontSize(9);
             doc.text(`Osszes allat: ${total} db`, 18, startY + 6);
-            doc.text(`Befogott: ${befogott} | Behozott: ${behozott}`, 18, startY + 11);
+            doc.text(`Befogott: ${befogott} | Leadott: ${behozott} | Elkobzott: ${elkobzott}`, 18, startY + 11);
             doc.text(`Van kiskonyv: ${hasKiskonyvCount} db`, 18, startY + 16);
 
             doc.text(`Aktiv: ${aktiv} | Gazdis: ${gazdis}`, 100, startY + 6);
@@ -116,7 +117,7 @@ export class PdfExporter {
         }
 
         const body = cats.map(cat => {
-            const sorszamStr = String(cat.sorszam).padStart(2, '0');
+            const sorszamStr = String(cat.sorszam || cat.id?.slice(0, 4) || '-').padStart(2, '0');
             const nev = stripAccents(cat.nev);
             const ivar = stripAccents(cat.ivar);
             const szin = stripAccents(cat.szin);
@@ -125,8 +126,12 @@ export class PdfExporter {
             let beerkezes = '-';
             if (cat.intakeType === 'befogott') {
                 beerkezes = 'Befogott: ' + (cat.befogottMikor ? formatDate(cat.befogottMikor).split(' ')[0] : '-');
-            } else if (cat.intakeType === 'behozott') {
-                beerkezes = 'Behozott: ' + (cat.behozottMikor ? formatDate(cat.behozottMikor).split(' ')[0] : '-');
+            } else if (cat.intakeType === 'behozott' || cat.intakeType === 'leadott') {
+                beerkezes = 'Leadott: ' + (cat.behozottMikor ? formatDate(cat.behozottMikor).split(' ')[0] : '-');
+            } else if (cat.intakeType === 'elkobzott') {
+                beerkezes = 'Elkobzott: ' + (cat.created ? formatDate(cat.created).split(' ')[0] : '-');
+            } else {
+                beerkezes = 'Sajat: ' + (cat.created ? formatDate(cat.created).split(' ')[0] : '-');
             }
 
             const gazdisDatum = cat.gazdisDate ? formatDate(cat.gazdisDate) : '-';
@@ -188,3 +193,23 @@ export class PdfExporter {
         doc.save(`${safeTitle}.pdf`);
     }
 }
+
+export async function generateCatPdf(cat, events = []) {
+    if (!cat) return;
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const name = cat.nev || 'Névtelen';
+
+    doc.setFontSize(18);
+    doc.text(`Cica Adatlap: ${name}`, 14, 20);
+
+    doc.setFontSize(10);
+    doc.text(`Sorszam: #${cat.sorszam || cat.id.slice(0, 4)}`, 14, 28);
+    doc.text(`Ivar: ${cat.ivar === 'bak' ? 'Bak (Kandur)' : 'Nosteny'}`, 14, 34);
+    doc.text(`Szin: ${cat.szin || '-'}`, 14, 40);
+    doc.text(`Szuletes: ${cat.szuletes || 'Ismeretlen'}`, 14, 46);
+    doc.text(`Chip szam: ${cat.chipNumber || 'Nincs'}`, 14, 52);
+    doc.text(`Ivartalanitva: ${cat.isSpayed ? 'Igen' : 'Nem'}`, 14, 58);
+
+    doc.save(`cica_adatlap_${name.toLowerCase().replace(/\s+/g, '_')}.pdf`);
+}
+

@@ -1,6 +1,6 @@
 import { db } from '../db.js';
 import { calculateAge } from '../utils/age.js';
-import { calculateTotalCost, formatCurrency, formatDate } from '../utils/cost.js';
+import { calculateTotalCost, calculateCostBreakdown, formatCurrency, formatDate } from '../utils/cost.js';
 import { escapeHtml } from '../utils/escape.js';
 import { syncService } from '../services/sync-service.js';
 import { openModal, closeModal } from './fab.js';
@@ -53,6 +53,45 @@ export function openCatModal(cat) {
                     passportFields.classList.remove('max-h-[500px]');
                     document.getElementById('cat-passport-szam').value = '';
                     document.getElementById('cat-passport-date').value = '';
+                }
+            }
+        }
+
+        // Spayed and Chronic
+        const isSpayedEl = document.getElementById('cat-is-spayed');
+        if (isSpayedEl) {
+            isSpayedEl.checked = !!cat.isSpayed;
+            const spayedFields = document.getElementById('spayed-fields');
+            if (spayedFields) {
+                if (cat.isSpayed) {
+                    spayedFields.classList.remove('max-h-0', 'opacity-0');
+                    spayedFields.classList.add('max-h-[500px]');
+                    document.getElementById('cat-spayed-date').value = cat.spayedDate || '';
+                    document.getElementById('cat-spayed-location').value = cat.spayedLocation || '';
+                } else {
+                    spayedFields.classList.add('max-h-0', 'opacity-0');
+                    spayedFields.classList.remove('max-h-[500px]');
+                    document.getElementById('cat-spayed-date').value = '';
+                    document.getElementById('cat-spayed-location').value = '';
+                }
+            }
+        }
+
+        const isChronicEl = document.getElementById('cat-is-chronic');
+        if (isChronicEl) {
+            isChronicEl.checked = !!cat.isChronic;
+            const chronicFields = document.getElementById('chronic-fields');
+            if (chronicFields) {
+                if (cat.isChronic) {
+                    chronicFields.classList.remove('max-h-0', 'opacity-0');
+                    chronicFields.classList.add('max-h-[500px]');
+                    document.getElementById('cat-chronic-type').value = cat.chronicType || '';
+                    document.getElementById('cat-chronic-date').value = cat.chronicDate || '';
+                } else {
+                    chronicFields.classList.add('max-h-0', 'opacity-0');
+                    chronicFields.classList.remove('max-h-[500px]');
+                    document.getElementById('cat-chronic-type').value = '';
+                    document.getElementById('cat-chronic-date').value = '';
                 }
             }
         }
@@ -195,7 +234,7 @@ export function initDetail() {
         btn.addEventListener('click', () => {
             const type = btn.dataset.type;
             document.getElementById('form-event').reset();
-            document.getElementById('event-type').value = type;
+            document.getElementById('cat-event-type').value = type;
             document.getElementById('event-index').value = '';
 
             let title = '';
@@ -212,6 +251,9 @@ export function initDetail() {
             } else if (type === 'kezeles') {
                 title = 'Új Kezelés';
                 document.getElementById('event-extra-kezeles').classList.remove('hidden');
+            } else if (type === 'kiadas') {
+                title = 'Új Kiadás';
+                label = 'Megnevezés';
             }
 
             document.getElementById('event-form-title').innerText = title;
@@ -230,7 +272,7 @@ export function initDetail() {
         const cat = await db.cats.get(currentCatId);
         if (!cat) return;
 
-        const type = document.getElementById('event-type').value;
+        const type = document.getElementById('cat-event-type').value;
         const indexStr = document.getElementById('event-index').value;
 
         const eventData = {
@@ -249,6 +291,7 @@ export function initDetail() {
         if (type === 'oltas') targetArray = cat.oltasok = cat.oltasok || [];
         if (type === 'teszt') targetArray = cat.tesztek = cat.tesztek || [];
         if (type === 'kezeles') targetArray = cat.kezelesek = cat.kezelesek || [];
+        if (type === 'kiadas') targetArray = cat.kiadasok = cat.kiadasok || [];
 
         if (indexStr !== '') {
             targetArray[parseInt(indexStr)] = eventData;
@@ -420,6 +463,54 @@ export async function openDetailView(catId) {
         }
     }
 
+    // Spayed Info setup
+    const spayedContainer = document.getElementById('detail-spayed-info');
+    if (spayedContainer) {
+        if (cat.isSpayed) {
+            const dateInfo = cat.spayedDate ? `<div class="text-gray-500 text-xs">Mikor: ${formatDate(cat.spayedDate)}</div>` : '';
+            const locInfo = cat.spayedLocation ? `<div class="text-gray-600 text-xs mt-1">Hol: ${escapeHtml(cat.spayedLocation)}</div>` : '';
+
+            spayedContainer.classList.remove('border-gray-300');
+            spayedContainer.classList.add('border-green-400');
+            spayedContainer.innerHTML = `
+                <div>
+                    <div class="font-bold text-green-700 flex items-center gap-2">✂️ Ivartalanítva</div>
+                    ${locInfo}
+                    ${dateInfo}
+                </div>
+                <div class="text-2xl opacity-50">✓</div>
+            `;
+        } else {
+            spayedContainer.classList.remove('border-green-400');
+            spayedContainer.classList.add('border-gray-300');
+            spayedContainer.innerHTML = `
+                <div class="text-gray-500 flex items-center gap-2 font-medium">✂️ Nincs ivartalanítva</div>
+            `;
+        }
+    }
+
+    // Chronic Info setup
+    const chronicContainer = document.getElementById('detail-chronic-info');
+    if (chronicContainer) {
+        if (cat.isChronic) {
+            const dateInfo = cat.chronicDate ? `<div class="text-gray-500 text-xs">Diagnosztizálva: ${formatDate(cat.chronicDate)}</div>` : '';
+            const typeInfo = cat.chronicType ? `<div class="text-gray-600 text-xs mt-1">Jelleg: ${escapeHtml(cat.chronicType)}</div>` : '';
+
+            chronicContainer.classList.remove('border-gray-300', 'hidden');
+            chronicContainer.classList.add('border-red-400');
+            chronicContainer.innerHTML = `
+                <div>
+                    <div class="font-bold text-red-700 flex items-center gap-2">⚠️ Tartós beteg</div>
+                    ${typeInfo}
+                    ${dateInfo}
+                </div>
+                <div class="text-2xl opacity-50">⚕️</div>
+            `;
+        } else {
+            chronicContainer.classList.add('hidden');
+        }
+    }
+
     // Chip Info setup
     const chipContainer = document.getElementById('detail-chip-info');
     if (chipContainer) {
@@ -484,8 +575,26 @@ export async function openDetailView(catId) {
     renderEventList('oltasok', cat.oltasok || []);
     renderEventList('tesztek', cat.tesztek || []);
     renderEventList('kezelesek', cat.kezelesek || []);
+    renderEventList('kiadasok', cat.kiadasok || []);
 
-    document.getElementById('detail-ossz-koltseg').innerText = formatCurrency(cat.osszKoltseg || 0);
+    const costBreakdown = calculateCostBreakdown(cat);
+    const cardTotalCostEl = document.getElementById('detail-card-total-cost');
+    if (cardTotalCostEl) {
+        cardTotalCostEl.innerText = formatCurrency(costBreakdown.total);
+    }
+    const costOltasokEl = document.getElementById('detail-cost-oltasok');
+    if (costOltasokEl) costOltasokEl.innerText = formatCurrency(costBreakdown.oltasokSum);
+
+    const costTesztekEl = document.getElementById('detail-cost-tesztek');
+    if (costTesztekEl) costTesztekEl.innerText = formatCurrency(costBreakdown.tesztekSum);
+
+    const costKezelesekEl = document.getElementById('detail-cost-kezelesek');
+    if (costKezelesekEl) costKezelesekEl.innerText = formatCurrency(costBreakdown.kezelesekSum);
+
+    const costKiadasokEl = document.getElementById('detail-cost-kiadasok');
+    if (costKiadasokEl) costKiadasokEl.innerText = formatCurrency(costBreakdown.kiadasokSum);
+
+    document.getElementById('detail-ossz-koltseg').innerText = formatCurrency(costBreakdown.total);
 
     renderCatEvents(catId);
 
@@ -600,6 +709,7 @@ function renderEventList(type, items) {
                 if (itemType === 'oltasok') cat.oltasok.splice(itemIndex, 1);
                 if (itemType === 'tesztek') cat.tesztek.splice(itemIndex, 1);
                 if (itemType === 'kezelesek') cat.kezelesek.splice(itemIndex, 1);
+                if (itemType === 'kiadasok') cat.kiadasok.splice(itemIndex, 1);
 
                 cat.osszKoltseg = calculateTotalCost(cat);
                 await syncService.queueSync(cat);
@@ -608,3 +718,13 @@ function renderEventList(type, items) {
         });
     });
 }
+
+// Re-render detail view when the cat is updated elsewhere (e.g. edit modal)
+document.addEventListener('catUpdated', (e) => {
+    if (currentCatId && e.detail && e.detail.catId === currentCatId) {
+        const detailViewEl = document.getElementById('cat-detail-view');
+        if (detailViewEl && !detailViewEl.classList.contains('hidden')) {
+            openDetailView(currentCatId);
+        }
+    }
+});

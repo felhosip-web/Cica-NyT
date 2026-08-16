@@ -1,4 +1,75 @@
-import { db } from '../db.js';
+
+    import { AVAILABLE_QUICK_FILTERS } from '../views/settings-view.js';
+
+    async function renderQuickFilters(catsWithExpiredEvents, countExpired, countNoChip, countAdoptable, allCats) {
+        const container = document.getElementById('quick-filters');
+        if (!container) return;
+
+        let settings = await db.settings.get('main');
+        let activeFilterIds = settings?.quickFilters || ['expired', 'no-chip', 'adoptable'];
+
+        let html = '';
+        activeFilterIds.forEach(id => {
+            const filterDef = AVAILABLE_QUICK_FILTERS.find(f => f.id === id);
+            if (!filterDef) return;
+
+            let count = 0;
+            if (id === 'expired') count = countExpired;
+            else if (id === 'no-chip') count = countNoChip;
+            else if (id === 'adoptable') count = countAdoptable;
+            else if (id === 'captured') count = allCats.filter(c => c.intakeType === 'befogott').length;
+            else if (id === 'brought-in') count = allCats.filter(c => c.intakeType === 'behozott').length;
+            else if (id === 'adopted') count = allCats.filter(c => c.status === 'gazdis').length;
+            else if (id === 'has-kiskonyv') count = allCats.filter(c => c.hasKiskonyv === true).length;
+            else if (id === 'no-kiskonyv') count = allCats.filter(c => !c.hasKiskonyv).length;
+            else if (id === 'vaccinated') count = allCats.filter(c => c.oltasok && c.oltasok.length > 0).length;
+            else if (id === 'not-vaccinated') count = allCats.filter(c => !c.oltasok || c.oltasok.length === 0).length;
+            else if (id === 'chronic-illness') count = allCats.filter(c => c.isChronic === true).length;
+            else if (id === 'male') count = allCats.filter(c => c.ivar === 'kandúr').length;
+            else if (id === 'female') count = allCats.filter(c => c.ivar === 'nőstény').length;
+
+            const isActive = currentQuickFilter === id;
+            const ringClass = isActive ? 'ring-2 ring-brand-pink scale-105' : '';
+
+            html += `
+                <div class="${filterDef.bgClass} border ${filterDef.borderClass} ${ringClass} rounded-xl p-2 flex flex-col items-center justify-center cursor-pointer transition-all hover:opacity-80 quick-filter-card text-center" data-quick-filter="${id}">
+                    <span class="text-xs ${filterDef.colorClass} font-bold leading-tight">${filterDef.icon} ${filterDef.label}</span>
+                    <span class="text-lg font-black ${filterDef.colorClass} mt-1">${count}</span>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+
+        // Re-attach listeners
+        const quickFilters = document.querySelectorAll('.quick-filter-card');
+        quickFilters.forEach(card => {
+            card.addEventListener('click', (e) => {
+                const clickedCard = e.currentTarget;
+                const filterType = clickedCard.dataset.quickFilter;
+
+                if (currentQuickFilter === filterType) {
+                    currentQuickFilter = null;
+                } else {
+                    currentQuickFilter = filterType;
+
+                    // Clear chip filter visually
+                    document.querySelectorAll('.filter-chip').forEach(c => {
+                        c.classList.remove('bg-gray-800', 'text-white');
+                        c.classList.add('bg-gray-200', 'text-gray-700');
+                    });
+                    const mindChip = document.querySelector('.filter-chip[data-filter="mind"]');
+                    if (mindChip) {
+                        mindChip.classList.remove('bg-gray-200', 'text-gray-700');
+                        mindChip.classList.add('bg-gray-800', 'text-white');
+                    }
+                    currentChipFilter = 'mind';
+                }
+                renderCatList();
+            });
+        });
+    }
+  import { db } from '../db.js';
 import { calculateAge } from '../utils/age.js';
 import { escapeHtml } from '../utils/escape.js';
 import { openDetailView } from './cat-detail.js';
@@ -7,6 +78,7 @@ import { updateFooterStats } from '../utils/stats.js';
 let allCats = [];
 
 let currentChipFilter = 'mind'; // mind, befogott, behozott, gazdis
+let currentQuickFilter = null; // expired, no-chip, adoptable
 
 // Expose state globally for PDF export module
 window.AppState = window.AppState || {};
@@ -25,11 +97,13 @@ export function getFilteredCats() {
 export async function initList() {
     // 1. Tab buttons (Set up synchronously so navigation is immediately functional!)
     const tabAnimals = document.getElementById('tab-animals');
+    const tabStats = document.getElementById('tab-stats');
     const tabEvents = document.getElementById('tab-events');
     const animalsView = document.getElementById('animals-view');
     const eventsView = document.getElementById('events-view');
+    const statsView = document.getElementById('stats-view');
 
-    if (tabAnimals && tabEvents && animalsView && eventsView) {
+    if (tabAnimals && tabEvents && tabStats && animalsView && eventsView && statsView) {
         tabAnimals.addEventListener('click', () => {
             tabAnimals.classList.add('font-bold', 'text-brand-pink', 'border-brand-pink');
             tabAnimals.classList.remove('font-medium', 'text-gray-500', 'border-transparent');
@@ -37,8 +111,12 @@ export async function initList() {
             tabEvents.classList.add('font-medium', 'text-gray-500', 'border-transparent');
             tabEvents.classList.remove('font-bold', 'text-brand-pink', 'border-brand-pink');
 
+            tabStats.classList.add('font-medium', 'text-gray-500', 'border-transparent');
+            tabStats.classList.remove('font-bold', 'text-brand-pink', 'border-brand-pink');
+
             animalsView.classList.remove('hidden');
             eventsView.classList.add('hidden');
+            statsView.classList.add('hidden');
         });
 
         tabEvents.addEventListener('click', () => {
@@ -48,12 +126,39 @@ export async function initList() {
             tabAnimals.classList.add('font-medium', 'text-gray-500', 'border-transparent');
             tabAnimals.classList.remove('font-bold', 'text-brand-pink', 'border-brand-pink');
 
+            tabStats.classList.add('font-medium', 'text-gray-500', 'border-transparent');
+            tabStats.classList.remove('font-bold', 'text-brand-pink', 'border-brand-pink');
+
             eventsView.classList.remove('hidden');
             animalsView.classList.add('hidden');
+            statsView.classList.add('hidden');
 
             // Force a re-render of events to display up-to-date data
             if (typeof window.renderEvents === 'function') {
                 window.renderEvents();
+            }
+        });
+
+        tabStats.addEventListener('click', async () => {
+            tabStats.classList.add('font-bold', 'text-brand-pink', 'border-brand-pink');
+            tabStats.classList.remove('font-medium', 'text-gray-500', 'border-transparent');
+
+            tabAnimals.classList.add('font-medium', 'text-gray-500', 'border-transparent');
+            tabAnimals.classList.remove('font-bold', 'text-brand-pink', 'border-brand-pink');
+
+            tabEvents.classList.add('font-medium', 'text-gray-500', 'border-transparent');
+            tabEvents.classList.remove('font-bold', 'text-brand-pink', 'border-brand-pink');
+
+            statsView.classList.remove('hidden');
+            animalsView.classList.add('hidden');
+            eventsView.classList.add('hidden');
+
+            // Dynamically import and render stats when tab is activated
+            try {
+                const { renderStats } = await import('../views/stats-view.js');
+                await renderStats();
+            } catch (err) {
+                console.error("Failed to load stats view:", err);
             }
         });
     }
@@ -79,9 +184,18 @@ export async function initList() {
             clicked.classList.add('bg-gray-800', 'text-white');
 
             currentChipFilter = clicked.dataset.filter;
+
+            // clear quick filter when a normal filter is clicked
+            currentQuickFilter = null;
+            document.querySelectorAll('.quick-filter-card').forEach(c => {
+                c.classList.remove('ring-2', 'ring-brand-pink', 'scale-105');
+            });
+
             renderCatList();
         });
     });
+
+    // Quick filter listeners are now handled in renderQuickFilters
 
     // 3. Selection mode buttons
     const btnSelectionMode = document.getElementById('btn-selection-mode');
@@ -145,6 +259,60 @@ export async function renderCatList() {
 
     let filteredCats = allCats;
 
+
+    // Calculate Quick Filter Stats
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const expiredEvents = await db.events
+        .where('status').equals('expired')
+        .toArray();
+
+    const pendingExpiredEvents = await db.events
+        .where('status').equals('pending')
+        .filter(e => new Date(e.date) < today)
+        .toArray();
+
+    const allExpiredEvents = [...expiredEvents, ...pendingExpiredEvents];
+    const catsWithExpiredEvents = new Set(allExpiredEvents.map(e => e.catId));
+
+    const countExpired = catsWithExpiredEvents.size;
+
+    const countNoChip = allCats.filter(c => c.status !== 'elhunyt' && !c.hasChip && !c.chipNumber).length;
+    const countAdoptable = allCats.filter(c => c.status === 'befogadható').length;
+
+    await renderQuickFilters(catsWithExpiredEvents, countExpired, countNoChip, countAdoptable, allCats);
+
+
+    // Quick Filter
+    if (currentQuickFilter === 'expired') {
+        filteredCats = filteredCats.filter(cat => catsWithExpiredEvents.has(cat.id));
+    } else if (currentQuickFilter === 'no-chip') {
+        filteredCats = filteredCats.filter(cat => cat.status !== 'elhunyt' && !cat.hasChip && !cat.chipNumber);
+    } else if (currentQuickFilter === 'adoptable') {
+        filteredCats = filteredCats.filter(cat => cat.status === 'befogadható');
+    } else if (currentQuickFilter === 'captured') {
+        filteredCats = filteredCats.filter(cat => cat.intakeType === 'befogott');
+    } else if (currentQuickFilter === 'brought-in') {
+        filteredCats = filteredCats.filter(cat => cat.intakeType === 'behozott');
+    } else if (currentQuickFilter === 'adopted') {
+        filteredCats = filteredCats.filter(cat => cat.status === 'gazdis');
+    } else if (currentQuickFilter === 'has-kiskonyv') {
+        filteredCats = filteredCats.filter(cat => cat.hasKiskonyv === true);
+    } else if (currentQuickFilter === 'no-kiskonyv') {
+        filteredCats = filteredCats.filter(cat => !cat.hasKiskonyv);
+    } else if (currentQuickFilter === 'vaccinated') {
+        filteredCats = filteredCats.filter(cat => cat.oltasok && cat.oltasok.length > 0);
+    } else if (currentQuickFilter === 'not-vaccinated') {
+        filteredCats = filteredCats.filter(cat => !cat.oltasok || cat.oltasok.length === 0);
+    } else if (currentQuickFilter === 'chronic-illness') {
+        filteredCats = filteredCats.filter(cat => cat.isChronic === true);
+    } else if (currentQuickFilter === 'male') {
+        filteredCats = filteredCats.filter(cat => cat.ivar === 'kandúr');
+    } else if (currentQuickFilter === 'female') {
+        filteredCats = filteredCats.filter(cat => cat.ivar === 'nőstény');
+    }
+
     // 0. Hide deceased if setting says so and filter not active
     let showDeceased = true;
     try {
@@ -175,8 +343,8 @@ export async function renderCatList() {
     if (searchTerm) {
         const isKiskonyvSearch = searchTerm === 'kiskönyv' || searchTerm === 'kiskonyv';
         filteredCats = filteredCats.filter(cat =>
-            cat.nev.toLowerCase().includes(searchTerm) ||
-            String(cat.sorszam).includes(searchTerm) ||
+            (cat.nev || '').toLowerCase().includes(searchTerm) ||
+            String(cat.sorszam || '').includes(searchTerm) ||
             (cat.gazdisPerson && cat.gazdisPerson.toLowerCase().includes(searchTerm)) ||
             (cat.befogottHol && cat.befogottHol.toLowerCase().includes(searchTerm)) ||
             (cat.befogottKi && cat.befogottKi.toLowerCase().includes(searchTerm)) ||
@@ -214,7 +382,7 @@ export async function renderCatList() {
 
     filteredCats.forEach(cat => {
         const card = document.createElement('div');
-        const sorszamStr = String(cat.sorszam).padStart(2, '0');
+        const sorszamStr = String(cat.sorszam || cat.id || '-').padStart(2, '0');
         const ageCalc = calculateAge(cat.szuletes).split('(')[0].trim();
 
         const isGazdis = cat.status === 'gazdis';

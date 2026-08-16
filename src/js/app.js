@@ -2,7 +2,7 @@ import '../style.css'
 import { db } from './db.js';
 import { applyTheme, getCurrentThemeId } from './utils/theme-manager.js';
 import { syncService } from './services/sync-service.js';
-import { initList } from './components/cat-list.js';
+import { initList, renderCatList } from './components/cat-list.js';
 import { initModals } from './components/fab.js';
 import { initDetail } from './components/cat-detail.js';
 import './components/update-banner.js';
@@ -18,6 +18,18 @@ import { initEventForm } from './components/event-form.js';
 import { showToast } from './utils/toast.js';
 import { requestPermission, scheduleLocalCheck } from './utils/push.js';
 import { updateFooterStats } from './utils/stats.js';
+import { 
+    initVaccinationAlertsSystem, 
+    openVaccinationSummaryModal, 
+    sendTestNotification 
+} from './utils/vaccination-alerts.js';
+
+function setupDeviceIcon() {
+    const iconSpan = document.getElementById('device-icon');
+    if (iconSpan) {
+        iconSpan.textContent = window.innerWidth <= 768 ? '📱' : '💻';
+    }
+}
 
 function setupRouting() {
     const mainView = document.getElementById('main-view');
@@ -86,6 +98,8 @@ function setupRouting() {
 }
 
 async function initApp() {
+    setupDeviceIcon();
+    window.addEventListener('resize', setupDeviceIcon);
     // Apply selected theme
     applyTheme(getCurrentThemeId());
 
@@ -182,6 +196,7 @@ async function initApp() {
             await cloudSyncManager.init();
             syncService.updateSyncUI();
             syncService.syncPending();
+            await renderCatList();
         } catch (e) {
             console.error('Error handling org settings change:', e);
         }
@@ -210,6 +225,35 @@ async function initApp() {
         }
     } catch (e) {
         console.warn('Notification permission check blocked or failed:', e);
+    }
+
+    // Initialize Vaccination Alerts & Daily Summary System
+    try {
+        // Event listeners for Vaccination Summary triggers
+        const btnHeaderVax = document.getElementById('btn-header-vax-summary');
+        if (btnHeaderVax) {
+            btnHeaderVax.addEventListener('click', () => openVaccinationSummaryModal());
+        }
+
+        const bannerVax = document.getElementById('vaccination-alert-banner');
+        if (bannerVax) {
+            bannerVax.addEventListener('click', () => openVaccinationSummaryModal());
+        }
+
+        const btnSettingsVax = document.getElementById('btn-settings-open-vax-summary');
+        if (btnSettingsVax) {
+            btnSettingsVax.addEventListener('click', () => openVaccinationSummaryModal());
+        }
+
+        const btnSettingsPush = document.getElementById('btn-settings-test-vax-push');
+        if (btnSettingsPush) {
+            btnSettingsPush.addEventListener('click', () => sendTestNotification());
+        }
+
+        await initVaccinationAlertsSystem();
+        setInterval(initVaccinationAlertsSystem, 30 * 60 * 1000); // refresh vax alerts every 30 mins
+    } catch (e) {
+        console.error('Failed to initialize vaccination alerts system:', e);
     }
 }
 

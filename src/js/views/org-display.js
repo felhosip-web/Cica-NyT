@@ -22,6 +22,8 @@ function getRoleBadge(role) {
         roleClass = 'bg-green-100 text-green-800';
     } else if (role === 'alapitvany') {
         roleClass = 'bg-purple-100 text-purple-800';
+    } else if (role === 'root') {
+        roleClass = 'bg-red-100 text-red-800 font-bold border border-red-300';
     } else {
         roleClass = 'bg-gray-100 text-gray-800';
     }

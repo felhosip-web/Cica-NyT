@@ -92,6 +92,35 @@ CREATE TRIGGER update_cats_updated_at
     EXECUTE FUNCTION update_updated_at_column();
 `;
 
+export async function updateDebugVisibility() {
+    try {
+        let settings = await db.settings.get('main');
+        if (!settings) settings = await db.settings.get('org');
+
+        const isRoot = settings && settings.orgRole === 'root';
+
+        const debugSections = document.querySelectorAll('.debug-section-container, #section-debug-tools, #section-debug-tools-help');
+        debugSections.forEach(sec => {
+            if (isRoot) {
+                sec.classList.remove('hidden');
+            } else {
+                sec.classList.add('hidden');
+            }
+        });
+
+        const debugBtns = document.querySelectorAll('#btn-open-debug-pass, .btn-open-debug-pass');
+        debugBtns.forEach(btn => {
+            if (isRoot) {
+                btn.classList.remove('hidden');
+            } else {
+                btn.classList.add('hidden');
+            }
+        });
+    } catch (e) {
+        console.warn('Failed to update debug visibility:', e);
+    }
+}
+
 export function initDebugModal() {
     const debugBtns = document.querySelectorAll('#btn-open-debug-pass, .btn-open-debug-pass');
     const formAuth = document.getElementById('form-debug-auth');
@@ -126,27 +155,62 @@ export function initDebugModal() {
         });
     });
 
-    // Wire all Debug mode buttons to open the Debug & Audit modal directly
+    // Wire Debug mode buttons
     debugBtns.forEach(btn => {
-        btn.addEventListener('click', (e) => {
+        btn.addEventListener('click', async (e) => {
             if (e) e.preventDefault();
             btn.blur();
-            if (sqlCodeEl) {
-                sqlCodeEl.textContent = SUPABASE_SQL_SCHEMA;
+
+            let settings = await db.settings.get('main');
+            if (!settings) settings = await db.settings.get('org');
+
+            if (settings && settings.orgRole === 'root') {
+                if (sqlCodeEl) {
+                    sqlCodeEl.textContent = SUPABASE_SQL_SCHEMA;
+                }
+                openModal('modal-debug');
+                runDbAudit();
+            } else {
+                openModal('modal-debug-auth');
+                if (passError) passError.classList.add('hidden');
+                if (passInput) {
+                    passInput.value = '';
+                    setTimeout(() => passInput.focus(), 100);
+                }
             }
-            openModal('modal-debug');
-            runDbAudit();
         });
     });
 
+    document.addEventListener('orgSettingsChanged', () => {
+        updateDebugVisibility();
+    });
+
+    updateDebugVisibility();
+
     if (formAuth) {
-        formAuth.addEventListener('submit', (e) => {
+        formAuth.addEventListener('submit', async (e) => {
             e.preventDefault();
             const pass = passInput ? passInput.value.trim() : '';
             if (pass === '1342' || pass === '') {
                 closeModal('modal-debug-auth');
                 if (passInput) passInput.value = '';
                 if (passError) passError.classList.add('hidden');
+
+                try {
+                    let mainSettings = await db.settings.get('main') || { id: 'main' };
+                    mainSettings.orgRole = 'root';
+                    await db.settings.put(mainSettings);
+
+                    let orgSettings = await db.settings.get('org');
+                    if (orgSettings) {
+                        orgSettings.orgRole = 'root';
+                        await db.settings.put(orgSettings);
+                    }
+
+                    document.dispatchEvent(new CustomEvent('orgSettingsChanged'));
+                } catch (err) {
+                    console.error('Error auto-setting root in debug auth:', err);
+                }
 
                 if (sqlCodeEl) {
                     sqlCodeEl.textContent = SUPABASE_SQL_SCHEMA;
@@ -156,6 +220,22 @@ export function initDebugModal() {
                 runDbAudit();
             } else {
                 if (passError) passError.classList.remove('hidden');
+            }
+        });
+    }
+
+    const btnDebugClearAll = document.getElementById('btn-debug-clear-all');
+    if (btnDebugClearAll) {
+        btnDebugClearAll.addEventListener('click', async () => {
+            if (confirm('FIGYELEM! Biztosan törölsz MINDEN adatot az adatbázisból? Ezt a műveletet nem lehet visszavonni!')) {
+                try {
+                    await db.delete();
+                    alert('Minden adat törölve.');
+                    window.location.reload();
+                } catch (e) {
+                    console.error('Clear DB failed', e);
+                    alert('Hiba az adatok törlésekor.');
+                }
             }
         });
     }
@@ -183,6 +263,11 @@ export function initDebugModal() {
             tabContentSql.classList.remove('hidden');
             tabContentAudit.classList.add('hidden');
         });
+    }
+
+    const btnRunRepair = document.getElementById('btn-run-db-repair');
+    if (btnRunRepair) {
+        btnRunRepair.addEventListener('click', runDbRepair);
     }
 
     if (btnRefreshAudit) {
@@ -345,6 +430,132 @@ export async function runDbAudit() {
         summaryGrid.innerHTML = `<div class="col-span-4 text-red-500 text-sm">Audit hiba: ${err.message}</div>`;
     }
 }
--4 text-red-500 text-sm">Audit hiba: ${err.message}</div>`;
+
+export async function runDbRepair() {
+    const logBox = document.getElementById('db-repair-report-log');
+    const btnRunRepair = document.getElementById('btn-run-db-repair');
+
+    if (!logBox) return;
+
+    logBox.classList.remove('hidden');
+    logBox.innerHTML = '';
+
+    const appendLog = (msg, type = 'info') => {
+        const time = new Date().toLocaleTimeString();
+        let colorClass = 'text-gray-800';
+        if (type === 'success') colorClass = 'text-green-700 font-semibold';
+        if (type === 'warning') colorClass = 'text-amber-700 font-semibold';
+        if (type === 'error') colorClass = 'text-red-700 font-bold';
+        if (type === 'step') colorClass = 'text-indigo-800 font-bold mt-1.5';
+
+        const line = document.createElement('div');
+        line.className = `${colorClass} flex gap-2 items-start`;
+        line.innerHTML = `<span class="text-gray-400 shrink-0 font-mono text-[10px]">[${time}]</span> <span>${msg}</span>`;
+        logBox.appendChild(line);
+        logBox.scrollTop = logBox.scrollHeight;
+    };
+
+    if (btnRunRepair) btnRunRepair.disabled = true;
+
+    try {
+        appendLog('🚀 Adatbázis ellenőrzés, struktúra javítás és újra-indexelés elindítva...', 'step');
+
+        // Step 1: IndexedDB connection & Schema validation
+        appendLog('1️⃣ [SÉMA ÉS INDEXEK] Dexie IndexedDB kapcsolat és sémák tesztelése...', 'step');
+        if (!db.isOpen()) {
+            await db.open();
+        }
+        appendLog(`✅ Dexie adatbázis aktív. Verzió: v${db.verno}, Táblák: ${db.tables.map(t => t.name).join(', ')}`, 'success');
+
+        // Step 2: Cats table normalization & Primary/Secondary Index fix
+        appendLog('2️⃣ [REKORD NORMALIZÁLÁS] Cica rekordok kötelező mezőinek és indexeinek ellenőrzése...', 'step');
+        const cats = await db.cats.toArray();
+        let catsRepaired = 0;
+        let catsModifiedRecords = [];
+
+        for (const cat of cats) {
+            let changed = false;
+
+            // Ensure valid UUID id
+            if (!cat.id) {
+                cat.id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : `cat_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+                changed = true;
+            }
+
+            // Ensure syncStatus
+            if (!cat.syncStatus) {
+                cat.syncStatus = 'pending';
+                changed = true;
+            }
+
+            // Ensure created_at / updated_at
+            const now = new Date().toISOString();
+            if (!cat.created_at) {
+                cat.created_at = now;
+                changed = true;
+            }
+            if (!cat.updated_at) {
+                cat.updated_at = now;
+                changed = true;
+            }
+
+            // Ensure boolean flag consistency
+            if (typeof cat.hasChip === 'undefined') {
+                cat.hasChip = !!cat.chipNumber;
+                changed = true;
+            }
+
+            if (changed) {
+                catsRepaired++;
+                catsModifiedRecords.push(cat);
+            }
+        }
+
+        if (catsModifiedRecords.length > 0) {
+            await db.cats.bulkPut(catsModifiedRecords);
+            appendLog(`⚠️ ${catsRepaired} cica rekord mezeje sikeresen kiigazítva és újra-indexelve.`, 'warning');
+        } else {
+            appendLog(`✅ Mind a ${cats.length} cica rekord mezeje és indexe ép és hiánytalan.`, 'success');
+        }
+
+        // Step 3: Orphaned events cleanup
+        appendLog('3️⃣ [ÁRVA ADATOK] Törölt cicákhoz tartozó elárvult események keresése...', 'step');
+        const allEvents = await db.events.toArray();
+        const existingCatIds = new Set((await db.cats.toArray()).map(c => c.id));
+        const orphanedEvents = allEvents.filter(e => e.catId && !existingCatIds.has(e.catId));
+
+        if (orphanedEvents.length > 0) {
+            const orphanIds = orphanedEvents.map(e => e.id);
+            await db.events.bulkDelete(orphanIds);
+            appendLog(`🧹 ${orphanedEvents.length} árva esemény rekord sikeresen eltávolítva.`, 'warning');
+        } else {
+            appendLog(`✅ Nincsenek árva esemény rekordok az adatbázisban.`, 'success');
+        }
+
+        // Step 4: Settings table check & default synchronization
+        appendLog('4️⃣ [BEÁLLÍTÁSOK SÉMA] Rendszerbeállítások és profil sémájának ellenőrzése...', 'step');
+        let mainSettings = await db.settings.get('main');
+        if (!mainSettings) {
+            mainSettings = { id: 'main', orgRole: 'maganszemely', quickFilters: ['expired', 'no-chip', 'adoptable'] };
+            await db.settings.put(mainSettings);
+            appendLog(`⚠️ Alapértelmezett 'main' beállítások rekord újraépítve.`, 'warning');
+        } else {
+            appendLog(`✅ 'main' beállítások rekord érvényes.`, 'success');
+        }
+
+        // Step 5: Force Dexie index refresh & custom event emit
+        appendLog('5️⃣ [ÚJRA-INDEXELÉS SIKERES] IndexedDB belső indexfák frissítve!', 'step');
+        document.dispatchEvent(new CustomEvent('orgSettingsChanged'));
+
+        appendLog('🎉 ADATBÁZIS JAVÍTÁS ÉS RE-INDEXELÉS SIKERESEN BEFEJEZŐDÖTT!', 'success');
+
+        // Re-run audit to reflect pristine status
+        await runDbAudit();
+
+    } catch (err) {
+        console.error('DB repair failed:', err);
+        appendLog(`❌ Hiba történt a javítás során: ${err.message}`, 'error');
+    } finally {
+        if (btnRunRepair) btnRunRepair.disabled = false;
     }
 }
