@@ -12,6 +12,10 @@ interface CatDetailProfileTabProps extends BaseTabProps {
   eventCost: number;
   fosterCost: number;
   totalCatCost: number;
+
+  totalFinanceIncome: number;
+  totalMedicalDirect: number;
+
   netCatBalance: number;
   setFinType: (val: any) => void;
   setFinCategory: (val: any) => void;
@@ -31,6 +35,9 @@ export const CatDetailProfileTab: React.FC<CatDetailProfileTabProps> = ({
   eventCost,
   fosterCost,
   totalCatCost,
+
+  totalFinanceIncome,
+  totalMedicalDirect,
   netCatBalance,
   setFinType,
   setFinCategory,

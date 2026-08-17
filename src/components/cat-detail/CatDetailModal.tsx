@@ -212,7 +212,7 @@ export const CatDetailModal: React.FC<CatDetailModalProps> = ({
     setShowAddLogModal(false);
   };
 
-  const handleAddDirectFinance = async (e: React.FormEvent) => {
+  const handleAddFinance = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!cat || !finAmount || Number(finAmount) <= 0 || !finTitle.trim()) {
       alert('Kérjük adjon meg érvényes összeget és megnevezést!');
@@ -280,7 +280,7 @@ export const CatDetailModal: React.FC<CatDetailModalProps> = ({
     }
   };
 
-  const handleAddCatSupply = async (e: React.FormEvent) => {
+  const handleAddSupply = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!cat || !supplyItem.trim() || !supplyQty || Number(supplyQty) <= 0) {
       alert('Kérjük adjon meg érvényes megnevezést és mennyiséget!');
@@ -596,6 +596,9 @@ export const CatDetailModal: React.FC<CatDetailModalProps> = ({
           onDeleteRequest={() => setShowDeleteConfirm(true)}
           activeSubTab={activeSubTab}
           setActiveSubTab={setActiveSubTab}
+          eventsCount={catEvents.length}
+          financesCount={catFinances.length}
+          suppliesCount={catFosterSupplies.length}
         />
 
         {/* Tab Content */}
@@ -610,6 +613,8 @@ export const CatDetailModal: React.FC<CatDetailModalProps> = ({
               eventCost={eventCost}
               fosterCost={fosterCost}
               totalCatCost={totalCatCost}
+              totalFinanceIncome={totalFinanceIncome}
+              totalMedicalDirect={totalMedicalDirect}
               netCatBalance={netCatBalance}
               setFinType={setFinType}
               setFinCategory={setFinCategory}
@@ -617,6 +622,7 @@ export const CatDetailModal: React.FC<CatDetailModalProps> = ({
               setFinTitle={setFinTitle}
               setShowAddFinanceModal={setShowAddFinanceModal}
               setShowAddLogModal={setShowAddLogModal}
+              setActiveSubTab={setActiveSubTab}
             />
           )}
 
@@ -673,6 +679,8 @@ export const CatDetailModal: React.FC<CatDetailModalProps> = ({
               handleRunConnectedPatch={handleRunConnectedPatch}
               patchFeedback={patchFeedback}
               setShowAddSupplyModal={setShowAddSupplyModal}
+              setShowAddFinanceModal={setShowAddFinanceModal}
+              setPatchFeedback={setPatchFeedback}
             />
           )}
         </div>

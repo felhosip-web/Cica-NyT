@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Cat } from '../CatCard';
 import { BaseTabProps } from './types';
-import { SystemEvent, FinancialTransaction, FosterSupply } from '../../types';
+import { SystemEvent, FinancialTransaction, FosterSupply, FosterExpense, InventoryItem } from '../../types';
 import { CustomSelect } from '../CustomSelect';
 
 interface CatDetailConnectedTabProps extends BaseTabProps {
@@ -157,7 +157,7 @@ export const CatDetailConnectedTab: React.FC<CatDetailConnectedTabProps> = ({
     });
 
     // Add Supplies
-    relatedFosterSupplies.forEach((sup) => {
+    catFosterSupplies.forEach((sup) => {
       let typeName = 'Ellátmány';
       if (sup.type === 'tap') typeName = '🍲 Táp';
       else if (sup.type === 'alom') typeName = '📦 Alom';
@@ -185,7 +185,7 @@ export const CatDetailConnectedTab: React.FC<CatDetailConnectedTabProps> = ({
     });
 
     // Add Direct Inventory
-    relatedInventoryItems.forEach((inv) => {
+    allInventoryItems.forEach((inv) => {
       if (inv.fosterSupplyId && list.some((x) => x.id === `sup_${inv.fosterSupplyId}`)) return;
 
       const isKimeno = inv.direction === 'kimeno';
@@ -214,7 +214,7 @@ export const CatDetailConnectedTab: React.FC<CatDetailConnectedTabProps> = ({
     });
 
     return list;
-  }, [catEvents, catFinances, catFosterExpenses, relatedFosterSupplies, relatedInventoryItems])
+  }, [catEvents, catFinances, catFosterExpenses, catFosterSupplies, allInventoryItems])
 
   const filteredTimeline = useMemo(() => {
     return connectedTimelineItems
@@ -222,7 +222,7 @@ export const CatDetailConnectedTab: React.FC<CatDetailConnectedTabProps> = ({
         if (connectedFilter !== 'all' && i.sourceType !== connectedFilter) return false;
         if (connectedSearch) {
           const s = connectedSearch.toLowerCase();
-          return i.title.toLowerCase().includes(s) || (i.details && i.details.join(' ').toLowerCase().includes(s));
+          return i.title.toLowerCase().includes(s) || (i.subtitle && i.subtitle.toLowerCase().includes(s)) || (i.details && i.details.map(d => d.value).join(' ').toLowerCase().includes(s)) || (i.notes && i.notes.toLowerCase().includes(s));
         }
         return true;
       })
