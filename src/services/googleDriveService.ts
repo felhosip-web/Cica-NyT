@@ -1,4 +1,4 @@
-import { db } from '../js/db.js';
+import { db } from '../lib/db';
 import { createClient } from '@supabase/supabase-js';
 
 export interface DriveBackupFile {

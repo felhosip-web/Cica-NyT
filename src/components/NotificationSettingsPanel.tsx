@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAppStore, EventNotificationTypeConfig } from '../store/useAppStore';
-import { db } from '../js/db.js';
+import { db } from '../lib/db';
 import { sendEventPushNotification, requestNotificationPermission } from '../utils/pushNotification';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { InventoryItem } from '../types';

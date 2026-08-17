@@ -1,4 +1,4 @@
-import { db } from '../js/db.js';
+import { db } from '../lib/db';
 import {
   BackupData,
   createFullDatabaseBackup,

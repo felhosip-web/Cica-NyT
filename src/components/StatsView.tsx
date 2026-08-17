@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../js/db.js';
+import { db } from '../lib/db';
 import { useAppStore } from '../store/useAppStore';
 import { VisualEntityGraphModal } from './VisualEntityGraphModal';
 import { MobileWarningModal } from './MobileWarningModal';

@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../js/db.js';
+import { db } from '../lib/db';
 import { Cat } from './CatCard';
-import { calculateAge } from '../js/utils/age.js';
-import { generateCatPdf } from '../js/utils/pdf-export.js';
+import { calculateAge } from '../utils/age';
+import { generateCatPdf } from '../utils/pdf-export';
 import { formatAuditDate } from '../utils/audit';
 import { getTagStyle, getTagIcon } from '../utils/tagUtils';
 import {

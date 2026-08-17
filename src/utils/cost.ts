@@ -1,13 +1,13 @@
-export function formatCurrency(amount) {
-    return new Intl.NumberFormat('hu-HU', { style: 'currency', currency: 'HUF', maximumFractionDigits: 0 }).format(amount);
+export function formatCurrency(amount: number | string) {
+    return new Intl.NumberFormat('hu-HU', { style: 'currency', currency: 'HUF', maximumFractionDigits: 0 }).format(Number(amount));
 }
 
-export function formatDate(dateStr) {
+export function formatDate(dateStr?: string | null) {
     if (!dateStr) return "";
     return dateStr.replace(/-/g, '.');
 }
 
-export function calculateCostBreakdown(cat) {
+export function calculateCostBreakdown(cat: any) {
     let oltasokSum = 0;
     let tesztekSum = 0;
     let kezelesekSum = 0;
@@ -29,6 +29,6 @@ export function calculateCostBreakdown(cat) {
     };
 }
 
-export function calculateTotalCost(cat) {
+export function calculateTotalCost(cat: any) {
     return calculateCostBreakdown(cat).total;
 }

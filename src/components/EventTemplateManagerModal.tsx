@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../js/db.js';
+import { db } from '../lib/db';
 import { EventTemplate } from '../types';
 import { DEFAULT_EVENT_TEMPLATES } from '../data/defaultEventTemplates';
 import { CustomSelect } from './CustomSelect';

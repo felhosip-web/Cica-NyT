@@ -21,7 +21,7 @@ let dbInstance;
 if (globalThis.__dbInstance) {
     dbInstance = globalThis.__dbInstance;
 } else {
-    const dbOptions = {};
+    const dbOptions: { indexedDB?: any, IDBKeyRange?: any } = {};
     if (!isIndexedDBAvailable) {
         console.warn("IndexedDB is blocked or unavailable in this environment (likely due to cross-origin iframe sandboxing in AI Studio). Falling back to in-memory fake-indexeddb database!");
         dbOptions.indexedDB = fakeIndexedDB;

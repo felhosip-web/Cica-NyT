@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { motion, AnimatePresence } from 'motion/react';
-import { db } from '../js/db.js';
+import { db } from '../lib/db';
 import { TnrRecord } from '../types';
 import { TnrCard } from './TnrCard';
 import { TnrFormModal } from './TnrFormModal';

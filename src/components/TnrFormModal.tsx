@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { db } from '../js/db.js';
+import { db } from '../lib/db';
 import { TnrRecord } from '../types';
 import { useAppStore } from '../store/useAppStore';
 import { createAuditStamp, updateAuditStamp } from '../utils/audit';

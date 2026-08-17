@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../js/db.js';
+import { db } from '../lib/db';
 import { Cat } from './CatCard';
 import { useAppStore } from '../store/useAppStore';
 import { createAuditStamp, updateAuditStamp } from '../utils/audit';

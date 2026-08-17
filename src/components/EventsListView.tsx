@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { motion, AnimatePresence } from 'motion/react';
-import { db } from '../js/db.js';
+import { db } from '../lib/db';
 import { useAppStore } from '../store/useAppStore';
 import { createAuditStamp } from '../utils/audit';
 import { EventTemplateManagerModal } from './EventTemplateManagerModal';

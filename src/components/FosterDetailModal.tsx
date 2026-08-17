@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { db } from '../js/db.js';
+import { db } from '../lib/db';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { FosterParent } from '../types';
 

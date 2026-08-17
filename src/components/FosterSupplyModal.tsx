@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../js/db.js';
+import { db } from '../lib/db';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { FosterSupply, FosterParent } from '../types';
 import { CustomSelect } from './CustomSelect';
