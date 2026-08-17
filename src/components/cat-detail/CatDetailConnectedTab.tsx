@@ -439,8 +439,8 @@ export const CatDetailConnectedTab: React.FC<CatDetailConnectedTabProps> = ({
                     <div className="space-y-1">
                       <p className="font-extrabold text-sm text-gray-800">Nincs megjeleníthető kapcsolódó elem</p>
                       <p className="text-xs text-gray-500">
-                        {connectedSearch
-                          ? 'A megadott keresési feltételeknek nem felelt meg egyetlen elem sem.'
+                        {connectedTimelineItems.length > 0
+                          ? 'A jelenlegi szűrési vagy keresési feltételeknek nem felel meg egyetlen rögzített tétel sem.'
                           : 'Ehhez a cicához még nincsenek rögzítve események, pénzügyi tételek vagy készletigények.'}
                       </p>
                     </div>

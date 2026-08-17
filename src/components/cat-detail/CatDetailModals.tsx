@@ -340,7 +340,7 @@ export const CatDetailSupplyModal = ({
               </button>
             </div>
 
-            <form onSubmit={handleAddCatSupply} className="space-y-3 text-xs">
+            <form onSubmit={handleAddSupply} className="space-y-3 text-xs">
               {/* Type Switcher */}
               <div>
                 <label className="block font-bold text-gray-700 mb-1">Ellátmány Típusa:</label>
