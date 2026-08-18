@@ -5,6 +5,7 @@ import { useAppStore } from '../store/useAppStore';
 import { VisualEntityGraphModal } from './VisualEntityGraphModal';
 import { MobileWarningModal } from './MobileWarningModal';
 import { TnrRecord } from '../types';
+import { CatWeightHistoryModal } from './CatWeightHistoryModal';
 
 interface StatsViewProps {
   onOpenUiCustomization?: () => void;
@@ -19,6 +20,7 @@ export const StatsView: React.FC<StatsViewProps> = ({ onOpenUiCustomization, onO
 
   // Modal States
   const [showVisualGraphModal, setShowVisualGraphModal] = useState(false);
+  const [showWeightHistoryModal, setShowWeightHistoryModal] = useState(false);
   const [showMobileWarningModal, setShowMobileWarningModal] = useState(false);
 
   const handleOpenVisualGraph = () => {
@@ -109,6 +111,13 @@ export const StatsView: React.FC<StatsViewProps> = ({ onOpenUiCustomization, onO
             >
               <span>🌐</span>
               <span>Vizuális megjelenítés</span>
+            </button>
+            <button
+              onClick={() => setShowWeightHistoryModal(true)}
+              className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 font-extrabold px-3 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1.5 shadow-xs"
+            >
+              <span>⚖️</span>
+              <span>Egy cica súly útja</span>
             </button>
             {onOpenPdfReports && (
               <button
@@ -271,6 +280,11 @@ export const StatsView: React.FC<StatsViewProps> = ({ onOpenUiCustomization, onO
       />
 
       {/* Mobile Device Warning Notification Modal */}
+      <CatWeightHistoryModal
+        isOpen={showWeightHistoryModal}
+        onClose={() => setShowWeightHistoryModal(false)}
+      />
+
       <MobileWarningModal
         isOpen={showMobileWarningModal}
         onClose={() => setShowMobileWarningModal(false)}

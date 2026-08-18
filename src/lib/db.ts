@@ -143,6 +143,20 @@ try {
           finances: '++id, type, category, amount, date, catId, fosterId, status, paymentMethod, createdAt'
         });
 
+        dbInstance.version(15).stores({
+          cats: 'id, sorszam, nev, ivar, szin, szuletes, created, syncStatus, status, gazdisDate, gazdisPerson, intakeType, hasKiskonyv, chipNumber, chipDate, chipLocation, isSpayed, fosterId',
+          events: '++id, catId, type, date, status, createdAt',
+          tnr: 'id, locationTrapped, dateTrapped, trappedBy, clinicLocation, surgeonName, locationReleased, status, createdAt',
+          eventTemplates: '++id, name, type, defaultTitle, category, isBuiltIn',
+          fosterParents: 'id, name, phone, city, status, maxCapacity, createdAt',
+          fosterSupplies: '++id, fosterId, type, item, date, status',
+          fosterExpenses: '++id, fosterId, catId, category, amount, date',
+          inventory: '++id, direction, itemType, sourceType, date, sourceOrRecipient, syncStatus, createdAt',
+          autoBackups: '++id, timestamp, format, recordCount, triggerReason',
+          finances: '++id, type, category, amount, date, catId, fosterId, status, paymentMethod, createdAt',
+          cat_weights: '++id, catId, weight, date, createdAt'
+        });
+
     }
 } catch (e) {
     console.warn("Failed to define versions because the database is already open/initialized:", e);

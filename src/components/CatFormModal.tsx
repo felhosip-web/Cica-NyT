@@ -38,6 +38,7 @@ export const CatFormModal: React.FC<CatFormModalProps> = ({
   const [kiskonyvSzam, setKiskonyvSzam] = useState('');
   const [kiskonyvDate, setKiskonyvDate] = useState('');
   const [isSpayed, setIsSpayed] = useState(false);
+  const [weight, setWeight] = useState('');
   const [spayedDate, setSpayedDate] = useState('');
   const [spayedLocation, setSpayedLocation] = useState('');
   const [notes, setNotes] = useState('');
@@ -66,6 +67,7 @@ export const CatFormModal: React.FC<CatFormModalProps> = ({
       setKiskonyvDate((catToEdit as any).kiskonyvDate ? String((catToEdit as any).kiskonyvDate) : '');
 
       setIsSpayed(!!catToEdit.isSpayed);
+      setWeight('');
       setSpayedDate((catToEdit as any).spayedDate ? String((catToEdit as any).spayedDate) : '');
       setSpayedLocation((catToEdit as any).spayedLocation ? String((catToEdit as any).spayedLocation) : '');
       setNotes((catToEdit as any).notes ? String((catToEdit as any).notes) : '');
@@ -242,6 +244,19 @@ export const CatFormModal: React.FC<CatFormModalProps> = ({
                 className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl font-medium focus:ring-2 focus:ring-pink-500"
               />
             </div>
+          </div>
+
+          <div className="mt-4 mb-4">
+            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1">
+              <span>⚖️</span> Mért súly (kg):
+            </label>
+            <input
+              type="text"
+              value={weight}
+              onChange={(e) => setWeight(e.target.value)}
+              placeholder="Opcionális (pl. 3.5)"
+              className="w-full rounded-xl border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm px-4 py-2 bg-white"
+            />
           </div>
 
           {/* Státusz & Beérkezés */}
