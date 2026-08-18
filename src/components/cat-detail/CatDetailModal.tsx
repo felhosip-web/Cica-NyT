@@ -669,6 +669,8 @@ export const CatDetailModal: React.FC<CatDetailModalProps> = ({
               catEvents={catEvents}
               catFinances={catFinances}
               catFosterSupplies={relatedFosterSupplies}
+              catFosterExpenses={catFosterExpenses}
+              allInventoryItems={relatedInventoryItems}
               connectedFilter={connectedFilter}
               setConnectedFilter={setConnectedFilter}
               connectedSearch={connectedSearch}
@@ -681,6 +683,12 @@ export const CatDetailModal: React.FC<CatDetailModalProps> = ({
               setShowAddSupplyModal={setShowAddSupplyModal}
               setShowAddFinanceModal={setShowAddFinanceModal}
               setPatchFeedback={setPatchFeedback}
+              eventsCount={catEvents.length}
+              financesCount={catFinances.length}
+              totalCatCost={totalCatCost}
+              totalFinanceIncome={totalFinanceIncome}
+              suppliesCount={relatedFosterSupplies.length}
+              onOpenAddEventForCat={onOpenAddEventForCat}
             />
           )}
         </div>

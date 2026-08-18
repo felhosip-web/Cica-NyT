@@ -21,6 +21,8 @@ interface CatDetailConnectedTabProps extends BaseTabProps {
   handleRunConnectedPatch: () => void;
   patchFeedback: string | null;
   setShowAddSupplyModal: (val: boolean) => void;
+  setShowAddFinanceModal: (val: boolean) => void;
+  setPatchFeedback: (val: string | null) => void;
 
   eventsCount: number;
   financesCount: number;
@@ -47,6 +49,8 @@ export const CatDetailConnectedTab: React.FC<CatDetailConnectedTabProps> = ({
   handleRunConnectedPatch,
   patchFeedback,
   setShowAddSupplyModal,
+  setShowAddFinanceModal,
+  setPatchFeedback,
 
   eventsCount,
   financesCount,
