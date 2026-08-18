@@ -103,8 +103,11 @@ export const CatFormModal: React.FC<CatFormModalProps> = ({
     if (!catToEdit?.id) return;
     setIsDeleting(true);
     try {
-      await db.cats.delete(catToEdit.id);
-      await db.events.where('catId').equals(catToEdit.id).delete();
+      await db.transaction('rw', db.cats, db.events, db.table('cat_weights'), async () => {
+        await db.cats.delete(catToEdit.id);
+        await db.events.where('catId').equals(catToEdit.id).delete();
+        await db.table('cat_weights').where('catId').equals(String(catToEdit.id)).delete();
+      });
       setShowDeleteConfirm(false);
       onSaved();
       onClose();
@@ -147,7 +150,7 @@ export const CatFormModal: React.FC<CatFormModalProps> = ({
     let numericWeight: number | null = null;
     if (weight && weight.trim() !== '') {
       const parsed = parseFloat(weight.replace(',', '.'));
-      if (!isNaN(parsed)) {
+      if (isFinite(parsed) && parsed > 0) {
         numericWeight = parsed;
       }
     }
