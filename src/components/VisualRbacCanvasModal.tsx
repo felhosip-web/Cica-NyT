@@ -57,8 +57,17 @@ const DB_TABLES: TableInfo[] = [
   { name: 'cats', label: 'Állatnyilvántartás (cats)', icon: '🐾', rlsEnabled: true },
   { name: 'events', label: 'Egészségügyi Lapok (events)', icon: '🩺', rlsEnabled: true },
   { name: 'tnr_records', label: 'TNR Műtéti Akciók (tnr_records)', icon: '✂️', rlsEnabled: true },
-  { name: 'expenses', label: 'Pénzügyek & Kiadások (expenses)', icon: '💰', rlsEnabled: true },
+  { name: 'expenses', label: 'Kiadások (expenses)', icon: '💰', rlsEnabled: true },
   { name: 'app_users', label: 'Felhasználók (app_users)', icon: '🔑', rlsEnabled: true },
+  { name: 'event_templates', label: 'Esemény Sablonok (event_templates)', icon: '📑', rlsEnabled: true },
+  { name: 'foster_parents', label: 'Befogadók (foster_parents)', icon: '🏡', rlsEnabled: true },
+  { name: 'foster_supplies', label: 'Befogadói Ellátmányok (foster_supplies)', icon: '📦', rlsEnabled: true },
+  { name: 'foster_expenses', label: 'Befogadói Kiadások (foster_expenses)', icon: '🧾', rlsEnabled: true },
+  { name: 'inventory', label: 'Leltár (inventory)', icon: '🛒', rlsEnabled: true },
+  { name: 'finances', label: 'Pénzügyek (finances)', icon: '💳', rlsEnabled: true },
+  { name: 'cat_weights', label: 'Cica Súlyok (cat_weights)', icon: '⚖️', rlsEnabled: true },
+  { name: 'auto_backups', label: 'Mentések (auto_backups)', icon: '💾', rlsEnabled: true },
+  { name: 'settings', label: 'Beállítások (settings)', icon: '⚙️', rlsEnabled: true },
 ];
 
 const PERMISSION_NODES: PermKeyInfo[] = [
@@ -1131,7 +1140,9 @@ export const VisualRbacCanvasModal: React.FC<Props> = ({ isOpen, onClose }) => {
     sql += `CREATE INDEX IF NOT EXISTS idx_expenses_cat_id ON public.expenses(cat_id);\n`;
     sql += `CREATE INDEX IF NOT EXISTS idx_app_users_role_id ON public.app_users(role_id);\n`;
     sql += `CREATE INDEX IF NOT EXISTS idx_foster_supplies_foster_id ON public.foster_supplies(foster_id);\n`;
+    sql += `CREATE INDEX IF NOT EXISTS idx_foster_supplies_cat_id ON public.foster_supplies(cat_id);\n`;
     sql += `CREATE INDEX IF NOT EXISTS idx_foster_expenses_foster_id ON public.foster_expenses(foster_id);\n`;
+    sql += `CREATE INDEX IF NOT EXISTS idx_foster_expenses_cat_id ON public.foster_expenses(cat_id);\n`;
     sql += `CREATE INDEX IF NOT EXISTS idx_inventory_cat_id ON public.inventory(cat_id);\n`;
     sql += `CREATE INDEX IF NOT EXISTS idx_finances_cat_id ON public.finances(cat_id);\n`;
     sql += `CREATE INDEX IF NOT EXISTS idx_finances_foster_id ON public.finances(foster_id);\n`;

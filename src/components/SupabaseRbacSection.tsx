@@ -852,7 +852,9 @@ export const SupabaseRbacSection: React.FC = () => {
     sql += `CREATE INDEX IF NOT EXISTS idx_expenses_cat_id ON public.expenses(cat_id);\n`;
     sql += `CREATE INDEX IF NOT EXISTS idx_app_users_role_id ON public.app_users(role_id);\n`;
     sql += `CREATE INDEX IF NOT EXISTS idx_foster_supplies_foster_id ON public.foster_supplies(foster_id);\n`;
+    sql += `CREATE INDEX IF NOT EXISTS idx_foster_supplies_cat_id ON public.foster_supplies(cat_id);\n`;
     sql += `CREATE INDEX IF NOT EXISTS idx_foster_expenses_foster_id ON public.foster_expenses(foster_id);\n`;
+    sql += `CREATE INDEX IF NOT EXISTS idx_foster_expenses_cat_id ON public.foster_expenses(cat_id);\n`;
     sql += `CREATE INDEX IF NOT EXISTS idx_inventory_cat_id ON public.inventory(cat_id);\n`;
     sql += `CREATE INDEX IF NOT EXISTS idx_finances_cat_id ON public.finances(cat_id);\n`;
     sql += `CREATE INDEX IF NOT EXISTS idx_finances_foster_id ON public.finances(foster_id);\n`;
@@ -1521,7 +1523,7 @@ export const SupabaseRbacSection: React.FC = () => {
 
             <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
               <span className="text-[10px] text-slate-400 font-mono">
-                6 Adatbázis Tábla + RLS Szabályok + Seed Adatok
+                15 Adatbázis Tábla + RLS Szabályok + Seed Adatok
               </span>
               <div className="flex items-center gap-2">
                 <button
