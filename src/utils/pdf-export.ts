@@ -317,9 +317,19 @@ export async function generateCatPdf(cat: any, options?: { orgName?: string; eve
     currentY += 3;
 
     let intakeTypeLabel = 'Sajat gondozas';
-    if (cat.intakeType === 'befogott') intakeTypeLabel = 'Befogott';
-    else if (cat.intakeType === 'behozott' || cat.intakeType === 'leadott') intakeTypeLabel = 'Leadott / Behozott';
-    else if (cat.intakeType === 'elkobzott') intakeTypeLabel = 'Elkobzott';
+    let intakeDateVal = cat.created;
+
+    if (cat.intakeType === 'befogott') {
+        intakeTypeLabel = 'Befogott';
+        intakeDateVal = cat.befogottMikor || cat.created;
+    } else if (cat.intakeType === 'behozott' || cat.intakeType === 'leadott') {
+        intakeTypeLabel = 'Leadott / Behozott';
+        intakeDateVal = cat.behozottMikor || cat.created;
+    } else if (cat.intakeType === 'elkobzott') {
+        intakeTypeLabel = 'Elkobzott';
+    }
+
+    const formattedIntakeDate = intakeDateVal ? intakeDateVal.split('T')[0].replace(/-/g, '.') : '-';
 
     const basicInfoRows = [
         [
@@ -332,7 +342,7 @@ export async function generateCatPdf(cat: any, options?: { orgName?: string; eve
             { content: 'Bekerules tipusa:', fontStyle: 'bold' },
             intakeTypeLabel,
             { content: 'Bekerules datuma:', fontStyle: 'bold' },
-            cat.created ? cat.created.split('T')[0].replace(/-/g, '.') : '-'
+            formattedIntakeDate
         ],
         [
             { content: 'Jelenlegi helyszin:', fontStyle: 'bold' },
@@ -574,14 +584,20 @@ export async function generateCatPdf(cat: any, options?: { orgName?: string; eve
         doc.text('4. ESEMENYEK ES ELOTORTENET', 14, currentY);
         currentY += 4;
 
-        const eventRows = events.map((e: any, idx: number) => [
-            `${idx + 1}.`,
-            cText(e.title || 'Esemeny'),
-            e.date || '-',
-            cText(e.location || '-'),
-            cText(e.performedBy || '-'),
-            e.status === 'done' ? 'Teljesult' : 'Esedekes'
-        ]);
+        const eventRows = events.map((e: any, idx: number) => {
+            let statusLabel = 'Esedekes';
+            if (e.status === 'done') statusLabel = 'Teljesult';
+            else if (e.status === 'expired') statusLabel = 'Lejart';
+
+            return [
+                `${idx + 1}.`,
+                cText(e.title || 'Esemeny'),
+                e.date || '-',
+                cText(e.location || '-'),
+                cText(e.performedBy || '-'),
+                statusLabel
+            ];
+        });
 
         runAutoTable({
             startY: currentY,
@@ -626,20 +642,16 @@ export async function generateCatPdf(cat: any, options?: { orgName?: string; eve
         }
 
         if (cat.notes) {
-            doc.setFillColor(248, 250, 252);
-            doc.setDrawColor(203, 213, 225);
+            runAutoTable({
+                startY: currentY,
+                body: [[cText(cat.notes)]],
+                theme: 'grid',
+                styles: { fontSize: 8.5, cellPadding: 4, textColor: [30, 41, 59] },
+                bodyStyles: { fillColor: [248, 250, 252], lineColor: [203, 213, 225] },
+                margin: { left: 14, right: 14 }
+            });
 
-            const splitNotes = doc.splitTextToSize(cText(cat.notes), pageWidth - 36);
-            const boxHeight = Math.max(12, splitNotes.length * 4.5 + 4);
-
-            doc.roundedRect(14, currentY, pageWidth - 28, boxHeight, 1.5, 1.5, 'FD');
-
-            doc.setFontSize(8.5);
-            doc.setFont('helvetica', 'normal');
-            doc.setTextColor(30, 41, 59);
-            doc.text(splitNotes, 18, currentY + 5);
-
-            currentY += boxHeight + 8;
+            currentY = (doc as any).lastAutoTable.finalY + 8;
         }
     }
 
