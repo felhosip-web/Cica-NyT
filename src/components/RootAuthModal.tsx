@@ -47,7 +47,7 @@ export const RootAuthModal: React.FC<RootAuthModalProps> = ({ onClose, onSuccess
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-gray-700 font-bold mb-1">Root Jelszó (1342):</label>
+            <label className="block text-gray-700 font-bold mb-1">Root Jelszó:</label>
             <input
               type="password"
               value={password}
@@ -65,7 +65,7 @@ export const RootAuthModal: React.FC<RootAuthModalProps> = ({ onClose, onSuccess
             />
             {error && (
               <p className="text-[11px] font-bold text-red-600 mt-1.5 flex items-center gap-1">
-                ⚠️ Hibás jelszó! Próbáld újra (Jelszó: 1342)
+                ⚠️ Hibás jelszó! Próbáld újra
               </p>
             )}
           </div>
