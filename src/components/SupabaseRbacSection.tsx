@@ -376,6 +376,143 @@ export const SupabaseRbacSection: React.FC = () => {
     sql += `    updated_at timestamptz DEFAULT now()\n`;
     sql += `);\n\n`;
 
+    sql += `-- 1.7. Esemény Sablonok (event_templates)\n`;
+    sql += `CREATE TABLE IF NOT EXISTS public.event_templates (\n`;
+    sql += `    id text PRIMARY KEY,\n`;
+    sql += `    name text NOT NULL,\n`;
+    sql += `    type text NOT NULL,\n`;
+    sql += `    default_title text,\n`;
+    sql += `    category text,\n`;
+    sql += `    is_built_in boolean DEFAULT false,\n`;
+    sql += `    created_at timestamptz DEFAULT now(),\n`;
+    sql += `    updated_at timestamptz DEFAULT now()\n`;
+    sql += `);\n\n`;
+
+    sql += `-- 1.8. Ideiglenes Befogadók (foster_parents)\n`;
+    sql += `CREATE TABLE IF NOT EXISTS public.foster_parents (\n`;
+    sql += `    id text PRIMARY KEY,\n`;
+    sql += `    name text NOT NULL,\n`;
+    sql += `    phone text,\n`;
+    sql += `    email text,\n`;
+    sql += `    city text,\n`;
+    sql += `    address text,\n`;
+    sql += `    status text,\n`;
+    sql += `    max_capacity integer,\n`;
+    sql += `    notes text,\n`;
+    sql += `    housing_type text,\n`;
+    sql += `    accepts_kittens boolean,\n`;
+    sql += `    accepts_sick boolean,\n`;
+    sql += `    created_at timestamptz DEFAULT now(),\n`;
+    sql += `    updated_at timestamptz DEFAULT now()\n`;
+    sql += `);\n\n`;
+
+    sql += `-- 1.9. Befogadói Ellátmányok (foster_supplies)\n`;
+    sql += `CREATE TABLE IF NOT EXISTS public.foster_supplies (\n`;
+    sql += `    id text PRIMARY KEY,\n`;
+    sql += `    foster_id text REFERENCES public.foster_parents(id) ON DELETE CASCADE,\n`;
+    sql += `    cat_id text REFERENCES public.cats(id) ON DELETE SET NULL,\n`;
+    sql += `    type text NOT NULL,\n`;
+    sql += `    item text NOT NULL,\n`;
+    sql += `    quantity numeric,\n`;
+    sql += `    unit text,\n`;
+    sql += `    date text NOT NULL,\n`;
+    sql += `    status text,\n`;
+    sql += `    notes text,\n`;
+    sql += `    inventory_item_id text,\n`;
+    sql += `    created_at timestamptz DEFAULT now(),\n`;
+    sql += `    updated_at timestamptz DEFAULT now()\n`;
+    sql += `);\n\n`;
+
+    sql += `-- 1.10. Befogadói Kiadások (foster_expenses)\n`;
+    sql += `CREATE TABLE IF NOT EXISTS public.foster_expenses (\n`;
+    sql += `    id text PRIMARY KEY,\n`;
+    sql += `    foster_id text REFERENCES public.foster_parents(id) ON DELETE CASCADE,\n`;
+    sql += `    cat_id text REFERENCES public.cats(id) ON DELETE SET NULL,\n`;
+    sql += `    category text NOT NULL,\n`;
+    sql += `    amount numeric NOT NULL,\n`;
+    sql += `    date text NOT NULL,\n`;
+    sql += `    description text,\n`;
+    sql += `    invoice_no text,\n`;
+    sql += `    finance_id text,\n`;
+    sql += `    created_at timestamptz DEFAULT now(),\n`;
+    sql += `    updated_at timestamptz DEFAULT now()\n`;
+    sql += `);\n\n`;
+
+    sql += `-- 1.11. Leltár és Készlet (inventory)\n`;
+    sql += `CREATE TABLE IF NOT EXISTS public.inventory (\n`;
+    sql += `    id text PRIMARY KEY,\n`;
+    sql += `    cat_id text REFERENCES public.cats(id) ON DELETE SET NULL,\n`;
+    sql += `    direction text NOT NULL,\n`;
+    sql += `    item_type text NOT NULL,\n`;
+    sql += `    source_type text,\n`;
+    sql += `    brand_or_name text,\n`;
+    sql += `    quantity numeric,\n`;
+    sql += `    unit text,\n`;
+    sql += `    date text NOT NULL,\n`;
+    sql += `    expiry_date text,\n`;
+    sql += `    batch_number text,\n`;
+    sql += `    min_stock_threshold numeric,\n`;
+    sql += `    target_age_or_condition text,\n`;
+    sql += `    source_or_recipient text,\n`;
+    sql += `    destination text,\n`;
+    sql += `    notes text,\n`;
+    sql += `    purchase_cost numeric,\n`;
+    sql += `    finance_id text,\n`;
+    sql += `    foster_supply_id text,\n`;
+    sql += `    sync_status text,\n`;
+    sql += `    created_at timestamptz DEFAULT now(),\n`;
+    sql += `    updated_at timestamptz DEFAULT now()\n`;
+    sql += `);\n\n`;
+
+    sql += `-- 1.12. Pénzügyek (finances)\n`;
+    sql += `CREATE TABLE IF NOT EXISTS public.finances (\n`;
+    sql += `    id text PRIMARY KEY,\n`;
+    sql += `    type text NOT NULL,\n`;
+    sql += `    category text NOT NULL,\n`;
+    sql += `    amount numeric NOT NULL,\n`;
+    sql += `    date text NOT NULL,\n`;
+    sql += `    title text NOT NULL,\n`;
+    sql += `    partner_name text,\n`;
+    sql += `    payment_method text,\n`;
+    sql += `    status text,\n`;
+    sql += `    invoice_number text,\n`;
+    sql += `    cat_id text REFERENCES public.cats(id) ON DELETE SET NULL,\n`;
+    sql += `    foster_id text REFERENCES public.foster_parents(id) ON DELETE SET NULL,\n`;
+    sql += `    source_module text,\n`;
+    sql += `    source_reference_id text,\n`;
+    sql += `    notes text,\n`;
+    sql += `    sync_status text,\n`;
+    sql += `    created_at timestamptz DEFAULT now(),\n`;
+    sql += `    updated_at timestamptz DEFAULT now()\n`;
+    sql += `);\n\n`;
+
+    sql += `-- 1.13. Cica Súly (cat_weights)\n`;
+    sql += `CREATE TABLE IF NOT EXISTS public.cat_weights (\n`;
+    sql += `    id text PRIMARY KEY,\n`;
+    sql += `    cat_id text REFERENCES public.cats(id) ON DELETE CASCADE,\n`;
+    sql += `    weight numeric NOT NULL,\n`;
+    sql += `    date text NOT NULL,\n`;
+    sql += `    created_at timestamptz DEFAULT now()\n`;
+    sql += `);\n\n`;
+
+    sql += `-- 1.14. Automatikus Mentések (auto_backups)\n`;
+    sql += `CREATE TABLE IF NOT EXISTS public.auto_backups (\n`;
+    sql += `    id text PRIMARY KEY,\n`;
+    sql += `    timestamp text NOT NULL,\n`;
+    sql += `    format text,\n`;
+    sql += `    record_count integer,\n`;
+    sql += `    trigger_reason text,\n`;
+    sql += `    created_at timestamptz DEFAULT now()\n`;
+    sql += `);\n\n`;
+
+    sql += `-- 1.15. Beállítások (settings)\n`;
+    sql += `CREATE TABLE IF NOT EXISTS public.settings (\n`;
+    sql += `    id text PRIMARY KEY,\n`;
+    sql += `    data jsonb DEFAULT '{}'::jsonb NOT NULL,\n`;
+    sql += `    created_at timestamptz DEFAULT now(),\n`;
+    sql += `    updated_at timestamptz DEFAULT now()\n`;
+    sql += `);\n\n`;
+
     sql += `-- 2. KEZDŐ ADATOK (SEED ROLES & USERS)\n`;
     sql += `-- ----------------------------------------------------------\n\n`;
 
@@ -408,7 +545,16 @@ export const SupabaseRbacSection: React.FC = () => {
     sql += `ALTER TABLE public.cats ENABLE ROW LEVEL SECURITY;\n`;
     sql += `ALTER TABLE public.events ENABLE ROW LEVEL SECURITY;\n`;
     sql += `ALTER TABLE public.tnr_records ENABLE ROW LEVEL SECURITY;\n`;
-    sql += `ALTER TABLE public.expenses ENABLE ROW LEVEL SECURITY;\n\n`;
+    sql += `ALTER TABLE public.expenses ENABLE ROW LEVEL SECURITY;\n`;
+    sql += `ALTER TABLE public.event_templates ENABLE ROW LEVEL SECURITY;\n`;
+    sql += `ALTER TABLE public.foster_parents ENABLE ROW LEVEL SECURITY;\n`;
+    sql += `ALTER TABLE public.foster_supplies ENABLE ROW LEVEL SECURITY;\n`;
+    sql += `ALTER TABLE public.foster_expenses ENABLE ROW LEVEL SECURITY;\n`;
+    sql += `ALTER TABLE public.inventory ENABLE ROW LEVEL SECURITY;\n`;
+    sql += `ALTER TABLE public.finances ENABLE ROW LEVEL SECURITY;\n`;
+    sql += `ALTER TABLE public.cat_weights ENABLE ROW LEVEL SECURITY;\n`;
+    sql += `ALTER TABLE public.auto_backups ENABLE ROW LEVEL SECURITY;\n`;
+    sql += `ALTER TABLE public.settings ENABLE ROW LEVEL SECURITY;\n\n`;
 
     sql += `-- 4. RLS JOGOSULTSÁG ELLENŐRZŐ SEGÉDFÜGGVÉNY\n`;
     sql += `-- ----------------------------------------------------------\n\n`;
@@ -534,7 +680,151 @@ export const SupabaseRbacSection: React.FC = () => {
     sql += `CREATE POLICY "app_users_delete_policy" ON public.app_users FOR DELETE\n`;
     sql += `  USING (public.check_user_permission('users.delete') OR auth.role() = 'service_role');\n\n`;
 
-    // 5.6 app_roles
+    // 5.6 event_templates
+    sql += `-- Policies for public.event_templates\n`;
+    sql += `DROP POLICY IF EXISTS "event_templates_select_policy" ON public.event_templates;\n`;
+    sql += `CREATE POLICY "event_templates_select_policy" ON public.event_templates FOR SELECT\n`;
+    sql += `  USING (public.check_user_permission('health.read') OR auth.role() = 'service_role');\n\n`;
+    sql += `DROP POLICY IF EXISTS "event_templates_insert_policy" ON public.event_templates;\n`;
+    sql += `CREATE POLICY "event_templates_insert_policy" ON public.event_templates FOR INSERT\n`;
+    sql += `  WITH CHECK (public.check_user_permission('health.create') OR auth.role() = 'service_role');\n\n`;
+    sql += `DROP POLICY IF EXISTS "event_templates_update_policy" ON public.event_templates;\n`;
+    sql += `CREATE POLICY "event_templates_update_policy" ON public.event_templates FOR UPDATE\n`;
+    sql += `  USING (public.check_user_permission('health.update') OR auth.role() = 'service_role')\n`;
+    sql += `  WITH CHECK (public.check_user_permission('health.update') OR auth.role() = 'service_role');\n\n`;
+    sql += `DROP POLICY IF EXISTS "event_templates_delete_policy" ON public.event_templates;\n`;
+    sql += `CREATE POLICY "event_templates_delete_policy" ON public.event_templates FOR DELETE\n`;
+    sql += `  USING (public.check_user_permission('health.delete') OR auth.role() = 'service_role');\n\n`;
+
+    // 5.7 foster_parents
+    sql += `-- Policies for public.foster_parents\n`;
+    sql += `DROP POLICY IF EXISTS "foster_parents_select_policy" ON public.foster_parents;\n`;
+    sql += `CREATE POLICY "foster_parents_select_policy" ON public.foster_parents FOR SELECT\n`;
+    sql += `  USING (public.check_user_permission('animal.read') OR auth.role() = 'service_role');\n\n`;
+    sql += `DROP POLICY IF EXISTS "foster_parents_insert_policy" ON public.foster_parents;\n`;
+    sql += `CREATE POLICY "foster_parents_insert_policy" ON public.foster_parents FOR INSERT\n`;
+    sql += `  WITH CHECK (public.check_user_permission('animal.create') OR auth.role() = 'service_role');\n\n`;
+    sql += `DROP POLICY IF EXISTS "foster_parents_update_policy" ON public.foster_parents;\n`;
+    sql += `CREATE POLICY "foster_parents_update_policy" ON public.foster_parents FOR UPDATE\n`;
+    sql += `  USING (public.check_user_permission('animal.update') OR auth.role() = 'service_role')\n`;
+    sql += `  WITH CHECK (public.check_user_permission('animal.update') OR auth.role() = 'service_role');\n\n`;
+    sql += `DROP POLICY IF EXISTS "foster_parents_delete_policy" ON public.foster_parents;\n`;
+    sql += `CREATE POLICY "foster_parents_delete_policy" ON public.foster_parents FOR DELETE\n`;
+    sql += `  USING (public.check_user_permission('animal.delete') OR auth.role() = 'service_role');\n\n`;
+
+    // 5.8 foster_supplies
+    sql += `-- Policies for public.foster_supplies\n`;
+    sql += `DROP POLICY IF EXISTS "foster_supplies_select_policy" ON public.foster_supplies;\n`;
+    sql += `CREATE POLICY "foster_supplies_select_policy" ON public.foster_supplies FOR SELECT\n`;
+    sql += `  USING (public.check_user_permission('animal.read') OR auth.role() = 'service_role');\n\n`;
+    sql += `DROP POLICY IF EXISTS "foster_supplies_insert_policy" ON public.foster_supplies;\n`;
+    sql += `CREATE POLICY "foster_supplies_insert_policy" ON public.foster_supplies FOR INSERT\n`;
+    sql += `  WITH CHECK (public.check_user_permission('animal.create') OR auth.role() = 'service_role');\n\n`;
+    sql += `DROP POLICY IF EXISTS "foster_supplies_update_policy" ON public.foster_supplies;\n`;
+    sql += `CREATE POLICY "foster_supplies_update_policy" ON public.foster_supplies FOR UPDATE\n`;
+    sql += `  USING (public.check_user_permission('animal.update') OR auth.role() = 'service_role')\n`;
+    sql += `  WITH CHECK (public.check_user_permission('animal.update') OR auth.role() = 'service_role');\n\n`;
+    sql += `DROP POLICY IF EXISTS "foster_supplies_delete_policy" ON public.foster_supplies;\n`;
+    sql += `CREATE POLICY "foster_supplies_delete_policy" ON public.foster_supplies FOR DELETE\n`;
+    sql += `  USING (public.check_user_permission('animal.delete') OR auth.role() = 'service_role');\n\n`;
+
+    // 5.9 foster_expenses
+    sql += `-- Policies for public.foster_expenses\n`;
+    sql += `DROP POLICY IF EXISTS "foster_expenses_select_policy" ON public.foster_expenses;\n`;
+    sql += `CREATE POLICY "foster_expenses_select_policy" ON public.foster_expenses FOR SELECT\n`;
+    sql += `  USING (public.check_user_permission('finance.read') OR auth.role() = 'service_role');\n\n`;
+    sql += `DROP POLICY IF EXISTS "foster_expenses_insert_policy" ON public.foster_expenses;\n`;
+    sql += `CREATE POLICY "foster_expenses_insert_policy" ON public.foster_expenses FOR INSERT\n`;
+    sql += `  WITH CHECK (public.check_user_permission('finance.create') OR auth.role() = 'service_role');\n\n`;
+    sql += `DROP POLICY IF EXISTS "foster_expenses_update_policy" ON public.foster_expenses;\n`;
+    sql += `CREATE POLICY "foster_expenses_update_policy" ON public.foster_expenses FOR UPDATE\n`;
+    sql += `  USING (public.check_user_permission('finance.update') OR auth.role() = 'service_role')\n`;
+    sql += `  WITH CHECK (public.check_user_permission('finance.update') OR auth.role() = 'service_role');\n\n`;
+    sql += `DROP POLICY IF EXISTS "foster_expenses_delete_policy" ON public.foster_expenses;\n`;
+    sql += `CREATE POLICY "foster_expenses_delete_policy" ON public.foster_expenses FOR DELETE\n`;
+    sql += `  USING (public.check_user_permission('finance.delete') OR auth.role() = 'service_role');\n\n`;
+
+    // 5.10 inventory
+    sql += `-- Policies for public.inventory\n`;
+    sql += `DROP POLICY IF EXISTS "inventory_select_policy" ON public.inventory;\n`;
+    sql += `CREATE POLICY "inventory_select_policy" ON public.inventory FOR SELECT\n`;
+    sql += `  USING (public.check_user_permission('finance.read') OR auth.role() = 'service_role');\n\n`;
+    sql += `DROP POLICY IF EXISTS "inventory_insert_policy" ON public.inventory;\n`;
+    sql += `CREATE POLICY "inventory_insert_policy" ON public.inventory FOR INSERT\n`;
+    sql += `  WITH CHECK (public.check_user_permission('finance.create') OR auth.role() = 'service_role');\n\n`;
+    sql += `DROP POLICY IF EXISTS "inventory_update_policy" ON public.inventory;\n`;
+    sql += `CREATE POLICY "inventory_update_policy" ON public.inventory FOR UPDATE\n`;
+    sql += `  USING (public.check_user_permission('finance.update') OR auth.role() = 'service_role')\n`;
+    sql += `  WITH CHECK (public.check_user_permission('finance.update') OR auth.role() = 'service_role');\n\n`;
+    sql += `DROP POLICY IF EXISTS "inventory_delete_policy" ON public.inventory;\n`;
+    sql += `CREATE POLICY "inventory_delete_policy" ON public.inventory FOR DELETE\n`;
+    sql += `  USING (public.check_user_permission('finance.delete') OR auth.role() = 'service_role');\n\n`;
+
+    // 5.11 finances
+    sql += `-- Policies for public.finances\n`;
+    sql += `DROP POLICY IF EXISTS "finances_select_policy" ON public.finances;\n`;
+    sql += `CREATE POLICY "finances_select_policy" ON public.finances FOR SELECT\n`;
+    sql += `  USING (public.check_user_permission('finance.read') OR auth.role() = 'service_role');\n\n`;
+    sql += `DROP POLICY IF EXISTS "finances_insert_policy" ON public.finances;\n`;
+    sql += `CREATE POLICY "finances_insert_policy" ON public.finances FOR INSERT\n`;
+    sql += `  WITH CHECK (public.check_user_permission('finance.create') OR auth.role() = 'service_role');\n\n`;
+    sql += `DROP POLICY IF EXISTS "finances_update_policy" ON public.finances;\n`;
+    sql += `CREATE POLICY "finances_update_policy" ON public.finances FOR UPDATE\n`;
+    sql += `  USING (public.check_user_permission('finance.update') OR auth.role() = 'service_role')\n`;
+    sql += `  WITH CHECK (public.check_user_permission('finance.update') OR auth.role() = 'service_role');\n\n`;
+    sql += `DROP POLICY IF EXISTS "finances_delete_policy" ON public.finances;\n`;
+    sql += `CREATE POLICY "finances_delete_policy" ON public.finances FOR DELETE\n`;
+    sql += `  USING (public.check_user_permission('finance.delete') OR auth.role() = 'service_role');\n\n`;
+
+    // 5.12 cat_weights
+    sql += `-- Policies for public.cat_weights\n`;
+    sql += `DROP POLICY IF EXISTS "cat_weights_select_policy" ON public.cat_weights;\n`;
+    sql += `CREATE POLICY "cat_weights_select_policy" ON public.cat_weights FOR SELECT\n`;
+    sql += `  USING (public.check_user_permission('animal.read') OR auth.role() = 'service_role');\n\n`;
+    sql += `DROP POLICY IF EXISTS "cat_weights_insert_policy" ON public.cat_weights;\n`;
+    sql += `CREATE POLICY "cat_weights_insert_policy" ON public.cat_weights FOR INSERT\n`;
+    sql += `  WITH CHECK (public.check_user_permission('animal.create') OR auth.role() = 'service_role');\n\n`;
+    sql += `DROP POLICY IF EXISTS "cat_weights_update_policy" ON public.cat_weights;\n`;
+    sql += `CREATE POLICY "cat_weights_update_policy" ON public.cat_weights FOR UPDATE\n`;
+    sql += `  USING (public.check_user_permission('animal.update') OR auth.role() = 'service_role')\n`;
+    sql += `  WITH CHECK (public.check_user_permission('animal.update') OR auth.role() = 'service_role');\n\n`;
+    sql += `DROP POLICY IF EXISTS "cat_weights_delete_policy" ON public.cat_weights;\n`;
+    sql += `CREATE POLICY "cat_weights_delete_policy" ON public.cat_weights FOR DELETE\n`;
+    sql += `  USING (public.check_user_permission('animal.delete') OR auth.role() = 'service_role');\n\n`;
+
+    // 5.13 auto_backups
+    sql += `-- Policies for public.auto_backups\n`;
+    sql += `DROP POLICY IF EXISTS "auto_backups_select_policy" ON public.auto_backups;\n`;
+    sql += `CREATE POLICY "auto_backups_select_policy" ON public.auto_backups FOR SELECT\n`;
+    sql += `  USING (public.check_user_permission('users.read') OR auth.role() = 'service_role');\n\n`;
+    sql += `DROP POLICY IF EXISTS "auto_backups_insert_policy" ON public.auto_backups;\n`;
+    sql += `CREATE POLICY "auto_backups_insert_policy" ON public.auto_backups FOR INSERT\n`;
+    sql += `  WITH CHECK (public.check_user_permission('users.create') OR auth.role() = 'service_role');\n\n`;
+    sql += `DROP POLICY IF EXISTS "auto_backups_update_policy" ON public.auto_backups;\n`;
+    sql += `CREATE POLICY "auto_backups_update_policy" ON public.auto_backups FOR UPDATE\n`;
+    sql += `  USING (public.check_user_permission('users.update') OR auth.role() = 'service_role')\n`;
+    sql += `  WITH CHECK (public.check_user_permission('users.update') OR auth.role() = 'service_role');\n\n`;
+    sql += `DROP POLICY IF EXISTS "auto_backups_delete_policy" ON public.auto_backups;\n`;
+    sql += `CREATE POLICY "auto_backups_delete_policy" ON public.auto_backups FOR DELETE\n`;
+    sql += `  USING (public.check_user_permission('users.delete') OR auth.role() = 'service_role');\n\n`;
+
+    // 5.14 settings
+    sql += `-- Policies for public.settings\n`;
+    sql += `DROP POLICY IF EXISTS "settings_select_policy" ON public.settings;\n`;
+    sql += `CREATE POLICY "settings_select_policy" ON public.settings FOR SELECT\n`;
+    sql += `  USING (public.check_user_permission('users.read') OR auth.role() = 'service_role');\n\n`;
+    sql += `DROP POLICY IF EXISTS "settings_insert_policy" ON public.settings;\n`;
+    sql += `CREATE POLICY "settings_insert_policy" ON public.settings FOR INSERT\n`;
+    sql += `  WITH CHECK (public.check_user_permission('users.update') OR auth.role() = 'service_role');\n\n`;
+    sql += `DROP POLICY IF EXISTS "settings_update_policy" ON public.settings;\n`;
+    sql += `CREATE POLICY "settings_update_policy" ON public.settings FOR UPDATE\n`;
+    sql += `  USING (public.check_user_permission('users.update') OR auth.role() = 'service_role')\n`;
+    sql += `  WITH CHECK (public.check_user_permission('users.update') OR auth.role() = 'service_role');\n\n`;
+    sql += `DROP POLICY IF EXISTS "settings_delete_policy" ON public.settings;\n`;
+    sql += `CREATE POLICY "settings_delete_policy" ON public.settings FOR DELETE\n`;
+    sql += `  USING (public.check_user_permission('users.update') OR auth.role() = 'service_role');\n\n`;
+
+    // 5.15 app_roles
     sql += `-- Policies for public.app_roles\n`;
     sql += `DROP POLICY IF EXISTS "app_roles_select_policy" ON public.app_roles;\n`;
     sql += `CREATE POLICY "app_roles_select_policy" ON public.app_roles FOR SELECT\n`;
@@ -560,7 +850,15 @@ export const SupabaseRbacSection: React.FC = () => {
     sql += `CREATE INDEX IF NOT EXISTS idx_events_date ON public.events(date);\n`;
     sql += `CREATE INDEX IF NOT EXISTS idx_tnr_cat_id ON public.tnr_records(cat_id);\n`;
     sql += `CREATE INDEX IF NOT EXISTS idx_expenses_cat_id ON public.expenses(cat_id);\n`;
-    sql += `CREATE INDEX IF NOT EXISTS idx_app_users_role_id ON public.app_users(role_id);\n\n`;
+    sql += `CREATE INDEX IF NOT EXISTS idx_app_users_role_id ON public.app_users(role_id);\n`;
+    sql += `CREATE INDEX IF NOT EXISTS idx_foster_supplies_foster_id ON public.foster_supplies(foster_id);\n`;
+    sql += `CREATE INDEX IF NOT EXISTS idx_foster_supplies_cat_id ON public.foster_supplies(cat_id);\n`;
+    sql += `CREATE INDEX IF NOT EXISTS idx_foster_expenses_foster_id ON public.foster_expenses(foster_id);\n`;
+    sql += `CREATE INDEX IF NOT EXISTS idx_foster_expenses_cat_id ON public.foster_expenses(cat_id);\n`;
+    sql += `CREATE INDEX IF NOT EXISTS idx_inventory_cat_id ON public.inventory(cat_id);\n`;
+    sql += `CREATE INDEX IF NOT EXISTS idx_finances_cat_id ON public.finances(cat_id);\n`;
+    sql += `CREATE INDEX IF NOT EXISTS idx_finances_foster_id ON public.finances(foster_id);\n`;
+    sql += `CREATE INDEX IF NOT EXISTS idx_cat_weights_cat_id ON public.cat_weights(cat_id);\n\n`;
 
     return sql;
   };
@@ -1225,7 +1523,7 @@ export const SupabaseRbacSection: React.FC = () => {
 
             <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
               <span className="text-[10px] text-slate-400 font-mono">
-                6 Adatbázis Tábla + RLS Szabályok + Seed Adatok
+                15 Adatbázis Tábla + RLS Szabályok + Seed Adatok
               </span>
               <div className="flex items-center gap-2">
                 <button
