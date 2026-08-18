@@ -144,6 +144,14 @@ export const CatFormModal: React.FC<CatFormModalProps> = ({
       notes,
     };
 
+    let numericWeight: number | null = null;
+    if (weight && weight.trim() !== '') {
+      const parsed = parseFloat(weight.replace(',', '.'));
+      if (!isNaN(parsed)) {
+        numericWeight = parsed;
+      }
+    }
+
     if (catToEdit?.id) {
       const audit = updateAuditStamp(catToEdit as any, currentUser);
       await db.cats.update(catToEdit.id, {
@@ -151,6 +159,15 @@ export const CatFormModal: React.FC<CatFormModalProps> = ({
         ...audit,
         updatedAt: audit.updated_at,
       });
+
+      if (numericWeight !== null) {
+        await db.table('cat_weights').add({
+          catId: String(catToEdit.id),
+          weight: numericWeight,
+          date: new Date().toISOString().split('T')[0],
+          createdAt: new Date().toISOString()
+        });
+      }
     } else {
       const newId = 'cat_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
       const audit = createAuditStamp(currentUser);
@@ -164,6 +181,15 @@ export const CatFormModal: React.FC<CatFormModalProps> = ({
         kezelesek: [],
         tesztek: [],
       });
+
+      if (numericWeight !== null) {
+        await db.table('cat_weights').add({
+          catId: String(newId),
+          weight: numericWeight,
+          date: new Date().toISOString().split('T')[0],
+          createdAt: new Date().toISOString()
+        });
+      }
     }
 
     onSaved();
