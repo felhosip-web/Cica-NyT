@@ -591,6 +591,7 @@ export const CatDetailModal: React.FC<CatDetailModalProps> = ({
       <div className="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         <CatDetailHeader
           cat={cat}
+          catEvents={catEvents}
           onClose={onClose}
           onEditCat={onEditCat}
           onDeleteRequest={() => setShowDeleteConfirm(true)}

@@ -211,22 +211,493 @@ export class PdfExporter {
     }
 }
 
-export async function generateCatPdf(cat) {
+export async function generateCatPdf(cat: any, options?: { orgName?: string; events?: any[]; fosterParentName?: string }) {
     if (!cat) return;
+
+    // Load additional DB items if not explicitly provided
+    let events = options?.events;
+    if (!events && typeof window !== 'undefined') {
+        try {
+            const { db } = await import('../lib/db');
+            events = await db.events.where('catId').equals(cat.id).toArray();
+        } catch (e) {
+            console.warn('Could not load cat events for PDF:', e);
+            events = [];
+        }
+    }
+    events = events || [];
+
+    let fosterName = options?.fosterParentName || '';
+    if (!fosterName && cat.fosterId && typeof window !== 'undefined') {
+        try {
+            const { db } = await import('../lib/db');
+            const fp = await db.fosterParents.get(cat.fosterId);
+            if (fp) fosterName = fp.name;
+        } catch (e) {
+            console.warn('Could not load foster parent name for PDF:', e);
+        }
+    }
+
+    let orgName = options?.orgName || localStorage.getItem('org_name') || 'Macskamenhely & Gondozó Nyilvántartó';
+
     const doc = new jsPDF('p', 'mm', 'a4');
-    const name = cat.nev || 'Névtelen';
+    const pageWidth = doc.internal.pageSize.getWidth(); // 210 mm
+    const pageHeight = doc.internal.pageSize.getHeight(); // 297 mm
 
-    doc.setFontSize(18);
-    doc.text(`Cica Adatlap: ${name}`, 14, 20);
+    const activeThemeId = getCurrentThemeId();
+    const activeTheme = THEMES[activeThemeId] || THEMES.original;
+    const brandPinkHex = activeTheme['brand-pink'];
+    const brandPinkRgb = hexToRgb(brandPinkHex);
 
-    doc.setFontSize(10);
-    doc.text(`Sorszam: #${cat.sorszam || cat.id.slice(0, 4)}`, 14, 28);
-    doc.text(`Ivar: ${cat.ivar === 'bak' ? 'Bak (Kandur)' : 'Nosteny'}`, 14, 34);
-    doc.text(`Szin: ${cat.szin || '-'}`, 14, 40);
-    doc.text(`Szuletes: ${cat.szuletes || 'Ismeretlen'}`, 14, 46);
-    doc.text(`Chip szam: ${cat.chipNumber || 'Nincs'}`, 14, 52);
-    doc.text(`Ivartalanitva: ${cat.isSpayed ? 'Igen' : 'Nem'}`, 14, 58);
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0].replace(/-/g, '.');
 
-    doc.save(`cica_adatlap_${name.toLowerCase().replace(/\s+/g, '_')}.pdf`);
+    // Clean text helper for PDF rendering
+    const cText = (str?: string | null) => stripAccents(str || '');
+
+    // Header Banner
+    doc.setFillColor(brandPinkRgb[0], brandPinkRgb[1], brandPinkRgb[2]);
+    doc.rect(0, 0, pageWidth, 26, 'F');
+
+    // Header Text
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(255, 255, 255);
+    doc.text('CICA RESZLETES ADATLAP', 14, 12);
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text(cText(orgName), 14, 19);
+
+    doc.text(`Kiallitas datuma: ${dateStr}`, pageWidth - 14, 12, { align: 'right' });
+    doc.text(`Cica-NyT Nyilvantartas`, pageWidth - 14, 19, { align: 'right' });
+
+    let currentY = 32;
+
+    // Cat Name & Status Box Header
+    doc.setFillColor(248, 250, 252);
+    doc.setDrawColor(226, 232, 240);
+    doc.roundedRect(14, currentY, pageWidth - 28, 18, 2, 2, 'FD');
+
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(15, 23, 42);
+    const catTitle = `${cText(cat.nev || 'Nevtelen')} (#${cat.sorszam || cat.id.slice(0, 4)})`;
+    doc.text(catTitle, 18, currentY + 8);
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(71, 85, 105);
+
+    let statusText = 'Gondozasban';
+    if (cat.status === 'gazdis') statusText = 'Gazdis';
+    else if (cat.status === 'ideiglenes') statusText = 'Ideiglenes befogadonal';
+    else if (cat.status === 'elhunyt') statusText = 'Elhunyt';
+
+    doc.text(`Statusz: ${statusText}`, 18, currentY + 14);
+
+    let ageText = 'Ismeretlen';
+    if (cat.szuletes) {
+        try {
+            const { calculateAge } = await import('./age');
+            ageText = calculateAge(cat.szuletes);
+        } catch {
+            ageText = cat.szuletes;
+        }
+    }
+    doc.text(`Kora / Szuletes: ${cText(ageText)} (${cat.szuletes || 'Ismeretlen'})`, pageWidth - 18, currentY + 11, { align: 'right' });
+
+    currentY += 23;
+
+    // Section 1: Basic Information & Intake Details (Table)
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(brandPinkRgb[0], brandPinkRgb[1], brandPinkRgb[2]);
+    doc.text('1. ALAPADATOK ES BEKERULESI INFORMARCIOK', 14, currentY);
+    currentY += 3;
+
+    let intakeTypeLabel = 'Sajat gondozas';
+    let intakeDateVal = cat.created;
+
+    if (cat.intakeType === 'befogott') {
+        intakeTypeLabel = 'Befogott';
+        intakeDateVal = cat.befogottMikor || cat.created;
+    } else if (cat.intakeType === 'behozott' || cat.intakeType === 'leadott') {
+        intakeTypeLabel = 'Leadott / Behozott';
+        intakeDateVal = cat.behozottMikor || cat.created;
+    } else if (cat.intakeType === 'elkobzott') {
+        intakeTypeLabel = 'Elkobzott';
+    }
+
+    const formattedIntakeDate = intakeDateVal ? intakeDateVal.split('T')[0].replace(/-/g, '.') : '-';
+
+    const basicInfoRows = [
+        [
+            { content: 'Ivar:', fontStyle: 'bold' },
+            cat.ivar === 'bak' ? 'Bak (Kandur)' : 'Nosteny',
+            { content: 'Szin / Mintazat:', fontStyle: 'bold' },
+            cText(cat.szin || 'Nincs megadva')
+        ],
+        [
+            { content: 'Bekerules tipusa:', fontStyle: 'bold' },
+            intakeTypeLabel,
+            { content: 'Bekerules datuma:', fontStyle: 'bold' },
+            formattedIntakeDate
+        ],
+        [
+            { content: 'Jelenlegi helyszin:', fontStyle: 'bold' },
+            fosterName ? `Ideiglenes: ${cText(fosterName)}` : 'Menhelyi kozpont',
+            { content: 'Gazdisodas datuma:', fontStyle: 'bold' },
+            cat.gazdisDate ? cat.gazdisDate.replace(/-/g, '.') : '-'
+        ]
+    ];
+
+    if (cat.status === 'gazdis' && cat.gazdisPerson) {
+        basicInfoRows.push([
+            { content: 'Orokbefogado:', fontStyle: 'bold' },
+            cText(cat.gazdisPerson),
+            { content: '', fontStyle: 'bold' },
+            ''
+        ]);
+    }
+
+    const runAutoTable = (options: any) => {
+        try {
+            if (typeof doc.autoTable === 'function') {
+                doc.autoTable(options);
+            } else {
+                autoTable(doc, options);
+            }
+        } catch {
+            autoTable(doc, options);
+        }
+    };
+
+    runAutoTable({
+        startY: currentY,
+        body: basicInfoRows,
+        theme: 'plain',
+        styles: { fontSize: 8.5, cellPadding: 2, textColor: [30, 41, 59] },
+        columnStyles: {
+            0: { cellWidth: 38, fontStyle: 'bold' },
+            1: { cellWidth: 55 },
+            2: { cellWidth: 38, fontStyle: 'bold' },
+            3: { cellWidth: 'auto' }
+        },
+        margin: { left: 14, right: 14 }
+    });
+
+    currentY = (doc as any).lastAutoTable.finalY + 6;
+
+    // Section 2: Identification & Health Badges
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(brandPinkRgb[0], brandPinkRgb[1], brandPinkRgb[2]);
+    doc.text('2. AZONOSITO ES EGESZSEGUEGYI ASTAT', 14, currentY);
+    currentY += 3;
+
+    const healthRows = [
+        [
+            { content: 'Mikrochip szam:', fontStyle: 'bold' },
+            cat.chipNumber ? cText(cat.chipNumber) : 'Nincs chipbeultetes',
+            { content: 'Chip datuma / helye:', fontStyle: 'bold' },
+            `${cat.chipDate || '-'} / ${cText(cat.chipLocation || '-')}`
+        ],
+        [
+            { content: 'Ivartalanitva:', fontStyle: 'bold' },
+            cat.isSpayed ? 'IGEN (Ivartalanitott)' : 'NEM (Ivartalanitlan)',
+            { content: 'Ivartalanitas datuma/helye:', fontStyle: 'bold' },
+            `${cat.spayedDate || '-'} / ${cText(cat.spayedLocation || '-')}`
+        ],
+        [
+            { content: 'Oltasi kiskonyv:', fontStyle: 'bold' },
+            cat.hasKiskonyv ? `Van (${cText(cat.kiskonyvSzam || 'Nincs szam')})` : 'Nincs kiskonyve',
+            { content: 'Kiskonyv kiadas datuma:', fontStyle: 'bold' },
+            cat.kiskonyvDate || '-'
+        ]
+    ];
+
+    runAutoTable({
+        startY: currentY,
+        body: healthRows,
+        theme: 'grid',
+        styles: { fontSize: 8.5, cellPadding: 2.5, textColor: [30, 41, 59] },
+        headStyles: { fillColor: brandPinkRgb },
+        columnStyles: {
+            0: { cellWidth: 38, fontStyle: 'bold', fillColor: [241, 245, 249] },
+            1: { cellWidth: 55 },
+            2: { cellWidth: 42, fontStyle: 'bold', fillColor: [241, 245, 249] },
+            3: { cellWidth: 'auto' }
+        },
+        margin: { left: 14, right: 14 }
+    });
+
+    currentY = (doc as any).lastAutoTable.finalY + 8;
+
+    // Section 3: Medical Log Tables (Vaccinations, Treatments, Tests)
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(brandPinkRgb[0], brandPinkRgb[1], brandPinkRgb[2]);
+    doc.text('3. ORVOSI NAPLO ES BEKEZELESEK', 14, currentY);
+    currentY += 4;
+
+    // 3a. Vaccinations
+    const oltasok = Array.isArray(cat.oltasok) ? cat.oltasok : [];
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(15, 23, 42);
+    doc.text(`Vedooltasok (${oltasok.length} db):`, 14, currentY);
+    currentY += 2;
+
+    const vaxRows = oltasok.map((o: any, idx: number) => [
+        `${idx + 1}.`,
+        cText(o.nev || 'Vedooltas'),
+        o.datum || '-',
+        o.koltseg ? `${Number(o.koltseg).toLocaleString('hu-HU')} Ft` : '-',
+        cText(o.megjegyzes || '-')
+    ]);
+
+    if (vaxRows.length === 0) {
+        vaxRows.push(['-', 'Nincs rogzitett vedooltas', '-', '-', '-']);
+    }
+
+    runAutoTable({
+        startY: currentY,
+        head: [['#', 'Oltas megnevezese', 'Datum', 'Koltseg', 'Megjegyzes']],
+        body: vaxRows,
+        theme: 'striped',
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [100, 116, 139], textColor: [255, 255, 255], fontStyle: 'bold' },
+        columnStyles: {
+            0: { cellWidth: 10, halign: 'center' },
+            1: { cellWidth: 55, fontStyle: 'bold' },
+            2: { cellWidth: 25 },
+            3: { cellWidth: 25, halign: 'right' },
+            4: { cellWidth: 'auto' }
+        },
+        margin: { left: 14, right: 14 }
+    });
+
+    currentY = (doc as any).lastAutoTable.finalY + 6;
+
+    // Check page height limit
+    if (currentY + 40 > pageHeight) {
+        doc.addPage();
+        currentY = 20;
+    }
+
+    // 3b. Treatments & Medical procedures
+    const kezelesek = Array.isArray(cat.kezelesek) ? cat.kezelesek : [];
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(15, 23, 42);
+    doc.text(`Orvosi kezelések es beavatkozasok (${kezelesek.length} db):`, 14, currentY);
+    currentY += 2;
+
+    const medRows = kezelesek.map((k: any, idx: number) => [
+        `${idx + 1}.`,
+        cText(k.nev || 'Kezeles'),
+        k.datum || '-',
+        k.koltseg ? `${Number(k.koltseg).toLocaleString('hu-HU')} Ft` : '-',
+        cText(k.megjegyzes || '-')
+    ]);
+
+    if (medRows.length === 0) {
+        medRows.push(['-', 'Nincs rogzitett kezelés', '-', '-', '-']);
+    }
+
+    runAutoTable({
+        startY: currentY,
+        head: [['#', 'Kezeles / Mutet megnevezese', 'Datum', 'Koltseg', 'Megjegyzes']],
+        body: medRows,
+        theme: 'striped',
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [100, 116, 139], textColor: [255, 255, 255], fontStyle: 'bold' },
+        columnStyles: {
+            0: { cellWidth: 10, halign: 'center' },
+            1: { cellWidth: 55, fontStyle: 'bold' },
+            2: { cellWidth: 25 },
+            3: { cellWidth: 25, halign: 'right' },
+            4: { cellWidth: 'auto' }
+        },
+        margin: { left: 14, right: 14 }
+    });
+
+    currentY = (doc as any).lastAutoTable.finalY + 6;
+
+    if (currentY + 40 > pageHeight) {
+        doc.addPage();
+        currentY = 20;
+    }
+
+    // 3c. Diagnostic Tests
+    const tesztek = Array.isArray(cat.tesztek) ? cat.tesztek : [];
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(15, 23, 42);
+    doc.text(`Labortesztek es szuresek (${tesztek.length} db):`, 14, currentY);
+    currentY += 2;
+
+    const testRows = tesztek.map((t: any, idx: number) => [
+        `${idx + 1}.`,
+        cText(t.nev || 'Teszt'),
+        t.datum || '-',
+        cText(t.eredmeny || 'Negativ'),
+        t.koltseg ? `${Number(t.koltseg).toLocaleString('hu-HU')} Ft` : '-',
+        cText(t.megjegyzes || '-')
+    ]);
+
+    if (testRows.length === 0) {
+        testRows.push(['-', 'Nincs rogzitett teszt', '-', '-', '-', '-']);
+    }
+
+    runAutoTable({
+        startY: currentY,
+        head: [['#', 'Teszt megnevezese', 'Datum', 'Eredmeny', 'Koltseg', 'Megjegyzes']],
+        body: testRows,
+        theme: 'striped',
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [100, 116, 139], textColor: [255, 255, 255], fontStyle: 'bold' },
+        columnStyles: {
+            0: { cellWidth: 10, halign: 'center' },
+            1: { cellWidth: 45, fontStyle: 'bold' },
+            2: { cellWidth: 25 },
+            3: { cellWidth: 25, fontStyle: 'bold' },
+            4: { cellWidth: 22, halign: 'right' },
+            5: { cellWidth: 'auto' }
+        },
+        margin: { left: 14, right: 14 }
+    });
+
+    currentY = (doc as any).lastAutoTable.finalY + 8;
+
+    if (currentY + 40 > pageHeight) {
+        doc.addPage();
+        currentY = 20;
+    }
+
+    // Section 4: Related Events History
+    if (events && events.length > 0) {
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(brandPinkRgb[0], brandPinkRgb[1], brandPinkRgb[2]);
+        doc.text('4. ESEMENYEK ES ELOTORTENET', 14, currentY);
+        currentY += 4;
+
+        const eventRows = events.map((e: any, idx: number) => {
+            let statusLabel = 'Esedekes';
+            if (e.status === 'done') statusLabel = 'Teljesult';
+            else if (e.status === 'expired') statusLabel = 'Lejart';
+
+            return [
+                `${idx + 1}.`,
+                cText(e.title || 'Esemeny'),
+                e.date || '-',
+                cText(e.location || '-'),
+                cText(e.performedBy || '-'),
+                statusLabel
+            ];
+        });
+
+        runAutoTable({
+            startY: currentY,
+            head: [['#', 'Esemeny cime', 'Datum', 'Helyszin', 'Felelos', 'Statusz']],
+            body: eventRows,
+            theme: 'striped',
+            styles: { fontSize: 8, cellPadding: 2 },
+            headStyles: { fillColor: brandPinkRgb, textColor: [255, 255, 255], fontStyle: 'bold' },
+            columnStyles: {
+                0: { cellWidth: 10, halign: 'center' },
+                1: { cellWidth: 50, fontStyle: 'bold' },
+                2: { cellWidth: 25 },
+                3: { cellWidth: 35 },
+                4: { cellWidth: 35 },
+                5: { cellWidth: 'auto' }
+            },
+            margin: { left: 14, right: 14 }
+        });
+
+        currentY = (doc as any).lastAutoTable.finalY + 8;
+    }
+
+    if (currentY + 30 > pageHeight) {
+        doc.addPage();
+        currentY = 20;
+    }
+
+    // Section 5: Notes & Observations
+    if (cat.notes || cat.tags) {
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(brandPinkRgb[0], brandPinkRgb[1], brandPinkRgb[2]);
+        doc.text('5. MEGJEGYZESEK ES CIMKEK', 14, currentY);
+        currentY += 4;
+
+        if (cat.tags && cat.tags.length > 0) {
+            doc.setFontSize(8.5);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(71, 85, 105);
+            doc.text(`Cimkek: ${cText(cat.tags.join(', '))}`, 14, currentY);
+            currentY += 5;
+        }
+
+        if (cat.notes) {
+            runAutoTable({
+                startY: currentY,
+                body: [[cText(cat.notes)]],
+                theme: 'grid',
+                styles: { fontSize: 8.5, cellPadding: 4, textColor: [30, 41, 59] },
+                bodyStyles: { fillColor: [248, 250, 252], lineColor: [203, 213, 225] },
+                margin: { left: 14, right: 14 }
+            });
+
+            currentY = (doc as any).lastAutoTable.finalY + 8;
+        }
+    }
+
+    // Signature Block at bottom of PDF
+    if (currentY + 35 > pageHeight) {
+        doc.addPage();
+        currentY = 20;
+    } else {
+        currentY += 5;
+    }
+
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(51, 65, 85);
+
+    const col1 = 14;
+    const col2 = pageWidth - 70;
+
+    doc.text('Kelt: ........................................, ......... ev ......... ho ......... nap', col1, currentY);
+
+    doc.line(col1, currentY + 16, col1 + 55, currentY + 16);
+    doc.text('Gondozo / Kiállító alairasa', col1, currentY + 21);
+
+    doc.line(col2, currentY + 16, col2 + 50, currentY + 16);
+    doc.text('P.H. / Bélyegzo helye', col2, currentY + 21);
+
+    // Add footer on every page
+    const totalPages = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(148, 163, 184);
+        doc.text(
+            `Keszult a Cica-NyT Rendszerbol | ${cText(orgName)} | Oldal ${i} / ${totalPages}`,
+            14,
+            pageHeight - 8
+        );
+        doc.text(
+            `Kiallítva: ${now.toLocaleString('hu-HU')}`,
+            pageWidth - 14,
+            pageHeight - 8,
+            { align: 'right' }
+        );
+    }
+
+    const safeName = cText(cat.nev || 'nevtelen').toLowerCase().replace(/[^a-z0-9]/g, '_');
+    doc.save(`cica_adatlap_${safeName}_${dateStr}.pdf`);
 }
 
