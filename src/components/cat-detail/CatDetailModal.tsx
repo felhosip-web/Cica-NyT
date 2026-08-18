@@ -598,7 +598,7 @@ export const CatDetailModal: React.FC<CatDetailModalProps> = ({
           setActiveSubTab={setActiveSubTab}
           eventsCount={catEvents.length}
           financesCount={catFinances.length}
-          suppliesCount={catFosterSupplies.length}
+          suppliesCount={relatedFosterSupplies.length}
         />
 
         {/* Tab Content */}
@@ -668,7 +668,7 @@ export const CatDetailModal: React.FC<CatDetailModalProps> = ({
               cat={cat}
               catEvents={catEvents}
               catFinances={catFinances}
-              catFosterSupplies={allFosterSupplies.filter(s => s.catId === cat.id)}
+              catFosterSupplies={relatedFosterSupplies}
               connectedFilter={connectedFilter}
               setConnectedFilter={setConnectedFilter}
               connectedSearch={connectedSearch}
