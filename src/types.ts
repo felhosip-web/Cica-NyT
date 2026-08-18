@@ -80,6 +80,14 @@ export interface EventTemplate {
   protocolId?: string;
 }
 
+export interface CatWeightRecord {
+  id?: number;
+  catId: string;
+  weight: number;
+  date: string;
+  createdAt: string;
+}
+
 export interface TnrRecord extends AuditInfo {
   id: string;
   catId?: string; // Opcionális összekapcsolt cica azonosító

@@ -1,5 +1,14 @@
 [
   {
+    "version": "2.12.3",
+    "date": "2026-08-18",
+    "changes": [
+      "⚖️ Új Cica Súlykövetés (Új!): Cica profilhoz testsúly rögzíthető (akár tizedesjegyekkel) új cica felvitelekor vagy szerkesztésekor",
+      "📈 Egy cica súly útja kimutatás: A Kimutatások fülön egy interaktív és vizuális új nézet, amely bemutatja egy kiválasztott cica súlyváltozását az idő múlásával, gyönyörű Recharts alapú vonaldiagramon",
+      "🗃️ Adatbázis verziókövetés (V15): Stabil és robusztus új Dexie db-tábla (`cat_weights`) integráció a mérési adatok hosszú távú és biztonságos tárolásához"
+    ]
+  },
+  {
     "version": "2.12.1",
     "date": "2026-08-14",
     "changes": [
