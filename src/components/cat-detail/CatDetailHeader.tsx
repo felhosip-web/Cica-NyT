@@ -6,6 +6,7 @@ import { TabType } from './types';
 
 interface CatDetailHeaderProps {
   cat: Cat;
+  catEvents?: any[];
   onClose: () => void;
   onEditCat: (cat: Cat) => void;
   onDeleteRequest: () => void;
@@ -18,6 +19,7 @@ interface CatDetailHeaderProps {
 
 export const CatDetailHeader: React.FC<CatDetailHeaderProps> = ({
   cat,
+  catEvents,
   onClose,
   onEditCat,
   onDeleteRequest,
@@ -61,8 +63,8 @@ export const CatDetailHeader: React.FC<CatDetailHeaderProps> = ({
           ✏️ Szerkesztés
         </button>
         <button
-          onClick={() => generateCatPdf(cat)}
-          className="px-3 py-1.5 bg-white border border-blue-200 text-blue-600 rounded-lg text-sm font-bold shadow-sm hover:bg-blue-50 transition-colors whitespace-nowrap flex items-center gap-1"
+          onClick={() => generateCatPdf(cat, { events: catEvents })}
+          className="px-3 py-1.5 bg-white border border-blue-200 text-blue-600 rounded-lg text-sm font-bold shadow-sm hover:bg-blue-50 transition-colors whitespace-nowrap flex items-center gap-1 cursor-pointer"
         >
           📄 Adatlap PDF
         </button>
