@@ -554,7 +554,7 @@ export const Header: React.FC<HeaderProps> = ({
                       >
                         <span className="flex items-center gap-2">
                           <span>🔑</span>
-                          <span>Root Belépés (Jelszó: 1342)</span>
+                          <span>Root Belépés</span>
                         </span>
                         <span>➔</span>
                       </button>

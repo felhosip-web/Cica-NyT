@@ -165,7 +165,7 @@
     "date": "2026-08-08",
     "changes": [
       "🔑 Felhasználói szerepkörök (ROOT, OWNER, STAFF, FOSTER, VOLUNTEER, GUEST) logikája és engedély-kezelése a store-ban",
-      "⚙️ Szerepkörök és felhasználói fiókok kezelése a Settings modulban kizárólag ROOT szintű (1342) belépéssel",
+      "⚙️ Szerepkörök és felhasználói fiókok kezelése a Settings modulban kizárólag ROOT szintű belépéssel",
       "🛡️ Audit Event Lekérdezés & Napló (Audit Log) a Debug panelben a rendszeresemények és módosítások nyomon követésére",
       "📋 Supabase / PostgreSQL Row Level Security (RLS) SQL script generálás és vágólapra másolható utasítás a Debug modulban",
       "⚖️ Új bekerülési típus: 'Elkobzott' kategória a cica rögzítésnél, szűréseknél, adatlapokon, statisztikákban és PDF exportokban"

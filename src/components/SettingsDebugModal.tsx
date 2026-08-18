@@ -791,7 +791,7 @@ export const SettingsDebugModal: React.FC<SettingsDebugModalProps> = ({
                   ⚡ Root Mód Hozzáférés Rendszergazda Szinten
                 </div>
                 <p className="text-[10px] text-purple-200">
-                  Zustand Állapot, SQL Séma, Adatbázis Inspector és Tesztelő Eszközök feloldva (Jelszó: 1342).
+                  Zustand Állapot, SQL Séma, Adatbázis Inspector és Tesztelő Eszközök feloldva.
                 </p>
               </div>
               <button
@@ -808,14 +808,14 @@ export const SettingsDebugModal: React.FC<SettingsDebugModalProps> = ({
                   🔑 Root Szintű Hozzáférés (Zustand & SQL Séma)
                 </div>
                 <p className="text-[10px] text-gray-500">
-                  Add meg a root jelszót (1342) a Zustand állapot, SQL séma és hibakereső eszközök megnyitásához.
+                  Add meg a root jelszót a Zustand állapot, SQL séma és hibakereső eszközök megnyitásához.
                 </p>
               </div>
               <button
                 onClick={onOpenRootAuth}
                 className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white font-extrabold rounded-lg text-[11px] shrink-0 shadow-xs transition cursor-pointer"
               >
-                🔑 Root Belépés (1342)
+                🔑 Root Belépés
               </button>
             </>
           )}
@@ -997,14 +997,14 @@ export const SettingsDebugModal: React.FC<SettingsDebugModalProps> = ({
                 <div>
                   <h4 className="text-sm font-black text-white">Root Szintű Hozzáférés Szükséges</h4>
                   <p className="text-xs text-purple-200 mt-1 max-w-md mx-auto leading-relaxed">
-                    A felhasználói fiókok, szerepkörök (ROOT, OWNER, STAFF, FOSTER, VOLUNTEER, GUEST) és egyedi jogosultságok kezelése kizárólag <span className="font-bold underline text-pink-300">ROOT szintű (1342)</span> belépéssel érhető el.
+                    A felhasználói fiókok, szerepkörök (ROOT, OWNER, STAFF, FOSTER, VOLUNTEER, GUEST) és egyedi jogosultságok kezelése kizárólag <span className="font-bold underline text-pink-300">ROOT szintű</span> belépéssel érhető el.
                   </p>
                 </div>
                 <button
                   onClick={onOpenRootAuth}
                   className="px-5 py-2.5 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white font-extrabold text-xs rounded-xl shadow-lg transition cursor-pointer"
                 >
-                  🔑 Root Belépés Aktiválása (1342)
+                  🔑 Root Belépés Aktiválása
                 </button>
               </div>
             )
