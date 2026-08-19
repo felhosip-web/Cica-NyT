@@ -13,8 +13,16 @@ try {
   const today = new Date().toISOString().split('T')[0];
 
   // 2. Update public/version.json
+  let existingVersionJson = {};
+  if (fs.existsSync(versionFilePath)) {
+    try {
+      existingVersionJson = JSON.parse(fs.readFileSync(versionFilePath, 'utf8'));
+    } catch(e) {}
+  }
   const versionJsonContent = {
+    ...existingVersionJson,
     version: version,
+    buildDate: today,
     build: today,
   };
   fs.writeFileSync(versionFilePath, JSON.stringify(versionJsonContent, null, 2) + '\n', 'utf8');
