@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   build-and-audit:
-    name: Build & Lighthouse Audit
+    name: Build & Lighthouse Comparison
     runs-on: ubuntu-latest
 
     steps:
@@ -23,90 +23,71 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
+      - name: Run lint (if configured)
+        run: |
+          if npm run | grep -q "^  lint$"; then
+            npm run lint
+          else
+            echo "No lint script found in package.json, skipping."
+          fi
+
       - name: Build project
         run: npm run build
 
-      - name: Audit with Lighthouse
-        id: lighthouse
-        uses: treosh/lighthouse-ci-action@v12
-        with:
-          urls: |
-            https://felhosip-web.github.io/Cica-NyT/
-          uploadTargets: temporary-public-storage
-          runs: 1
+      - name: Start preview server
+        run: |
+          npm run start > /dev/null 2>&1 &
+          echo $! > server.pid
+          echo "Waiting for http://localhost:3000/..."
+          for i in {1..30}; do
+            if curl -sf http://localhost:3000/ > /dev/null; then
+              echo "Preview server is up and running!"
+              break
+            fi
+            sleep 1
+          done
 
-      - name: Comment Lighthouse audit results on PR
+      - name: Run Lighthouse PR comparison script
+        run: node scripts/lighthouse-pr-compare.js
+
+      - name: Stop preview server
+        if: always()
+        run: |
+          if [ -f server.pid ]; then
+            kill $(cat server.pid) 2>/dev/null || true
+            rm server.pid
+          fi
+
+      - name: Post or update Lighthouse comment on PR
         uses: actions/github-script@v7
-        if: always() && steps.lighthouse.outcome != 'skipped'
+        if: always() && hashFiles('lighthouse-comment.md') != ''
         with:
           script: |
             const fs = require('fs');
             const path = require('path');
 
-            const manifestPath = path.join(process.cwd(), '.lighthouseci', 'manifest.json');
-            let commentBody = '';
-
-            let links = {};
-            try {
-              const linksRaw = `${{ steps.lighthouse.outputs.links }}`;
-              if (linksRaw) {
-                links = JSON.parse(linksRaw);
-              }
-            } catch (e) {
-              console.log('Error parsing links output:', e);
+            const commentFile = path.join(process.cwd(), 'lighthouse-comment.md');
+            if (!fs.existsSync(commentFile)) {
+              console.log('No lighthouse-comment.md file found.');
+              return;
             }
 
-            if (fs.existsSync(manifestPath)) {
-              try {
-                const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+            const commentContent = fs.readFileSync(commentFile, 'utf8');
+            const marker = '<!-- lighthouse-report -->';
+            const fullBody = `${marker}\n${commentContent}`;
 
-                commentBody += '### ⚡ Lighthouse Audit Eredmények\n\n';
-                commentBody += '| Cél URL | Performance | Accessibility | Best Practices | SEO | PWA | Riport |\n';
-                commentBody += '| :--- | :---: | :---: | :---: | :---: | :---: | :---: |\n';
-
-                for (const result of manifest) {
-                  const summary = result.summary || {};
-                  const formatScore = (score) => {
-                    if (score === undefined || score === null) return 'N/A';
-                    const pct = Math.round(score * 100);
-                    let icon = '🔴';
-                    if (pct >= 90) icon = '🟢';
-                    else if (pct >= 50) icon = '🟠';
-                    return `${icon} ${pct}%`;
-                  };
-
-                  const targetUrl = result.url;
-                  const perf = formatScore(summary.performance);
-                  const a11y = formatScore(summary.accessibility);
-                  const best = formatScore(summary['best-practices']);
-                  const seo = formatScore(summary.seo);
-                  const pwa = formatScore(summary.pwa);
-                  const reportUrl = links[targetUrl] ? `[Megtekintés](${links[targetUrl]})` : 'N/A';
-
-                  commentBody += `| ${targetUrl} | ${perf} | ${a11y} | ${best} | ${seo} | ${pwa} | ${reportUrl} |\n`;
-                }
-              } catch (err) {
-                commentBody += '⚠️ Hiba történt a Lighthouse manifest fájl feldolgozásakor.\n';
-              }
-            } else {
-              commentBody += '⚠️ Lighthouse mérés nem tudott lefutni vagy nem keletkezett eredmény.\n';
-            }
-
-            const header = '<!-- lighthouse-ci-pr-comment -->';
-            const fullBody = `${header}\n${commentBody}\n\n*A mérés a hivatalos GitHub Pages URL-en (https://felhosip-web.github.io/Cica-NyT/) lett elvégezve.*`;
-
-            const { data: comments } = await github.rest.issues.listComments({
+            const comments = await github.paginate(github.rest.issues.listComments, {
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.payload.pull_request.number,
             });
 
-            const existingComment = comments.find(c => c.body && c.body.includes(header));
+            const existingComment = comments.find(c => c.body && c.body.includes(marker));
 
             if (existingComment) {
               await github.rest.issues.updateComment({
@@ -115,6 +96,7 @@ jobs:
                 comment_id: existingComment.id,
                 body: fullBody,
               });
+              console.log(`Updated comment ID: ${existingComment.id}`);
             } else {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
@@ -122,4 +104,5 @@ jobs:
                 issue_number: context.payload.pull_request.number,
                 body: fullBody,
               });
+              console.log('Created new PR comment.');
             }
