@@ -1,24 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { APP_VERSION } from './version';
 import { Header } from './components/Header';
 import { VaccinationAlertBanner } from './components/VaccinationAlertBanner';
 import { CatList } from './components/CatList';
 import { CatCard, Cat } from './components/CatCard';
-import { CalendarView } from './components/CalendarView';
-import { EventsListView } from './components/EventsListView';
-import { StatsView } from './components/StatsView';
-import { TnrView } from './components/TnrView';
-import { FosterView } from './components/FosterView';
-import { InventoryView } from './components/InventoryView';
-import { FinanceView } from './components/FinanceView';
-import { CatDetailModal } from './components/CatDetailModal';
-import { CatFormModal } from './components/CatFormModal';
-import { EventFormModal } from './components/EventFormModal';
-import { SettingsDebugModal } from './components/SettingsDebugModal';
-import { UiCustomizationModal } from './components/UiCustomizationModal';
-import { HelpModal } from './components/HelpModal';
-import { RootAuthModal } from './components/RootAuthModal';
-import { PdfReportsModal } from './components/PdfReportsModal';
+const CalendarView = React.lazy(() => import('./components/CalendarView').then(module => ({ default: module.CalendarView })));
+const EventsListView = React.lazy(() => import('./components/EventsListView').then(module => ({ default: module.EventsListView })));
+const StatsView = React.lazy(() => import('./components/StatsView').then(module => ({ default: module.StatsView })));
+const TnrView = React.lazy(() => import('./components/TnrView').then(module => ({ default: module.TnrView })));
+const FosterView = React.lazy(() => import('./components/FosterView').then(module => ({ default: module.FosterView })));
+const InventoryView = React.lazy(() => import('./components/InventoryView').then(module => ({ default: module.InventoryView })));
+const FinanceView = React.lazy(() => import('./components/FinanceView').then(module => ({ default: module.FinanceView })));
+const CatDetailModal = React.lazy(() => import('./components/CatDetailModal').then(module => ({ default: module.CatDetailModal })));
+const CatFormModal = React.lazy(() => import('./components/CatFormModal').then(module => ({ default: module.CatFormModal })));
+const EventFormModal = React.lazy(() => import('./components/EventFormModal').then(module => ({ default: module.EventFormModal })));
+const SettingsDebugModal = React.lazy(() => import('./components/SettingsDebugModal').then(module => ({ default: module.SettingsDebugModal })));
+const UiCustomizationModal = React.lazy(() => import('./components/UiCustomizationModal').then(module => ({ default: module.UiCustomizationModal })));
+const HelpModal = React.lazy(() => import('./components/HelpModal').then(module => ({ default: module.HelpModal })));
+const RootAuthModal = React.lazy(() => import('./components/RootAuthModal').then(module => ({ default: module.RootAuthModal })));
+const PdfReportsModal = React.lazy(() => import('./components/PdfReportsModal').then(module => ({ default: module.PdfReportsModal })));
 import { VersionWelcomeModal } from './components/VersionWelcomeModal';
 import { EventStartupToast } from './components/EventStartupToast';
 import { PwaToast } from './components/PwaToast';
@@ -90,6 +90,7 @@ export default function App() {
       />
 
       <main className="max-w-7xl mx-auto px-2 sm:px-4 py-3 sm:py-4 space-y-4 overflow-x-clip">
+        <Suspense fallback={<div className="flex justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600"></div></div>}>
         {/* Vaccination Alert Banner */}
         <VaccinationAlertBanner onOpenEvents={() => setActiveTab('events')} />
 
@@ -145,6 +146,7 @@ export default function App() {
             onOpenPdfReports={() => setShowPdfReportsModal(true)}
           />
         )}
+              </Suspense>
       </main>
 
       {/* Modern Footer Component */}
@@ -174,6 +176,8 @@ export default function App() {
         onOpenHelp={() => setShowHelp(true)}
       />
 
+      {/* Suspense wrapper for modals */}
+      <Suspense fallback={<div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div></div>}>
       {/* Cat Detail Modal */}
       {selectedCatId && (
         <CatDetailModal
@@ -237,11 +241,14 @@ export default function App() {
 
       {/* Help Modal */}
       {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
+      </Suspense>
 
       {/* PDF Reports Modal (Hiteles / Nem Hiteles) */}
-      {showPdfReportsModal && (
-        <PdfReportsModal onClose={() => setShowPdfReportsModal(false)} />
-      )}
+      <Suspense fallback={<div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div></div>}>
+        {showPdfReportsModal && (
+          <PdfReportsModal onClose={() => setShowPdfReportsModal(false)} />
+        )}
+      </Suspense>
     </div>
   );
 }
