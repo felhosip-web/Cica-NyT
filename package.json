@@ -28,7 +28,7 @@
     "@fullcalendar/daygrid": "^6.1.15",
     "@fullcalendar/interaction": "^6.1.15",
     "@fullcalendar/react": "^6.1.15",
-    "@supabase/supabase-js": "^2.111.0",
+    "@supabase/supabase-js": "^2.112.3",
     "dexie": "^4.4.5",
     "dexie-react-hooks": "^4.4.0",
     "firebase": "^12.17.1",
