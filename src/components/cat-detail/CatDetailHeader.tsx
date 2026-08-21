@@ -1,7 +1,7 @@
 import React from 'react';
 import { Cat } from '../CatCard';
 import { calculateAge } from '../../utils/age';
-import { generateCatPdf } from '../../utils/pdf-export';
+const generateCatPdf = () => import('../../utils/pdf-export').then(m => m.generateCatPdf);
 import { TabType } from './types';
 
 interface CatDetailHeaderProps {
@@ -63,7 +63,7 @@ export const CatDetailHeader: React.FC<CatDetailHeaderProps> = ({
           ✏️ Szerkesztés
         </button>
         <button
-          onClick={() => generateCatPdf(cat, { events: catEvents })}
+          onClick={() => generateCatPdf().then(fn => fn(cat, { events: catEvents }))}
           className="px-3 py-1.5 bg-white border border-blue-200 text-blue-600 rounded-lg text-sm font-bold shadow-sm hover:bg-blue-50 transition-colors whitespace-nowrap flex items-center gap-1 cursor-pointer"
         >
           📄 Adatlap PDF

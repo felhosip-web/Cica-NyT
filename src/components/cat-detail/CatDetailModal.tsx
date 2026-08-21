@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../lib/db';
 import { Cat } from '../CatCard';
 import { calculateAge } from '../../utils/age';
-import { generateCatPdf } from '../../utils/pdf-export';
+
 import { formatAuditDate } from '../../utils/audit';
 import { getTagStyle, getTagIcon } from '../../utils/tagUtils';
 import {
