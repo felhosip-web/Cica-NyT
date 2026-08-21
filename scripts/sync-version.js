@@ -23,7 +23,6 @@ try {
     ...existingVersionJson,
     version: version,
     buildDate: today,
-    build: today,
   };
   fs.writeFileSync(versionFilePath, JSON.stringify(versionJsonContent, null, 2) + '\n', 'utf8');
   console.log(`[sync-version] Updated public/version.json to version ${version}`);
