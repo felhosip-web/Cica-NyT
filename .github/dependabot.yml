@@ -7,4 +7,22 @@ updates:
       day: "monday"
       time: "09:00"
     open-pull-requests-limit: 5
-    labels: ["dependencies"]
+    labels:
+      - "dependencies"
+    ignore:
+      - dependency-name: "tailwindcss"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@fullcalendar/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "jspdf"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "jspdf-autotable"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "vite"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "dexie"
+        update-types: ["version-update:semver-major"]
