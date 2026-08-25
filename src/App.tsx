@@ -22,6 +22,7 @@ const PdfReportsModal = React.lazy(() => import('./components/PdfReportsModal').
 import { VersionWelcomeModal } from './components/VersionWelcomeModal';
 import { EventStartupToast } from './components/EventStartupToast';
 import { PwaToast } from './components/PwaToast';
+import { BotDetection } from './components/BotDetection';
 import { Footer } from './components/Footer';
 import { FAB } from './components/FAB';
 import { useAppStore } from './store/useAppStore';
@@ -62,6 +63,9 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 pb-20 font-sans overflow-x-clip max-w-full">
+      {/* Bot Detection Toast & Modal */}
+      <BotDetection />
+
       {/* PWA Install & Update Toast */}
       <PwaToast />
 
