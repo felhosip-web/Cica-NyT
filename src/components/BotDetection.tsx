@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export const BotDetection: React.FC = () => {
   const [isBotSuspected, setIsBotSuspected] = useState<boolean>(false);
   const [showSuccessToast, setShowSuccessToast] = useState<boolean>(false);
   const [hasChecked, setHasChecked] = useState<boolean>(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Basic bot detection heuristics
@@ -31,7 +32,14 @@ export const BotDetection: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleConfirmHuman = () => {
+  // Focus management: move focus into dialog when it opens
+  useEffect(() => {
+    if (isBotSuspected && dialogRef.current) {
+      dialogRef.current.focus();
+    }
+  }, [isBotSuspected]);
+
+  const handleAcknowledge = () => {
     setIsBotSuspected(false);
     setShowSuccessToast(true);
     setTimeout(() => setShowSuccessToast(false), 3000);
@@ -43,8 +51,16 @@ export const BotDetection: React.FC = () => {
     <>
       <AnimatePresence>
         {isBotSuspected && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="bot-detection-heading"
+            aria-describedby="bot-detection-description"
+          >
             <motion.div
+              ref={dialogRef}
+              tabIndex={-1}
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -54,18 +70,18 @@ export const BotDetection: React.FC = () => {
                 🤖
               </div>
               <div className="space-y-2">
-                <h3 className="text-lg font-black text-slate-900">
-                  Gyanús tevékenység észlelve
+                <h3 id="bot-detection-heading" className="text-lg font-black text-slate-900">
+                  Automatizált tevékenységre utaló jelek
                 </h3>
-                <p className="text-sm text-slate-600 leading-relaxed font-medium">
-                  Rendszerünk automatizált hozzáférést (bot) érzékelt. Kérjük, erősítse meg, hogy Ön egy valós felhasználó.
+                <p id="bot-detection-description" className="text-sm text-slate-600 leading-relaxed font-medium">
+                  Rendszerünk automatizált hozzáférésre utaló jeleket észlelt (heurisztikus szűrés). Kérjük, erősítse meg a folytatást.
                 </p>
               </div>
               <button
-                onClick={handleConfirmHuman}
+                onClick={handleAcknowledge}
                 className="w-full py-3 mt-2 bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-extrabold rounded-xl shadow-md transition cursor-pointer text-sm"
               >
-                Nem vagyok robot
+                Rendben, folytatom
               </button>
             </motion.div>
           </div>
@@ -75,6 +91,8 @@ export const BotDetection: React.FC = () => {
       <AnimatePresence>
         {showSuccessToast && !isBotSuspected && (
           <motion.div
+            role="status"
+            aria-live="polite"
             initial={{ opacity: 0, y: -50, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
@@ -85,7 +103,7 @@ export const BotDetection: React.FC = () => {
             </div>
             <div className="flex-1 pr-2">
               <p className="font-extrabold text-sm whitespace-nowrap">
-                Emberi felhasználó megerősítve!
+                Köszönjük a visszaigazolást
               </p>
             </div>
           </motion.div>
