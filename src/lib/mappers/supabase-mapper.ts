@@ -34,7 +34,7 @@ export const toSupabaseCat = (localCat: any) => {
 };
 
 export const fromSupabaseCat = (remoteCat: any) => {
-    const { foster_id, is_spayed, ...rest } = remoteCat;
+    const { foster_id, is_spayed, device_group, ...rest } = remoteCat;
     return {
         ...rest,
         fosterId: foster_id,
