@@ -32,7 +32,7 @@
     "dexie": "^4.4.5",
     "dexie-react-hooks": "^4.4.0",
     "firebase": "^12.17.1",
-    "fullcalendar": "^6.1.15",
+    "fullcalendar": "^7.0.2",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",
     "lucide-react": "^1.28.0",
