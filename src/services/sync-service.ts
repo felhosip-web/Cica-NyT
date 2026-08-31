@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '../lib/db';
+import { toSupabaseCat, fromSupabaseCat, toSupabaseFosterParent, fromSupabaseFosterParent, toSupabaseFosterSupply, toSupabaseFosterExpense, toSupabaseInventory, fromSupabaseInventory, toSupabaseFinance } from '../lib/mappers/supabase-mapper';
 
 export class SyncService {
     constructor() {
@@ -218,57 +219,15 @@ export class SyncService {
         try {
             // 1. Sync Pending Cats
             const pendingCats = await db.cats.where('syncStatus').equals('pending').toArray();
-
             for (const cat of pendingCats) {
-                const {
-                    id, sorszam, nev, ivar, szin, szuletes, created, updated, status,
-                    osszKoltseg, deviceId, oltasok, tesztek, kezelesek,
-                    intakeType, gazdisDate, gazdisPerson,
-                    hasKiskonyv, kiskonyvSzam, kiskonyvDate,
-                    hasPassport, passportSzam, passportDate,
-                    hasChip, chipNumber, chipDate, chipLocation, fosterId, isSpayed
-                } = cat;
-
-                // Upload to supabase
                 const { error } = await this.supabase
                     .from('cats')
-                    .upsert({
-                        id,
-                        sorszam,
-                        nev,
-                        ivar,
-                        szin,
-                        szuletes,
-                        created,
-                        updated,
-                        status,
-                        osszKoltseg,
-                        deviceId,
-                        oltasok,
-                        tesztek,
-                        kezelesek,
-                        intakeType,
-                        gazdisDate,
-                        gazdisPerson,
-                        hasKiskonyv,
-                        kiskonyvSzam,
-                        kiskonyvDate,
-                        hasPassport,
-                        passportSzam,
-                        passportDate,
-                        hasChip,
-                        chipNumber,
-                        chipDate,
-                        chipLocation,
-                        foster_id: fosterId || null,
-                        is_spayed: isSpayed || false,
-                        device_group: 'foundation'
-                    });
+                    .upsert(toSupabaseCat(cat));
 
                 if (!error) {
-                    await db.cats.update(id, { syncStatus: 'synced' });
+                    await db.cats.update(cat.id, { syncStatus: 'synced' });
                 } else {
-                    console.error("[SyncService] Sync cat item error:", error);
+                    console.error("[SyncService] Sync error:", error);
                 }
             }
 
@@ -276,27 +235,11 @@ export class SyncService {
             if (db.fosterParents) {
                 const pendingFosters = await db.fosterParents.where('syncStatus').equals('pending').toArray().catch(() => []);
                 for (const foster of pendingFosters) {
-                    const { id, name, phone, email, address, city, maxCapacity, status, notes, isQuarantine, isKittenSpecialist, isMedicalSpecialist, createdAt, updatedAt } = foster;
                     const { error } = await this.supabase
                         .from('foster_parents')
-                        .upsert({
-                            id,
-                            name,
-                            phone,
-                            email,
-                            address,
-                            city,
-                            max_capacity: maxCapacity || 1,
-                            status: status || 'aktiv',
-                            notes,
-                            is_quarantine: isQuarantine || false,
-                            is_kitten_specialist: isKittenSpecialist || false,
-                            is_medical_specialist: isMedicalSpecialist || false,
-                            created_at: createdAt || new Date().toISOString(),
-                            updated_at: updatedAt || new Date().toISOString()
-                        });
+                        .upsert(toSupabaseFosterParent(foster));
                     if (!error) {
-                        await db.fosterParents.update(id, { syncStatus: 'synced' });
+                        await db.fosterParents.update(foster.id, { syncStatus: 'synced' });
                     } else {
                         console.error("[SyncService] Sync foster parent error:", error);
                     }
@@ -307,24 +250,11 @@ export class SyncService {
             if (db.fosterSupplies) {
                 const pendingSupplies = await db.fosterSupplies.where('syncStatus').equals('pending').toArray().catch(() => []);
                 for (const supply of pendingSupplies) {
-                    const { id, fosterId, type, item, quantity, unit, date, status, notes, createdAt, updatedAt } = supply;
                     const { error } = await this.supabase
                         .from('foster_supplies')
-                        .upsert({
-                            id: typeof id === 'number' ? undefined : id,
-                            foster_id: fosterId,
-                            type,
-                            item,
-                            quantity,
-                            unit,
-                            date,
-                            status,
-                            notes,
-                            created_at: createdAt || new Date().toISOString(),
-                            updated_at: updatedAt || new Date().toISOString()
-                        });
+                        .upsert(toSupabaseFosterSupply(supply));
                     if (!error) {
-                        await db.fosterSupplies.update(id, { syncStatus: 'synced' });
+                        await db.fosterSupplies.update(supply.id, { syncStatus: 'synced' });
                     } else {
                         console.error("[SyncService] Sync foster supply error:", error);
                     }
@@ -335,24 +265,11 @@ export class SyncService {
             if (db.fosterExpenses) {
                 const pendingExpenses = await db.fosterExpenses.where('syncStatus').equals('pending').toArray().catch(() => []);
                 for (const exp of pendingExpenses) {
-                    const { id, fosterId, catId, category, amount, date, receiptNumber, vendor, notes, createdAt, updatedAt } = exp;
                     const { error } = await this.supabase
                         .from('foster_expenses')
-                        .upsert({
-                            id: typeof id === 'number' ? undefined : id,
-                            foster_id: fosterId,
-                            cat_id: catId || null,
-                            category,
-                            amount,
-                            date,
-                            receipt_number: receiptNumber,
-                            vendor,
-                            notes,
-                            created_at: createdAt || new Date().toISOString(),
-                            updated_at: updatedAt || new Date().toISOString()
-                        });
+                        .upsert(toSupabaseFosterExpense(exp));
                     if (!error) {
-                        await db.fosterExpenses.update(id, { syncStatus: 'synced' });
+                        await db.fosterExpenses.update(exp.id, { syncStatus: 'synced' });
                     } else {
                         console.error("[SyncService] Sync foster expense error:", error);
                     }
@@ -363,26 +280,11 @@ export class SyncService {
             if (db.inventory) {
                 const pendingInv = await db.inventory.where('syncStatus').equals('pending').toArray().catch(() => []);
                 for (const inv of pendingInv) {
-                    const { id, direction, itemType, sourceType, brandOrName, quantity, unit, date, sourceOrRecipient, destination, notes, createdAt, updatedAt } = inv;
                     const { error } = await this.supabase
                         .from('inventory')
-                        .upsert({
-                            id: typeof id === 'number' ? undefined : id,
-                            direction,
-                            item_type: itemType,
-                            source_type: sourceType,
-                            brand_or_name: brandOrName,
-                            quantity,
-                            unit,
-                            date,
-                            source_or_recipient: sourceOrRecipient,
-                            destination,
-                            notes,
-                            created_at: createdAt || new Date().toISOString(),
-                            updated_at: updatedAt || new Date().toISOString()
-                        });
+                        .upsert(toSupabaseInventory(inv));
                     if (!error) {
-                        await db.inventory.update(id, { syncStatus: 'synced' });
+                        await db.inventory.update(inv.id, { syncStatus: 'synced' });
                     } else {
                         console.error("[SyncService] Sync inventory error:", error);
                     }
@@ -393,28 +295,11 @@ export class SyncService {
             if (db.finances) {
                 const pendingFinances = await db.finances.where('syncStatus').equals('pending').toArray().catch(() => []);
                 for (const fin of pendingFinances) {
-                    const { id, type, category, amount, date, title, partnerName, paymentMethod, status, invoiceNumber, catId, fosterId, notes, createdAt, updatedAt } = fin;
                     const { error } = await this.supabase
                         .from('finances')
-                        .upsert({
-                            id: typeof id === 'number' ? undefined : id,
-                            type,
-                            category,
-                            amount,
-                            date,
-                            title,
-                            partner_name: partnerName,
-                            payment_method: paymentMethod,
-                            status,
-                            invoice_number: invoiceNumber,
-                            cat_id: catId,
-                            foster_id: fosterId,
-                            notes,
-                            created_at: createdAt || new Date().toISOString(),
-                            updated_at: updatedAt || new Date().toISOString()
-                        });
+                        .upsert(toSupabaseFinance(fin));
                     if (!error) {
-                        await db.finances.update(id, { syncStatus: 'synced' });
+                        await db.finances.update(fin.id, { syncStatus: 'synced' });
                     } else {
                         console.error("[SyncService] Sync finances error:", error);
                     }
@@ -440,11 +325,9 @@ export class SyncService {
             const { data: catData, error: catErr } = await this.supabase.from('cats').select('*');
             if (!catErr && Array.isArray(catData)) {
                 for (const remoteCat of catData) {
-                    if (remoteCat.foster_id) remoteCat.fosterId = remoteCat.foster_id;
                     const localCat = await db.cats.get(remoteCat.id);
                     if (!localCat || (remoteCat.updated && localCat.updated && new Date(remoteCat.updated) > new Date(localCat.updated))) {
-                        remoteCat.syncStatus = 'synced';
-                        await db.cats.put(remoteCat);
+                        await db.cats.put(fromSupabaseCat(remoteCat));
                     }
                 }
             }
@@ -455,23 +338,7 @@ export class SyncService {
                 if (!fosterErr && Array.isArray(fosterData)) {
                     for (const remoteFoster of fosterData) {
                         const localFoster = await db.fosterParents.get(remoteFoster.id);
-                        const mappedFoster = {
-                            id: remoteFoster.id,
-                            name: remoteFoster.name,
-                            phone: remoteFoster.phone,
-                            email: remoteFoster.email,
-                            address: remoteFoster.address,
-                            city: remoteFoster.city,
-                            maxCapacity: remoteFoster.max_capacity,
-                            status: remoteFoster.status,
-                            notes: remoteFoster.notes,
-                            isQuarantine: remoteFoster.is_quarantine,
-                            isKittenSpecialist: remoteFoster.is_kitten_specialist,
-                            isMedicalSpecialist: remoteFoster.is_medical_specialist,
-                            createdAt: remoteFoster.created_at,
-                            updatedAt: remoteFoster.updated_at,
-                            syncStatus: 'synced'
-                        };
+                        const mappedFoster = fromSupabaseFosterParent(remoteFoster);
                         if (!localFoster || (mappedFoster.updatedAt && localFoster.updatedAt && new Date(mappedFoster.updatedAt) > new Date(localFoster.updatedAt))) {
                             await db.fosterParents.put(mappedFoster);
                         }
@@ -485,22 +352,7 @@ export class SyncService {
                 if (!invErr && Array.isArray(invData)) {
                     for (const remoteInv of invData) {
                         const localInv = await db.inventory.get(remoteInv.id);
-                        const mappedInv = {
-                            id: remoteInv.id,
-                            direction: remoteInv.direction,
-                            itemType: remoteInv.item_type,
-                            sourceType: remoteInv.source_type,
-                            brandOrName: remoteInv.brand_or_name,
-                            quantity: remoteInv.quantity,
-                            unit: remoteInv.unit,
-                            date: remoteInv.date,
-                            sourceOrRecipient: remoteInv.source_or_recipient,
-                            destination: remoteInv.destination,
-                            notes: remoteInv.notes,
-                            createdAt: remoteInv.created_at,
-                            updatedAt: remoteInv.updated_at,
-                            syncStatus: 'synced'
-                        };
+                        const mappedInv = fromSupabaseInventory(remoteInv);
                         if (!localInv || (mappedInv.updatedAt && localInv.updatedAt && new Date(mappedInv.updatedAt) > new Date(localInv.updatedAt))) {
                             await db.inventory.put(mappedInv);
                         }
