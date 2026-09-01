@@ -1,9 +1,8 @@
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useEffect, Suspense } from 'react';
 import { APP_VERSION } from './version';
 import { Header } from './components/Header';
 import { VaccinationAlertBanner } from './components/VaccinationAlertBanner';
 import { CatList } from './components/CatList';
-import { CatCard, Cat } from './components/CatCard';
 const CalendarView = React.lazy(() => import('./components/CalendarView').then(module => ({ default: module.CalendarView })));
 const EventsListView = React.lazy(() => import('./components/EventsListView').then(module => ({ default: module.EventsListView })));
 const StatsView = React.lazy(() => import('./components/StatsView').then(module => ({ default: module.StatsView })));
@@ -26,6 +25,7 @@ import { BotDetection } from './components/BotDetection';
 import { Footer } from './components/Footer';
 import { FAB } from './components/FAB';
 import { useAppStore } from './store/useAppStore';
+import { useUIStore } from './store/useUIStore';
 import { initAutoBackupScheduler } from './services/autoBackupEngine';
 
 export default function App() {
@@ -34,22 +34,23 @@ export default function App() {
     initAutoBackupScheduler();
   }, []);
 
-  const [activeTab, setActiveTab] = useState<'animals' | 'events' | 'calendar' | 'tnr' | 'foster' | 'inventory' | 'stats' | 'finance'>('animals');
-
   // Root Mode State via Zustand Store
   const { isRootMode, setIsRootMode } = useAppStore();
-  const [showRootAuth, setShowRootAuth] = useState<boolean>(false);
 
-  // Modal states
-  const [selectedCatId, setSelectedCatId] = useState<string | null>(null);
-  const [catToEdit, setCatToEdit] = useState<Cat | null | 'new'>(null);
-  const [eventToEditId, setEventToEditId] = useState<number | null | 'new'>(null);
-  const [eventInitialCatId, setEventInitialCatId] = useState<string>('general');
-
-  const [showSettings, setShowSettings] = useState(false);
-  const [showUiCustomization, setShowUiCustomization] = useState(false);
-  const [showHelp, setShowHelp] = useState(false);
-  const [showPdfReportsModal, setShowPdfReportsModal] = useState(false);
+  // Navigation and Modal states via UI Store
+  const {
+    activeTab, setActiveTab,
+    showRootAuth, setShowRootAuth,
+    selectedCatId, setSelectedCatId,
+    catToEdit, setCatToEdit,
+    eventToEditId, setEventToEditId,
+    eventInitialCatId, setEventInitialCatId,
+    showSettings, setShowSettings,
+    showUiCustomization, setShowUiCustomization,
+    showHelp, setShowHelp,
+    showPdfReportsModal, setShowPdfReportsModal,
+    openEventModal
+  } = useUIStore();
 
   const handleActivateRoot = () => {
     setIsRootMode(true);
@@ -86,10 +87,7 @@ export default function App() {
         onDeactivateRoot={handleDeactivateRoot}
         onAddCat={() => setCatToEdit('new')}
         onAddTnr={() => setActiveTab('tnr')}
-        onAddEvent={() => {
-          setEventInitialCatId('general');
-          setEventToEditId('new');
-        }}
+        onAddEvent={() => openEventModal('new', 'general')}
         onOpenPdfReports={() => setShowPdfReportsModal(true)}
       />
 
@@ -110,10 +108,7 @@ export default function App() {
         {/* Tab 2: Events List */}
         {activeTab === 'events' && (
           <EventsListView
-            onOpenEventModal={(eventId) => {
-              setEventInitialCatId('general');
-              setEventToEditId(eventId || 'new');
-            }}
+            onOpenEventModal={(eventId) => openEventModal(eventId || 'new', 'general')}
             onOpenCatDetail={(catId) => setSelectedCatId(catId)}
           />
         )}
@@ -121,10 +116,7 @@ export default function App() {
         {/* Tab 3: Calendar View */}
         {activeTab === 'calendar' && (
           <CalendarView
-            onOpenEventModal={(eventId) => {
-              setEventInitialCatId('general');
-              setEventToEditId(eventId || 'new');
-            }}
+            onOpenEventModal={(eventId) => openEventModal(eventId || 'new', 'general')}
             onOpenCatDetail={(catId) => setSelectedCatId(catId)}
           />
         )}
@@ -161,20 +153,14 @@ export default function App() {
         onOpenHelp={() => setShowHelp(true)}
         onOpenPdfReports={() => setShowPdfReportsModal(true)}
         onAddCat={() => setCatToEdit('new')}
-        onAddEvent={() => {
-          setEventInitialCatId('general');
-          setEventToEditId('new');
-        }}
+        onAddEvent={() => openEventModal('new', 'general')}
       />
 
       {/* Floating Action Button */}
       <FAB
         onAddCat={() => setCatToEdit('new')}
         onAddTnr={() => setActiveTab('tnr')}
-        onAddEvent={() => {
-          setEventInitialCatId('general');
-          setEventToEditId('new');
-        }}
+        onAddEvent={() => openEventModal('new', 'general')}
         onOpenPdfReports={() => setShowPdfReportsModal(true)}
         onOpenSettings={() => setShowSettings(true)}
         onOpenHelp={() => setShowHelp(true)}
@@ -191,10 +177,7 @@ export default function App() {
             setSelectedCatId(null);
             setCatToEdit(cat);
           }}
-          onOpenAddEventForCat={(catId) => {
-            setEventInitialCatId(catId);
-            setEventToEditId('new');
-          }}
+          onOpenAddEventForCat={(catId) => openEventModal('new', catId)}
         />
       )}
 

@@ -1,3 +1,8 @@
+/**
+ * Sends a push notification for an event using the Service Worker or fallback to regular Notification API
+ * @param title - The notification title
+ * @param body - The notification body text
+ */
 export const sendEventPushNotification = async (title: string, body: string) => {
   if (typeof window === 'undefined' || !('Notification' in window)) return;
 
@@ -28,6 +33,10 @@ export const sendEventPushNotification = async (title: string, body: string) => 
   }
 };
 
+/**
+ * Requests notification permission from the user
+ * @returns Promise that resolves to true if permission was granted, false otherwise
+ */
 export const requestNotificationPermission = async (): Promise<boolean> => {
   if (typeof window === 'undefined' || !('Notification' in window)) return false;
   try {
