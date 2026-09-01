@@ -1,11 +1,20 @@
 import { db } from '../lib/db';
 import { syncService } from './sync-service';
 
+/**
+ * High-level manager for coordinating sync operations between local and cloud storage
+ */
 class SyncManager {
+    /**
+     * Initializes the SyncManager without a configured provider
+     */
     constructor() {
         this.provider = null;
     }
 
+    /**
+     * Initializes the sync provider based on database settings
+     */
     async init() {
         console.log('[SyncManager] Initializing...');
         let settings = await db.settings.get('main');
@@ -23,10 +32,17 @@ class SyncManager {
         }
     }
 
+    /**
+     * Checks if sync is currently enabled
+     * @returns True if a sync provider is configured and enabled
+     */
     isEnabled() {
         return this.provider !== null;
     }
 
+    /**
+     * Performs full bidirectional sync: push local changes then pull remote changes
+     */
     async sync() {
         if (!this.isEnabled()) return;
         console.log('[SyncManager] Syncing...');
@@ -35,12 +51,18 @@ class SyncManager {
         console.log('[SyncManager] Sync complete');
     }
 
+    /**
+     * Pushes all pending local changes to the cloud
+     */
     async push() {
         if (!this.isEnabled()) return;
         console.log('[SyncManager] Pushing local changes to cloud...');
         await syncService.syncPending();
     }
 
+    /**
+     * Pulls remote changes from the cloud and updates local database
+     */
     async pull() {
         if (!this.isEnabled()) return;
         console.log('[SyncManager] Pulling remote changes from cloud...');

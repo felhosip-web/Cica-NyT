@@ -17,6 +17,11 @@ export interface TagBadgeConfig {
   icon: string;
 }
 
+/**
+ * Returns the appropriate Tailwind CSS classes for a cat tag based on its content
+ * @param tag - The tag text to analyze
+ * @returns Tailwind CSS classes string for background, text, and border colors
+ */
 export const getTagStyle = (tag: string): string => {
   const t = tag.toLowerCase().trim();
   if (t.includes('karantén')) {
@@ -49,6 +54,11 @@ export const getTagStyle = (tag: string): string => {
   return 'bg-slate-100 text-slate-800 border-slate-300';
 };
 
+/**
+ * Returns an appropriate emoji icon for a cat tag based on its content
+ * @param tag - The tag text to analyze
+ * @returns An emoji string representing the tag category
+ */
 export const getTagIcon = (tag: string): string => {
   const t = tag.toLowerCase().trim();
   if (t.includes('karantén')) return '🔴';

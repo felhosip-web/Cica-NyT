@@ -236,6 +236,11 @@ export const DEFAULT_QUICK_FILTER_CARDS: QuickFilterCardConfig[] = [
   { id: 'qf_no_photos', label: 'Fotó Híján', icon: '📷', filterType: 'no-photos', enabled: false, colorScheme: 'purple' },
 ];
 
+/**
+ * Returns Tailwind CSS classes for a quick filter card based on its color scheme
+ * @param colorScheme - The color scheme name (red, amber, sky, emerald, etc.)
+ * @returns Object containing CSS classes for active, inactive, border, and text states
+ */
 export function getCardStyles(colorScheme: string) {
   switch (colorScheme) {
     case 'red':

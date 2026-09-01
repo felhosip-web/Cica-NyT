@@ -3,7 +3,13 @@ import { v4 as uuidv4 } from 'uuid';
 import { db } from '../lib/db';
 import { toSupabaseCat, fromSupabaseCat, toSupabaseFosterParent, fromSupabaseFosterParent, toSupabaseFosterSupply, toSupabaseFosterExpense, toSupabaseInventory, fromSupabaseInventory, toSupabaseFinance } from '../lib/mappers/supabase-mapper';
 
+/**
+ * Service for managing synchronization between local IndexedDB and Supabase cloud database
+ */
 export class SyncService {
+    /**
+     * Initializes the SyncService with device ID and sets up online/offline listeners
+     */
     constructor() {
         this.supabase = null;
         this.deviceId = this.getOrCreateDeviceId();
@@ -13,6 +19,9 @@ export class SyncService {
         this.setupOnlineListener();
     }
 
+    /**
+     * Initializes Supabase client from stored settings or environment variables
+     */
     async initFromSettings() {
         let settings = await db.settings.get('main');
         if (!settings) settings = await db.settings.get('org');
@@ -35,6 +44,10 @@ export class SyncService {
         this.updateSyncUI();
     }
 
+    /**
+     * Retrieves or creates a unique device ID for tracking sync operations
+     * @returns The device ID string stored in localStorage
+     */
     getOrCreateDeviceId() {
         let id = localStorage.getItem('deviceId');
         if (!id) {
@@ -44,6 +57,9 @@ export class SyncService {
         return id;
     }
 
+    /**
+     * Sets up event listeners for online/offline network status changes
+     */
     setupOnlineListener() {
         window.addEventListener('online', () => {
             this.updateSyncUI();
@@ -54,6 +70,9 @@ export class SyncService {
         });
     }
 
+    /**
+     * Updates the sync status UI indicator based on current connection and sync state
+     */
     async updateSyncUI() {
         const dot = document.getElementById('sync-dot');
         const text = document.getElementById('sync-text');
@@ -126,6 +145,12 @@ export class SyncService {
         }
     }
 
+    /**
+     * Tests connection to Supabase with provided credentials
+     * @param url - Supabase project URL
+     * @param key - Supabase anonymous API key
+     * @returns Object with success status and error message if failed
+     */
     async testConnection(url, key) {
         if (!url || !key) {
             return { success: false, error: 'A Supabase URL és Anon API kulcs megadása kötelező.' };
@@ -143,6 +168,10 @@ export class SyncService {
         }
     }
 
+    /**
+     * Queues a cat record for synchronization to Supabase
+     * @param cat - The cat object to sync
+     */
     async queueSync(cat) {
         cat.updated = new Date().toISOString();
         cat.deviceId = this.deviceId;
@@ -157,6 +186,11 @@ export class SyncService {
         }
     }
 
+    /**
+     * Queues a foster-related record for synchronization
+     * @param item - The item to sync (foster parent, supply, or expense)
+     * @param table - The database table name
+     */
     async queueFosterSync(item, table) {
         if (!db[table]) return;
         item.updatedAt = new Date().toISOString();
@@ -170,6 +204,10 @@ export class SyncService {
         }
     }
 
+    /**
+     * Queues an inventory item for synchronization
+     * @param item - The inventory item to sync
+     */
     async queueInventorySync(item) {
         if (!db.inventory) return;
         item.updatedAt = new Date().toISOString();
@@ -184,6 +222,10 @@ export class SyncService {
         }
     }
 
+    /**
+     * Queues a finance record for synchronization
+     * @param item - The finance item to sync
+     */
     async queueFinanceSync(item) {
         if (!db.finances) return;
         item.updatedAt = new Date().toISOString();
@@ -198,6 +240,9 @@ export class SyncService {
         }
     }
 
+    /**
+     * Synchronizes all pending records from local database to Supabase
+     */
     async syncPending() {
         let settings = await db.settings.get('main');
         if (!settings) settings = await db.settings.get('org');
@@ -314,6 +359,9 @@ export class SyncService {
         }
     }
 
+    /**
+     * Pulls remote records from Supabase and updates local database with newer versions
+     */
     async pullRemote() {
         let settings = await db.settings.get('main');
         if (!settings) settings = await db.settings.get('org');

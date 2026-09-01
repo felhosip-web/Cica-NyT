@@ -1,3 +1,8 @@
+/**
+ * Calculates the age of a cat from its birth date and formats it in Hungarian
+ * @param birthDateStr - The birth date as a string (YYYY-MM-DD format)
+ * @returns Formatted age string in Hungarian (e.g., "2 év 3 hó (2.3 év)") or "--" if no date provided
+ */
 export function calculateAge(birthDateStr) {
     if (!birthDateStr) return "--";
 

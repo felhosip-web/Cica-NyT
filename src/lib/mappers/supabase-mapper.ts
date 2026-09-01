@@ -1,3 +1,8 @@
+/**
+ * Converts a local cat record to Supabase format
+ * @param localCat - The local cat object from IndexedDB
+ * @returns Cat object formatted for Supabase storage
+ */
 export const toSupabaseCat = (localCat: any) => {
     return {
         id: localCat.id,
@@ -33,6 +38,11 @@ export const toSupabaseCat = (localCat: any) => {
     };
 };
 
+/**
+ * Converts a Supabase cat record to local IndexedDB format
+ * @param remoteCat - The cat object from Supabase
+ * @returns Cat object formatted for local IndexedDB storage
+ */
 export const fromSupabaseCat = (remoteCat: any) => {
     const { foster_id, is_spayed, device_group, ...rest } = remoteCat;
     return {
@@ -43,6 +53,11 @@ export const fromSupabaseCat = (remoteCat: any) => {
     };
 };
 
+/**
+ * Converts a local foster parent record to Supabase format
+ * @param foster - The local foster parent object from IndexedDB
+ * @returns Foster parent object formatted for Supabase storage
+ */
 export const toSupabaseFosterParent = (foster: any) => {
     return {
         id: foster.id,
@@ -62,6 +77,11 @@ export const toSupabaseFosterParent = (foster: any) => {
     };
 };
 
+/**
+ * Converts a Supabase foster parent record to local IndexedDB format
+ * @param remoteFoster - The foster parent object from Supabase
+ * @returns Foster parent object formatted for local IndexedDB storage
+ */
 export const fromSupabaseFosterParent = (remoteFoster: any) => {
     return {
         id: remoteFoster.id,
@@ -82,6 +102,11 @@ export const fromSupabaseFosterParent = (remoteFoster: any) => {
     };
 };
 
+/**
+ * Converts a local foster supply record to Supabase format
+ * @param supply - The local foster supply object from IndexedDB
+ * @returns Foster supply object formatted for Supabase storage
+ */
 export const toSupabaseFosterSupply = (supply: any) => {
     return {
         id: typeof supply.id === 'number' ? undefined : supply.id,
@@ -98,6 +123,11 @@ export const toSupabaseFosterSupply = (supply: any) => {
     };
 };
 
+/**
+ * Converts a local foster expense record to Supabase format
+ * @param exp - The local foster expense object from IndexedDB
+ * @returns Foster expense object formatted for Supabase storage
+ */
 export const toSupabaseFosterExpense = (exp: any) => {
     return {
         id: typeof exp.id === 'number' ? undefined : exp.id,
@@ -114,6 +144,11 @@ export const toSupabaseFosterExpense = (exp: any) => {
     };
 };
 
+/**
+ * Converts a local inventory record to Supabase format
+ * @param inv - The local inventory object from IndexedDB
+ * @returns Inventory object formatted for Supabase storage
+ */
 export const toSupabaseInventory = (inv: any) => {
     return {
         id: typeof inv.id === 'number' ? undefined : inv.id,
@@ -132,6 +167,11 @@ export const toSupabaseInventory = (inv: any) => {
     };
 };
 
+/**
+ * Converts a Supabase inventory record to local IndexedDB format
+ * @param remoteInv - The inventory object from Supabase
+ * @returns Inventory object formatted for local IndexedDB storage
+ */
 export const fromSupabaseInventory = (remoteInv: any) => {
     return {
         id: remoteInv.id,
@@ -151,6 +191,11 @@ export const fromSupabaseInventory = (remoteInv: any) => {
     };
 };
 
+/**
+ * Converts a local finance record to Supabase format
+ * @param fin - The local finance object from IndexedDB
+ * @returns Finance object formatted for Supabase storage
+ */
 export const toSupabaseFinance = (fin: any) => {
     return {
         id: typeof fin.id === 'number' ? undefined : fin.id,
