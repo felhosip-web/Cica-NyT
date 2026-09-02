@@ -322,7 +322,7 @@ export const VisualEntityGraphModal: React.FC<VisualEntityGraphModalProps> = ({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-60 flex items-center justify-center p-2 sm:p-4 bg-slate-950/90 backdrop-blur-md animate-fade-in">
+      <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-slate-950/90 backdrop-blur-md animate-fade-in">
         <div className="w-full h-full max-w-7xl max-h-[92vh] bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden text-slate-100 relative">
           {/* Header Bar */}
           <div className="p-4 bg-slate-950/80 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 shrink-0">

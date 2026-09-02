@@ -1881,7 +1881,7 @@ export const VisualRbacCanvasModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
       {/* SQL EXPORT MODAL */}
       {showSqlExportModal && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
           <div className="w-full max-w-3xl bg-slate-900 border border-slate-700 rounded-3xl p-5 shadow-2xl space-y-4 text-slate-100">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
@@ -1945,7 +1945,7 @@ export const VisualRbacCanvasModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
       {/* JSON EXPORT MODAL */}
       {showJsonExportModal && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
           <div className="w-full max-w-2xl bg-slate-900 border border-slate-700 rounded-3xl p-5 shadow-2xl space-y-4 text-slate-100">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
@@ -2001,7 +2001,7 @@ export const VisualRbacCanvasModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
       {/* JSON IMPORT MODAL */}
       {showJsonImportModal && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
           <div className="w-full max-w-2xl bg-slate-900 border border-slate-700 rounded-3xl p-5 shadow-2xl space-y-4 text-slate-100">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
@@ -2114,7 +2114,7 @@ export const VisualRbacCanvasModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
       {/* ADD USER MODAL */}
       {showAddUserModal && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
           <form onSubmit={handleCreateUser} className="w-full max-w-md bg-slate-900 border border-slate-700 rounded-3xl p-5 shadow-2xl space-y-4 text-slate-100">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <h4 className="font-extrabold text-sm text-blue-200 flex items-center gap-2">
@@ -2181,7 +2181,7 @@ export const VisualRbacCanvasModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
       {/* ADD ROLE MODAL */}
       {showAddRoleModal && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
           <form onSubmit={handleCreateRole} className="w-full max-w-md bg-slate-900 border border-slate-700 rounded-3xl p-5 shadow-2xl space-y-4 text-slate-100">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <h4 className="font-extrabold text-sm text-purple-200 flex items-center gap-2">
@@ -2244,7 +2244,7 @@ export const VisualRbacCanvasModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
       {/* SPECIFIC CONFLICT SUGGESTION MODAL */}
       {selectedConflict && (
-        <div className="fixed inset-0 z-70 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fade-in">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fade-in">
           <div className="w-full max-w-lg bg-slate-900 border border-slate-700 rounded-3xl p-5 shadow-2xl space-y-4 text-slate-100">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
@@ -2324,7 +2324,7 @@ export const VisualRbacCanvasModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
       {/* VALIDATION REPORT SUMMARY MODAL */}
       {showValidationListModal && (
-        <div className="fixed inset-0 z-65 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fade-in">
+        <div className="fixed inset-0 z-[65] flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fade-in">
           <div className="w-full max-w-2xl bg-slate-900 border border-slate-700 rounded-3xl p-5 shadow-2xl space-y-4 text-slate-100 max-h-[85vh] flex flex-col">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3 shrink-0">
               <div className="flex items-center gap-2">
