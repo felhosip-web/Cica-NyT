@@ -135,7 +135,7 @@ export const EventTemplateManagerModal: React.FC<EventTemplateManagerModalProps>
   };
 
   return (
-    <div className="fixed inset-0 z-60 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
       <div className="w-full max-w-4xl max-h-[92vh] bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden text-gray-800 border border-gray-200">
         {/* Header */}
         <div className="p-4 sm:p-5 bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 text-white flex items-center justify-between gap-3 shrink-0">
@@ -553,7 +553,7 @@ export const EventTemplateManagerModal: React.FC<EventTemplateManagerModalProps>
 
       {/* Custom Template Delete Confirmation */}
       {deleteConfirmId && (
-        <div className="fixed inset-0 z-70 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
           <div className="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-3 border border-red-200 text-center">
             <span className="text-3xl block">⚠️</span>
             <h4 className="font-extrabold text-sm text-gray-900">Sablon törlésének megerősítése</h4>
