@@ -24,7 +24,7 @@ export const LicenseBanner: React.FC = () => {
         <p>
           {status === 'locked'
             ? 'A rendszer csak olvasási módban (soft lock) érhető el. Új adatok rögzítése és mentése jelenleg tiltva van.'
-            : `A rendszert grace (türelmi) időszakban használod. Hátravonó napok száma: ${daysRemainingInGrace}. Kérjük, frissítsd a licencedet!`}
+            : `A rendszert grace (türelmi) időszakban használod. Hátralévő napok száma: ${daysRemainingInGrace}. Kérjük, frissítsd a licencedet!`}
         </p>
         <button
           onClick={() => setShowSettings(true)}

@@ -86,8 +86,9 @@ export const removeLicense = () => {
 export const runBackgroundLicenseCheck = async () => {
   const state = getLicenseStatus();
   if (state.key) {
-    // In a real app, this would call checkLicenseRemote
-    // For now we just validate locally and refresh the lastCheck timestamp
-    await validateLicenseLocally(state.key);
+    const isValid = await checkLicenseRemote(state.key);
+    if (isValid) {
+      localStorage.setItem(LICENSE_LAST_CHECK_STORAGE_KEY, Date.now().toString());
+    }
   }
 };
