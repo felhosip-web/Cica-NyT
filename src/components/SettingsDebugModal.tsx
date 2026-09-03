@@ -14,6 +14,7 @@ import { fetchWithRenderWakeup } from '../utils/renderWakeup';
 import { APP_VERSION } from '../version';
 import { createAuditStamp } from '../utils/audit';
 import { CustomSelect } from './CustomSelect';
+import { useLicenseStore } from '../store/useLicenseStore';
 
 interface SettingsDebugModalProps {
   onClose: () => void;
@@ -57,7 +58,7 @@ export const SettingsDebugModal: React.FC<SettingsDebugModalProps> = ({
     setFooterMode,
   } = useAppStore();
 
-  const [activeTab, setActiveTab] = useState<'general' | 'notifications' | 'google_drive' | 'auto_backup' | 'patch' | 'pwa' | 'users' | 'supabase_rbac' | 'zustand' | 'schema' | 'inspector' | 'tuning' | 'audit'>(
+  const [activeTab, setActiveTab] = useState<'general' | 'license' | 'notifications' | 'google_drive' | 'auto_backup' | 'patch' | 'pwa' | 'users' | 'supabase_rbac' | 'zustand' | 'schema' | 'inspector' | 'tuning' | 'audit'>(
     isRootMode ? 'users' : 'general'
   );
 
@@ -833,6 +834,16 @@ export const SettingsDebugModal: React.FC<SettingsDebugModalProps> = ({
           >
             🎨 Nézet & Beállítások
           </button>
+          <button
+            onClick={() => setActiveTab('license')}
+            className={`py-2.5 px-3.5 font-extrabold border-b-2 transition whitespace-nowrap cursor-pointer shrink-0 flex items-center gap-1.5 text-xs sm:text-sm ${
+              activeTab === 'license'
+                ? 'border-pink-600 text-pink-600 font-black'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            🔑 Licenc
+          </button>
 
           <button
             onClick={() => setActiveTab('notifications')}
@@ -1275,6 +1286,82 @@ export const SettingsDebugModal: React.FC<SettingsDebugModalProps> = ({
                     </button>
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB: License Settings */}
+          {activeTab === 'license' && (
+            <div className="space-y-4">
+              <div className="p-4 bg-white border border-gray-200 rounded-xl shadow-xs">
+                <h3 className="font-extrabold text-gray-900 text-lg mb-2 flex items-center gap-2">
+                  <span>🔑</span> Licenc Kezelés
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Add meg a megvásárolt licenckulcsodat az alkalmazás írási és mentési funkcióinak feloldásához. Érvényes licenc hiányában a rendszer csak olvasási módban (soft lock) érhető el.
+                </p>
+
+                {(() => {
+                  const { status, key, daysRemainingInGrace, saveKey, removeKey } = useLicenseStore();
+                  const [inputKey, setInputKey] = useState(key || '');
+                  const [isSaving, setIsSaving] = useState(false);
+
+                  const handleSave = async () => {
+                    setIsSaving(true);
+                    const success = await saveKey(inputKey);
+                    setIsSaving(false);
+                    if (!success) {
+                      alert('Érvénytelen licenckulcs formátum. Kérjük ellenőrizd!');
+                    }
+                  };
+
+                  return (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-sm text-gray-700">Jelenlegi Státusz:</span>
+                        {status === 'valid' && <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-300">✅ Érvényes</span>}
+                        {status === 'grace' && <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-bold border border-amber-300">⚠️ Grace ({daysRemainingInGrace} nap hátra)</span>}
+                        {status === 'locked' && <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-800 text-xs font-bold border border-red-300">🚫 Zárolt (Csak Olvasás)</span>}
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="block text-sm font-bold text-gray-700">Licenckulcs</label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={inputKey}
+                            onChange={(e) => setInputKey(e.target.value)}
+                            placeholder="Ide másold a licenckulcsot..."
+                            className="flex-1 p-2 border border-gray-300 rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-pink-500 focus:outline-none transition font-mono"
+                          />
+                          <button
+                            onClick={handleSave}
+                            disabled={isSaving}
+                            className="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-lg font-bold text-sm shadow-xs disabled:opacity-50"
+                          >
+                            {isSaving ? '⏳' : 'Mentés'}
+                          </button>
+                        </div>
+                      </div>
+
+                      {key && (
+                        <div className="pt-2 border-t border-gray-100">
+                          <button
+                            onClick={() => {
+                              if (confirm('Biztosan eltávolítod a licenckulcsot? Ezzel az alkalmazás zárolt állapotba kerülhet.')) {
+                                removeKey();
+                                setInputKey('');
+                              }
+                            }}
+                            className="text-xs text-red-600 hover:text-red-800 font-bold underline"
+                          >
+                            Licenckulcs törlése az eszközről
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           )}

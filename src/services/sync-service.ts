@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '../lib/db';
 import { toSupabaseCat, fromSupabaseCat, toSupabaseFosterParent, fromSupabaseFosterParent, toSupabaseFosterSupply, toSupabaseFosterExpense, toSupabaseInventory, fromSupabaseInventory, toSupabaseFinance } from '../lib/mappers/supabase-mapper';
+import { getLicenseStatus } from './licenseService';
 
 /**
  * Service for managing synchronization between local IndexedDB and Supabase cloud database
@@ -244,6 +245,7 @@ export class SyncService {
      * Synchronizes all pending records from local database to Supabase
      */
     async syncPending() {
+        if (getLicenseStatus().status === 'locked') return;
         let settings = await db.settings.get('main');
         if (!settings) settings = await db.settings.get('org');
 
@@ -363,6 +365,7 @@ export class SyncService {
      * Pulls remote records from Supabase and updates local database with newer versions
      */
     async pullRemote() {
+        if (getLicenseStatus().status === 'locked') return;
         let settings = await db.settings.get('main');
         if (!settings) settings = await db.settings.get('org');
 

@@ -117,4 +117,36 @@ try {
     console.warn("Failed to define versions because the database is already open/initialized:", e);
 }
 
+import { getLicenseStatus } from '../services/licenseService';
+
+// Add hooks to prevent writes if license is locked
+dbInstance.on('ready', () => {
+    dbInstance.tables.forEach(table => {
+        table.hook('creating', function (primKey, obj, trans) {
+            if (getLicenseStatus().status === 'locked') {
+                if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('licenseLockedToast'));
+                }
+                throw new Error('Nincs érvényes licenc. Új adat mentése megtagadva.');
+            }
+        });
+        table.hook('updating', function (mods, primKey, obj, trans) {
+            if (getLicenseStatus().status === 'locked') {
+                if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('licenseLockedToast'));
+                }
+                throw new Error('Nincs érvényes licenc. Módosítás megtagadva.');
+            }
+        });
+        table.hook('deleting', function (primKey, obj, trans) {
+            if (getLicenseStatus().status === 'locked') {
+                if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('licenseLockedToast'));
+                }
+                throw new Error('Nincs érvényes licenc. Törlés megtagadva.');
+            }
+        });
+    });
+});
+
 export const db = dbInstance;

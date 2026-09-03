@@ -24,6 +24,9 @@ import { PwaToast } from './components/PwaToast';
 import { BotDetection } from './components/BotDetection';
 import { Footer } from './components/Footer';
 import { FAB } from './components/FAB';
+import { LicenseBanner } from './components/LicenseBanner';
+import { LicenseWarningToast } from './components/LicenseWarningToast';
+import { useLicenseStore } from './store/useLicenseStore';
 import { useAppStore } from './store/useAppStore';
 import { useUIStore } from './store/useUIStore';
 import { initAutoBackupScheduler } from './services/autoBackupEngine';
@@ -32,6 +35,7 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('appVersion', APP_VERSION);
     initAutoBackupScheduler();
+    useLicenseStore.getState().backgroundCheck();
   }, []);
 
   // Root Mode State via Zustand Store
@@ -92,6 +96,8 @@ export default function App() {
       />
 
       <main className="max-w-7xl mx-auto px-2 sm:px-4 py-3 sm:py-4 space-y-4 overflow-x-clip">
+        <LicenseBanner />
+
         <Suspense fallback={<div className="flex justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600"></div></div>}>
         {/* Vaccination Alert Banner */}
         <VaccinationAlertBanner onOpenEvents={() => setActiveTab('events')} />
@@ -229,6 +235,8 @@ export default function App() {
       {/* Help Modal */}
       {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
       </Suspense>
+
+      <LicenseWarningToast />
 
       {/* PDF Reports Modal (Hiteles / Nem Hiteles) */}
       <Suspense fallback={<div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div></div>}>
