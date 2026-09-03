@@ -2,6 +2,13 @@ const LICENSE_KEY_STORAGE_KEY = 'cica_license_key';
 const LICENSE_LAST_CHECK_STORAGE_KEY = 'cica_license_last_check';
 const GRACE_PERIOD_DAYS = 7;
 const GRACE_PERIOD_MS = GRACE_PERIOD_DAYS * 24 * 60 * 60 * 1000;
+export const LICENSE_STATUS_CHANGE_EVENT = 'cica-license-status-change';
+
+const notifyLicenseStatusChange = () => {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(LICENSE_STATUS_CHANGE_EVENT));
+  }
+};
 
 export type LicenseStatus = 'valid' | 'grace' | 'locked';
 
@@ -74,6 +81,7 @@ export const validateLicenseLocally = async (key: string): Promise<boolean> => {
 
   localStorage.setItem(LICENSE_KEY_STORAGE_KEY, key);
   localStorage.setItem(LICENSE_LAST_CHECK_STORAGE_KEY, Date.now().toString());
+  notifyLicenseStatusChange();
 
   return true;
 };
@@ -81,13 +89,16 @@ export const validateLicenseLocally = async (key: string): Promise<boolean> => {
 export const removeLicense = () => {
   localStorage.removeItem(LICENSE_KEY_STORAGE_KEY);
   localStorage.removeItem(LICENSE_LAST_CHECK_STORAGE_KEY);
+  notifyLicenseStatusChange();
 };
 
 export const runBackgroundLicenseCheck = async () => {
   const state = getLicenseStatus();
   if (state.key) {
-    // In a real app, this would call checkLicenseRemote
-    // For now we just validate locally and refresh the lastCheck timestamp
-    await validateLicenseLocally(state.key);
+    const isValid = await checkLicenseRemote(state.key);
+    if (isValid) {
+      localStorage.setItem(LICENSE_LAST_CHECK_STORAGE_KEY, Date.now().toString());
+      notifyLicenseStatusChange();
+    }
   }
 };
