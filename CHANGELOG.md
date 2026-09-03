@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.13.0] - 2026-08-16
+
+### Added / Hozzáadva
+- **🔑 Licenc Ellenőrző Rendszer (v1)**:
+  - **Helyi Licenckezelés**: Helyi (client-side) licenckezelő modul integrálása a beállításokba, ami egy 7 napos türelmi (grace) időszakot biztosít az érvényesítéshez.
+  - **Soft Lock Biztonsági Rendszer**: Lejárt vagy hiányzó licenc esetén a rendszer automatikusan "olvasási módba" (soft lock) vált, amely minden írási, mentési és törlési műveletet blokkol az adatbázisban és a felhőszinkronizációban, ezzel megakadályozva a jogosulatlan adatmódosításokat.
+  - **Vizuális Figyelmeztetések**: A főoldalon és egy felugró toast üzeneten keresztül is vizuálisan tájékoztatja a felhasználót a licencállapotról és a hátralévő türelmi napokról.
+
+---
+
 ## [2.10.0] - 2026-08-13
 
 ### Added / Hozzáadva
