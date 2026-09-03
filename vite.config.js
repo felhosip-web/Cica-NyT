@@ -7,7 +7,7 @@ export default defineConfig(({ command }) => ({
     react(),
     obfuscator({
       excludes: [/vendor/, /jspdf/, /recharts/, /fullcalendar/, /html2canvas/, /lucide-react/, /firebase/, /dexie/, /framer-motion/, /react-vendor/],
-      enable: true,
+      enable: command === 'build',
       options: {
         compact: true,
         controlFlowFlattening: true,
