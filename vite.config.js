@@ -1,12 +1,33 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import obfuscator from 'vite-plugin-bundle-obfuscator'
 
-export default defineConfig({
-  plugins: [react()],
+export default defineConfig(({ command }) => ({
+  plugins: [
+    react(),
+    obfuscator({
+      excludes: [/vendor/, /jspdf/, /recharts/, /fullcalendar/, /html2canvas/, /lucide-react/, /firebase/, /dexie/, /framer-motion/, /react-vendor/],
+      enable: true,
+      options: {
+        compact: true,
+        controlFlowFlattening: true,
+        controlFlowFlatteningThreshold: 0.5,
+        stringArray: true,
+        stringArrayEncoding: ['base64'],
+        identifierNamesGenerator: 'hexadecimal',
+        debugProtection: false,
+        selfDefending: false,
+      }
+    })
+  ],
   base: '/Cica-NyT/',
+  esbuild: {
+    drop: command === 'build' ? ['console', 'debugger'] : [],
+  },
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    minify: 'esbuild',
     rollupOptions: {
       output: {
         manualChunks: (id) => {
@@ -45,4 +66,4 @@ export default defineConfig({
     }
   },
   server: { host: '0.0.0.0', port: 3000, allowedHosts: true }
-})
+}))
