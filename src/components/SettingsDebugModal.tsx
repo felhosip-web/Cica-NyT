@@ -25,7 +25,7 @@ interface SettingsDebugModalProps {
 }
 
 const LicenseSettingsTab: React.FC = () => {
-  const { status, key, daysRemainingInGrace, saveKey, removeKey } = useLicenseStore();
+  const { status, key, tier, daysRemainingInGrace, saveKey, removeKey } = useLicenseStore();
   const [inputKey, setInputKey] = useState(key || '');
   const [isSaving, setIsSaving] = useState(false);
 
@@ -51,8 +51,8 @@ const LicenseSettingsTab: React.FC = () => {
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <span className="font-bold text-sm text-gray-700">Jelenlegi Státusz:</span>
-            {status === 'valid' && <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-300">✅ Érvényes</span>}
-            {status === 'grace' && <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-bold border border-amber-300">⚠️ Grace ({daysRemainingInGrace} nap hátra)</span>}
+            {status === 'valid' && <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-300">✅ Érvényes {tier && `(${tier})`}</span>}
+            {status === 'grace' && <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-bold border border-amber-300">⚠️ Grace {tier && `(${tier})`} - {daysRemainingInGrace} nap hátra</span>}
             {status === 'locked' && <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-800 text-xs font-bold border border-red-300">🚫 Zárolt (Csak Olvasás)</span>}
           </div>
 

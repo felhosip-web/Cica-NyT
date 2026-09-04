@@ -1,5 +1,13 @@
 [
   {
+    "version": "2.14.0",
+    "date": "2026-09-04",
+    "changes": [
+      "🔑 Új algoritmus alapú Licenckulcs Validáció: Erős, titkosított kulcs ellenőrzés a korábbi gyenge ellenőrzés helyett",
+      "🛡️ Licenc Szintek (Tiers): Hozzáadva a TRIAL, BASIC, FULL és ROOT licenc szintek támogatása a rendszerben"
+    ]
+  },
+  {
     "version": "2.12.3",
     "date": "2026-08-18",
     "changes": [
