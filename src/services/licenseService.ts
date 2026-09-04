@@ -10,38 +10,42 @@ const notifyLicenseStatusChange = () => {
   }
 };
 
+import { validateLicenseKey, LicenseTier } from '../lib/licenseCrypto';
+
 export type LicenseStatus = 'valid' | 'grace' | 'locked';
 
 export interface LicenseState {
   status: LicenseStatus;
   key: string | null;
+  tier: LicenseTier | null;
   lastCheck: number | null;
   daysRemainingInGrace: number | null;
 }
 
 export const getLicenseStatus = (): LicenseState => {
   if (typeof localStorage === 'undefined') {
-    return { status: 'locked', key: null, lastCheck: null, daysRemainingInGrace: null };
+    return { status: 'locked', key: null, tier: null, lastCheck: null, daysRemainingInGrace: null };
   }
 
   const key = localStorage.getItem(LICENSE_KEY_STORAGE_KEY);
   const lastCheckStr = localStorage.getItem(LICENSE_LAST_CHECK_STORAGE_KEY);
 
   if (!key) {
-    return { status: 'locked', key: null, lastCheck: null, daysRemainingInGrace: null };
+    return { status: 'locked', key: null, tier: null, lastCheck: null, daysRemainingInGrace: null };
   }
 
   const lastCheck = lastCheckStr ? parseInt(lastCheckStr, 10) : 0;
   const now = Date.now();
   const timeSinceLastCheck = now - lastCheck;
 
-  // Simple local format validation (must be at least 8 chars)
-  if (key.length < 8) {
-    return { status: 'locked', key, lastCheck, daysRemainingInGrace: null };
+  // Validate format and signature algorithmically
+  const validation = validateLicenseKey(key);
+  if (!validation.valid) {
+    return { status: 'locked', key, tier: null, lastCheck, daysRemainingInGrace: null };
   }
 
   if (timeSinceLastCheck > GRACE_PERIOD_MS) {
-     return { status: 'locked', key, lastCheck, daysRemainingInGrace: 0 };
+     return { status: 'locked', key, tier: validation.tier || null, lastCheck, daysRemainingInGrace: 0 };
   }
 
   // Grace period: the last 7 days since last valid check.
@@ -56,10 +60,10 @@ export const getLicenseStatus = (): LicenseState => {
   if (timeSinceLastCheck > GRACE_START_MS) {
     const msRemaining = GRACE_PERIOD_MS - timeSinceLastCheck;
     const daysRemaining = Math.max(1, Math.ceil(msRemaining / (1000 * 60 * 60 * 24)));
-    return { status: 'grace', key, lastCheck, daysRemainingInGrace: daysRemaining };
+    return { status: 'grace', key, tier: validation.tier || null, lastCheck, daysRemainingInGrace: daysRemaining };
   }
 
-  return { status: 'valid', key, lastCheck, daysRemainingInGrace: null };
+  return { status: 'valid', key, tier: validation.tier || null, lastCheck, daysRemainingInGrace: null };
 };
 
 export const checkLicenseRemote = async (key: string): Promise<boolean> => {
@@ -67,17 +71,21 @@ export const checkLicenseRemote = async (key: string): Promise<boolean> => {
   console.log('Checking license remotely for key:', key);
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve(key.length >= 8); // Stub
+      const result = validateLicenseKey(key);
+      resolve(result.valid); // Stub using algorithmic check
     }, 500);
   });
 };
 
 export const validateLicenseLocally = async (key: string): Promise<boolean> => {
-  if (!key || key.length < 8) {
+  if (!key) {
     return false;
   }
 
-  // Optional: check format, etc.
+  const validation = validateLicenseKey(key);
+  if (!validation.valid) {
+    return false;
+  }
 
   localStorage.setItem(LICENSE_KEY_STORAGE_KEY, key);
   localStorage.setItem(LICENSE_LAST_CHECK_STORAGE_KEY, Date.now().toString());
