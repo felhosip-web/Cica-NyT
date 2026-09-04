@@ -2,6 +2,13 @@ const LICENSE_KEY_STORAGE_KEY = 'cica_license_key';
 const LICENSE_LAST_CHECK_STORAGE_KEY = 'cica_license_last_check';
 const GRACE_PERIOD_DAYS = 7;
 const GRACE_PERIOD_MS = GRACE_PERIOD_DAYS * 24 * 60 * 60 * 1000;
+export const LICENSE_STATUS_CHANGE_EVENT = 'cica-license-status-change';
+
+const notifyLicenseStatusChange = () => {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(LICENSE_STATUS_CHANGE_EVENT));
+  }
+};
 
 import { validateLicenseKey, LicenseTier } from '../lib/licenseCrypto';
 
@@ -82,6 +89,7 @@ export const validateLicenseLocally = async (key: string): Promise<boolean> => {
 
   localStorage.setItem(LICENSE_KEY_STORAGE_KEY, key);
   localStorage.setItem(LICENSE_LAST_CHECK_STORAGE_KEY, Date.now().toString());
+  notifyLicenseStatusChange();
 
   return true;
 };
@@ -89,6 +97,7 @@ export const validateLicenseLocally = async (key: string): Promise<boolean> => {
 export const removeLicense = () => {
   localStorage.removeItem(LICENSE_KEY_STORAGE_KEY);
   localStorage.removeItem(LICENSE_LAST_CHECK_STORAGE_KEY);
+  notifyLicenseStatusChange();
 };
 
 export const runBackgroundLicenseCheck = async () => {
@@ -97,6 +106,7 @@ export const runBackgroundLicenseCheck = async () => {
     const isValid = await checkLicenseRemote(state.key);
     if (isValid) {
       localStorage.setItem(LICENSE_LAST_CHECK_STORAGE_KEY, Date.now().toString());
+      notifyLicenseStatusChange();
     }
   }
 };

@@ -14,7 +14,7 @@ import { fetchWithRenderWakeup } from '../utils/renderWakeup';
 import { APP_VERSION } from '../version';
 import { createAuditStamp } from '../utils/audit';
 import { CustomSelect } from './CustomSelect';
-import { useLicenseStore } from '../store/useLicenseStore';
+import { LicenseSettingsTab } from './LicenseSettingsTab';
 
 interface SettingsDebugModalProps {
   onClose: () => void;

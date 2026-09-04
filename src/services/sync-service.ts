@@ -2,8 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '../lib/db';
 import { toSupabaseCat, fromSupabaseCat, toSupabaseFosterParent, fromSupabaseFosterParent, toSupabaseFosterSupply, toSupabaseFosterExpense, toSupabaseInventory, fromSupabaseInventory, toSupabaseFinance } from '../lib/mappers/supabase-mapper';
-import { getLicenseStatus } from './licenseService';
-import { useLicenseStore } from '../store/useLicenseStore';
+import { getLicenseStatus, LICENSE_STATUS_CHANGE_EVENT } from './licenseService';
 
 /**
  * Service for managing synchronization between local IndexedDB and Supabase cloud database
@@ -16,26 +15,11 @@ export class SyncService {
         this.supabase = null;
         this.deviceId = this.getOrCreateDeviceId();
         this.syncing = false;
-        this.activeSyncControllers = new Set();
-
-        useLicenseStore.subscribe((state, previousState) => {
-            if (state.status === 'locked' && previousState.status !== 'locked') {
-                this.cancelInFlightSyncRequests();
-            }
-        });
+        this.activeRequestControllers = new Set();
 
         this.initFromSettings();
         this.setupOnlineListener();
-    }
-
-    cancelInFlightSyncRequests() {
-        for (const controller of this.activeSyncControllers) {
-            controller.abort();
-        }
-    }
-
-    canContinueSync(controller) {
-        return !controller.signal.aborted && getLicenseStatus().status !== 'locked';
+        this.setupLicenseListener();
     }
 
     /**
@@ -87,6 +71,38 @@ export class SyncService {
         window.addEventListener('offline', () => {
             this.updateSyncUI();
         });
+    }
+
+    setupLicenseListener() {
+        window.addEventListener(LICENSE_STATUS_CHANGE_EVENT, () => {
+            if (this.isLicenseLocked()) {
+                this.cancelInFlightRequests();
+            }
+        });
+    }
+
+    isLicenseLocked() {
+        return getLicenseStatus().status === 'locked';
+    }
+
+    cancelInFlightRequests() {
+        this.activeRequestControllers.forEach(controller => controller.abort());
+        this.activeRequestControllers.clear();
+    }
+
+    async runLicenseGuardedRequest(requestFactory) {
+        if (this.isLicenseLocked()) return null;
+
+        const controller = new AbortController();
+        this.activeRequestControllers.add(controller);
+
+        try {
+            if (this.isLicenseLocked()) return null;
+            const result = await requestFactory(controller.signal);
+            return this.isLicenseLocked() ? null : result;
+        } finally {
+            this.activeRequestControllers.delete(controller);
+        }
     }
 
     /**
@@ -263,7 +279,7 @@ export class SyncService {
      * Synchronizes all pending records from local database to Supabase
      */
     async syncPending() {
-        if (getLicenseStatus().status === 'locked') return;
+        if (this.isLicenseLocked()) return;
         let settings = await db.settings.get('main');
         if (!settings) settings = await db.settings.get('org');
 
@@ -278,8 +294,6 @@ export class SyncService {
 
         if (!this.supabase || !navigator.onLine || this.syncing) return;
 
-        const abortController = new AbortController();
-        this.activeSyncControllers.add(abortController);
         this.syncing = true;
         this.updateSyncUI();
 
@@ -287,14 +301,15 @@ export class SyncService {
             // 1. Sync Pending Cats
             const pendingCats = await db.cats.where('syncStatus').equals('pending').toArray();
             for (const cat of pendingCats) {
-                if (!this.canContinueSync(abortController)) return;
-                const { error } = await this.supabase
+                const result = await this.runLicenseGuardedRequest(signal => this.supabase
                     .from('cats')
                     .upsert(toSupabaseCat(cat))
-                    .abortSignal(abortController.signal);
+                    .abortSignal(signal));
+                if (!result) return;
+                const { error } = result;
 
                 if (!error) {
-                    if (!this.canContinueSync(abortController)) return;
+                    if (this.isLicenseLocked()) return;
                     await db.cats.update(cat.id, { syncStatus: 'synced' });
                 } else {
                     console.error("[SyncService] Sync error:", error);
@@ -305,13 +320,14 @@ export class SyncService {
             if (db.fosterParents) {
                 const pendingFosters = await db.fosterParents.where('syncStatus').equals('pending').toArray().catch(() => []);
                 for (const foster of pendingFosters) {
-                    if (!this.canContinueSync(abortController)) return;
-                    const { error } = await this.supabase
+                    const result = await this.runLicenseGuardedRequest(signal => this.supabase
                         .from('foster_parents')
                         .upsert(toSupabaseFosterParent(foster))
-                        .abortSignal(abortController.signal);
+                        .abortSignal(signal));
+                    if (!result) return;
+                    const { error } = result;
                     if (!error) {
-                        if (!this.canContinueSync(abortController)) return;
+                        if (this.isLicenseLocked()) return;
                         await db.fosterParents.update(foster.id, { syncStatus: 'synced' });
                     } else {
                         console.error("[SyncService] Sync foster parent error:", error);
@@ -323,13 +339,14 @@ export class SyncService {
             if (db.fosterSupplies) {
                 const pendingSupplies = await db.fosterSupplies.where('syncStatus').equals('pending').toArray().catch(() => []);
                 for (const supply of pendingSupplies) {
-                    if (!this.canContinueSync(abortController)) return;
-                    const { error } = await this.supabase
+                    const result = await this.runLicenseGuardedRequest(signal => this.supabase
                         .from('foster_supplies')
                         .upsert(toSupabaseFosterSupply(supply))
-                        .abortSignal(abortController.signal);
+                        .abortSignal(signal));
+                    if (!result) return;
+                    const { error } = result;
                     if (!error) {
-                        if (!this.canContinueSync(abortController)) return;
+                        if (this.isLicenseLocked()) return;
                         await db.fosterSupplies.update(supply.id, { syncStatus: 'synced' });
                     } else {
                         console.error("[SyncService] Sync foster supply error:", error);
@@ -341,13 +358,14 @@ export class SyncService {
             if (db.fosterExpenses) {
                 const pendingExpenses = await db.fosterExpenses.where('syncStatus').equals('pending').toArray().catch(() => []);
                 for (const exp of pendingExpenses) {
-                    if (!this.canContinueSync(abortController)) return;
-                    const { error } = await this.supabase
+                    const result = await this.runLicenseGuardedRequest(signal => this.supabase
                         .from('foster_expenses')
                         .upsert(toSupabaseFosterExpense(exp))
-                        .abortSignal(abortController.signal);
+                        .abortSignal(signal));
+                    if (!result) return;
+                    const { error } = result;
                     if (!error) {
-                        if (!this.canContinueSync(abortController)) return;
+                        if (this.isLicenseLocked()) return;
                         await db.fosterExpenses.update(exp.id, { syncStatus: 'synced' });
                     } else {
                         console.error("[SyncService] Sync foster expense error:", error);
@@ -359,13 +377,14 @@ export class SyncService {
             if (db.inventory) {
                 const pendingInv = await db.inventory.where('syncStatus').equals('pending').toArray().catch(() => []);
                 for (const inv of pendingInv) {
-                    if (!this.canContinueSync(abortController)) return;
-                    const { error } = await this.supabase
+                    const result = await this.runLicenseGuardedRequest(signal => this.supabase
                         .from('inventory')
                         .upsert(toSupabaseInventory(inv))
-                        .abortSignal(abortController.signal);
+                        .abortSignal(signal));
+                    if (!result) return;
+                    const { error } = result;
                     if (!error) {
-                        if (!this.canContinueSync(abortController)) return;
+                        if (this.isLicenseLocked()) return;
                         await db.inventory.update(inv.id, { syncStatus: 'synced' });
                     } else {
                         console.error("[SyncService] Sync inventory error:", error);
@@ -377,13 +396,14 @@ export class SyncService {
             if (db.finances) {
                 const pendingFinances = await db.finances.where('syncStatus').equals('pending').toArray().catch(() => []);
                 for (const fin of pendingFinances) {
-                    if (!this.canContinueSync(abortController)) return;
-                    const { error } = await this.supabase
+                    const result = await this.runLicenseGuardedRequest(signal => this.supabase
                         .from('finances')
                         .upsert(toSupabaseFinance(fin))
-                        .abortSignal(abortController.signal);
+                        .abortSignal(signal));
+                    if (!result) return;
+                    const { error } = result;
                     if (!error) {
-                        if (!this.canContinueSync(abortController)) return;
+                        if (this.isLicenseLocked()) return;
                         await db.finances.update(fin.id, { syncStatus: 'synced' });
                     } else {
                         console.error("[SyncService] Sync finances error:", error);
@@ -392,11 +412,10 @@ export class SyncService {
             }
 
         } catch (e) {
-            if (!abortController.signal.aborted) {
+            if (!this.isLicenseLocked()) {
                 console.error("[SyncService] Sync process failed", e);
             }
         } finally {
-            this.activeSyncControllers.delete(abortController);
             this.syncing = false;
             this.updateSyncUI();
         }
@@ -406,27 +425,25 @@ export class SyncService {
      * Pulls remote records from Supabase and updates local database with newer versions
      */
     async pullRemote() {
-        if (getLicenseStatus().status === 'locked') return;
+        if (this.isLicenseLocked()) return;
         let settings = await db.settings.get('main');
         if (!settings) settings = await db.settings.get('org');
 
         if (!settings?.cloudEnabled || !this.supabase || !navigator.onLine) return;
 
-        const abortController = new AbortController();
-        this.activeSyncControllers.add(abortController);
-
         try {
             // Pull Cats
-            if (!this.canContinueSync(abortController)) return;
-            const { data: catData, error: catErr } = await this.supabase
+            const catResult = await this.runLicenseGuardedRequest(signal => this.supabase
                 .from('cats')
                 .select('*')
-                .abortSignal(abortController.signal);
+                .abortSignal(signal));
+            if (!catResult) return;
+            const { data: catData, error: catErr } = catResult;
             if (!catErr && Array.isArray(catData)) {
                 for (const remoteCat of catData) {
                     const localCat = await db.cats.get(remoteCat.id);
                     if (!localCat || (remoteCat.updated && localCat.updated && new Date(remoteCat.updated) > new Date(localCat.updated))) {
-                        if (!this.canContinueSync(abortController)) return;
+                        if (this.isLicenseLocked()) return;
                         await db.cats.put(fromSupabaseCat(remoteCat));
                     }
                 }
@@ -434,17 +451,18 @@ export class SyncService {
 
             // Pull Foster Parents
             if (db.fosterParents) {
-                if (!this.canContinueSync(abortController)) return;
-                const { data: fosterData, error: fosterErr } = await this.supabase
+                const fosterResult = await this.runLicenseGuardedRequest(signal => this.supabase
                     .from('foster_parents')
                     .select('*')
-                    .abortSignal(abortController.signal);
+                    .abortSignal(signal));
+                if (!fosterResult) return;
+                const { data: fosterData, error: fosterErr } = fosterResult;
                 if (!fosterErr && Array.isArray(fosterData)) {
                     for (const remoteFoster of fosterData) {
                         const localFoster = await db.fosterParents.get(remoteFoster.id);
                         const mappedFoster = fromSupabaseFosterParent(remoteFoster);
                         if (!localFoster || (mappedFoster.updatedAt && localFoster.updatedAt && new Date(mappedFoster.updatedAt) > new Date(localFoster.updatedAt))) {
-                            if (!this.canContinueSync(abortController)) return;
+                            if (this.isLicenseLocked()) return;
                             await db.fosterParents.put(mappedFoster);
                         }
                     }
@@ -453,28 +471,27 @@ export class SyncService {
 
             // Pull Inventory
             if (db.inventory) {
-                if (!this.canContinueSync(abortController)) return;
-                const { data: invData, error: invErr } = await this.supabase
+                const inventoryResult = await this.runLicenseGuardedRequest(signal => this.supabase
                     .from('inventory')
                     .select('*')
-                    .abortSignal(abortController.signal);
+                    .abortSignal(signal));
+                if (!inventoryResult) return;
+                const { data: invData, error: invErr } = inventoryResult;
                 if (!invErr && Array.isArray(invData)) {
                     for (const remoteInv of invData) {
                         const localInv = await db.inventory.get(remoteInv.id);
                         const mappedInv = fromSupabaseInventory(remoteInv);
                         if (!localInv || (mappedInv.updatedAt && localInv.updatedAt && new Date(mappedInv.updatedAt) > new Date(localInv.updatedAt))) {
-                            if (!this.canContinueSync(abortController)) return;
+                            if (this.isLicenseLocked()) return;
                             await db.inventory.put(mappedInv);
                         }
                     }
                 }
             }
         } catch (e) {
-            if (!abortController.signal.aborted) {
+            if (!this.isLicenseLocked()) {
                 console.error("[SyncService] Pull remote failed", e);
             }
-        } finally {
-            this.activeSyncControllers.delete(abortController);
         }
     }
 }
