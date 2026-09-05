@@ -1,0 +1,13 @@
+{
+  "name": "cica-nyt-license-generator",
+  "version": "1.0.0",
+  "description": "Standalone CLI tool to generate license keys for Cica-NyT.",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
