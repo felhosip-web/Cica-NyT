@@ -8,7 +8,8 @@
     "build": "node scripts/sync-version.js && vite build",
     "start": "vite preview --host 0.0.0.0 --port 3000",
     "preview": "vite preview",
-    "deploy": "gh-pages -d dist"
+    "deploy": "gh-pages -d dist",
+    "lint": "echo 'No lint command provided'"
   },
   "devDependencies": {
     "@types/react": "^19.2.18",
