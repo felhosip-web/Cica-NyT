@@ -5,9 +5,9 @@
  * Example: CICA-FULL-A7K9M2XQ-8F3C1E2A
  */
 
-export type LicenseTier = 'TRIAL' | 'BASIC' | 'FULL' | 'ROOT';
+export type LicenseTier = 'TRIAL' | 'BASIC' | 'FULL' | 'ROOT' | 'SERVICE';
 
-const VALID_TIERS = ['TRIAL', 'BASIC', 'FULL', 'ROOT'];
+const VALID_TIERS = ['TRIAL', 'BASIC', 'FULL', 'ROOT', 'SERVICE'];
 const SECRET_SALT = import.meta.env?.VITE_LICENSE_SECRET || 'C1c4-Nyt-S3cr3t-2024';
 
 /**

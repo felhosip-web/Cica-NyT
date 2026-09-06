@@ -393,7 +393,8 @@ interface AppState {
 
   // Root Mode & Debug
   isRootMode: boolean;
-  setIsRootMode: (active: boolean) => void;
+  rootSessionUntil: number | null;
+  setIsRootMode: (active: boolean, durationMinutes?: number) => void;
   debugLogs: string[];
   addDebugLog: (msg: string) => void;
   clearDebugLogs: () => void;
@@ -483,6 +484,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   orgName: (typeof localStorage !== 'undefined' && localStorage.getItem('org_name')) || 'Macskamenhely & Gondozó Nyilvántartó',
   orgRole: (typeof localStorage !== 'undefined' && localStorage.getItem('org_role')) || 'shelter_admin',
   isRootMode: typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('cica_root_mode') === 'true' : false,
+  rootSessionUntil: typeof sessionStorage !== 'undefined' && sessionStorage.getItem('cica_root_session_until')
+    ? parseInt(sessionStorage.getItem('cica_root_session_until')!, 10)
+    : null,
   debugLogs: ['[Zustand] Store initialized at ' + new Date().toLocaleTimeString()],
 
   healthCoverageItems: getInitialHealthCoverageItems(),
@@ -697,12 +701,24 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ orgRole: role });
   },
 
-  setIsRootMode: (active) => {
+  setIsRootMode: (active, durationMinutes) => {
     if (typeof sessionStorage !== 'undefined') {
-      if (active) sessionStorage.setItem('cica_root_mode', 'true');
-      else sessionStorage.removeItem('cica_root_mode');
+      if (active) {
+        sessionStorage.setItem('cica_root_mode', 'true');
+        if (durationMinutes) {
+          const expiration = Date.now() + durationMinutes * 60 * 1000;
+          sessionStorage.setItem('cica_root_session_until', expiration.toString());
+          set({ isRootMode: true, rootSessionUntil: expiration });
+          return;
+        }
+      } else {
+        sessionStorage.removeItem('cica_root_mode');
+        sessionStorage.removeItem('cica_root_session_until');
+        set({ isRootMode: false, rootSessionUntil: null });
+        return;
+      }
     }
-    set({ isRootMode: active });
+    set({ isRootMode: active, rootSessionUntil: null });
   },
 
   addDebugLog: (msg) => set((state) => ({ debugLogs: [...state.debugLogs, `[${new Date().toLocaleTimeString()}] ${msg}`] })),

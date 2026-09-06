@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 
 // Configuration
-const VALID_TIERS = ['TRIAL', 'BASIC', 'FULL', 'ROOT'];
+const VALID_TIERS = ['TRIAL', 'BASIC', 'FULL', 'ROOT', 'SERVICE'];
 const SECRET_SALT = process.env.LICENSE_SECRET || process.env.VITE_LICENSE_SECRET || 'C1c4-Nyt-S3cr3t-2024';
 
 /**

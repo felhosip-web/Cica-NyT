@@ -118,12 +118,14 @@ try {
 }
 
 import { getLicenseStatus } from '../services/licenseService';
+import { useAppStore } from '../store/useAppStore';
 
 // Add hooks to prevent writes if license is locked
 dbInstance.on('ready', () => {
     dbInstance.tables.forEach(table => {
         table.hook('creating', function (primKey, obj, trans) {
-            if (getLicenseStatus().status === 'locked') {
+            const isRootActive = useAppStore.getState().isRootMode;
+            if (getLicenseStatus().status === 'locked' && !isRootActive) {
                 if (typeof window !== 'undefined') {
                     window.dispatchEvent(new CustomEvent('licenseLockedToast'));
                 }
@@ -131,7 +133,8 @@ dbInstance.on('ready', () => {
             }
         });
         table.hook('updating', function (mods, primKey, obj, trans) {
-            if (getLicenseStatus().status === 'locked') {
+            const isRootActive = useAppStore.getState().isRootMode;
+            if (getLicenseStatus().status === 'locked' && !isRootActive) {
                 if (typeof window !== 'undefined') {
                     window.dispatchEvent(new CustomEvent('licenseLockedToast'));
                 }
@@ -139,7 +142,8 @@ dbInstance.on('ready', () => {
             }
         });
         table.hook('deleting', function (primKey, obj, trans) {
-            if (getLicenseStatus().status === 'locked') {
+            const isRootActive = useAppStore.getState().isRootMode;
+            if (getLicenseStatus().status === 'locked' && !isRootActive) {
                 if (typeof window !== 'undefined') {
                     window.dispatchEvent(new CustomEvent('licenseLockedToast'));
                 }

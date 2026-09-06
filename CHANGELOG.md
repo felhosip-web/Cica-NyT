@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.15.0] - 2026-09-06
+
+### Added / Hozzáadva
+- **🔑 Ideiglenes Root jogosultság-emelés (Ideiglenes Root Timeout)**: 30 perces automatikus kilépés Root módból normál (PIN kódos) belépés esetén.
+- **🛠️ Service Kód (Távoli segítség)**: Lehetőség egyszer használatos `CICA-SERVICE-<PAYLOAD>-<SIGNATURE>` formátumú kódok megadására a Root belépésnél, amivel az alap licenc megváltoztatása nélkül lehet diagnosztikát/javítást végezni korlátozott ideig (60 perc).
+
 ## [2.13.0] - 2026-08-16
 
 ### Added / Hozzáadva
