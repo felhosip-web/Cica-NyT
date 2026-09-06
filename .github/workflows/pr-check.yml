@@ -32,9 +32,9 @@ jobs:
 
       # --- 1. BIZTONSÁG: Socket.dev (ingyen open source-ra) ---
       - name: Socket Security Scan
-        uses: SocketDev/socket-security-action@main
+        uses: SocketDev/action@main
         with:
-          github_api_token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: TypeScript típusellenőrzés (Lint)
         run: npm run lint
