@@ -34,6 +34,7 @@ jobs:
       - name: Socket Security Scan
         uses: SocketDev/action@main
         with:
+          mode: firewall-free
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: TypeScript típusellenőrzés (Lint)
