@@ -25,6 +25,7 @@ import { BotDetection } from './components/BotDetection';
 import { Footer } from './components/Footer';
 import { FAB } from './components/FAB';
 import { LicenseBanner } from './components/LicenseBanner';
+import { RootBanner } from './components/RootBanner';
 import { LicenseWarningToast } from './components/LicenseWarningToast';
 import { useLicenseStore } from './store/useLicenseStore';
 import { useAppStore } from './store/useAppStore';
@@ -39,7 +40,24 @@ export default function App() {
   }, []);
 
   // Root Mode State via Zustand Store
-  const { isRootMode, setIsRootMode } = useAppStore();
+  const { isRootMode, rootSessionUntil, setIsRootMode } = useAppStore();
+
+  // Root Mode Auto-Timeout Check
+  useEffect(() => {
+    const checkRootTimeout = () => {
+      if (isRootMode && rootSessionUntil) {
+        if (Date.now() > rootSessionUntil) {
+          setIsRootMode(false);
+          // Optional: You could show a toast here
+        }
+      }
+    };
+
+    checkRootTimeout(); // Check on mount
+    const interval = setInterval(checkRootTimeout, 60000); // Check every minute
+
+    return () => clearInterval(interval);
+  }, [isRootMode, rootSessionUntil, setIsRootMode]);
 
   // Navigation and Modal states via UI Store
   const {
@@ -56,8 +74,8 @@ export default function App() {
     openEventModal
   } = useUIStore();
 
-  const handleActivateRoot = () => {
-    setIsRootMode(true);
+  const handleActivateRoot = (durationMinutes: number) => {
+    setIsRootMode(true, durationMinutes);
     setShowRootAuth(false);
     setShowSettings(true);
   };
@@ -97,6 +115,7 @@ export default function App() {
 
       <main className="max-w-7xl mx-auto px-2 sm:px-4 py-3 sm:py-4 space-y-4 overflow-x-clip">
         <LicenseBanner />
+        <RootBanner />
 
         <Suspense fallback={<div className="flex justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600"></div></div>}>
         {/* Vaccination Alert Banner */}

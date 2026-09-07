@@ -1,5 +1,14 @@
 [
   {
+    "version": "2.15.0",
+    "date": "2026-09-06",
+    "changes": [
+      "🔑 Ideiglenes Root jogosultság-emelés: Lehetőség időkorlátos Root (rendszergazda) módba lépni anélkül, hogy a végleges licenc megváltozna.",
+      "🛠️ Service Kód Támogatás (Távoli segítség): Új, egyszer használatos és időkorlátos CICA-SERVICE-... formátumú kódok bevezetése távoli diagnosztikához.",
+      "⏳ Root Mód Timeout: A Root módba való belépés mostantól automatikus időtúllépéssel rendelkezik (PIN kód esetén 30 perc, Service kód esetén 60 perc)."
+    ]
+  },
+  {
     "version": "2.14.0",
     "date": "2026-09-04",
     "changes": [
