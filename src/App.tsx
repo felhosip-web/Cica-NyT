@@ -27,12 +27,15 @@ import { FAB } from './components/FAB';
 import { LicenseBanner } from './components/LicenseBanner';
 import { RootBanner } from './components/RootBanner';
 import { LicenseWarningToast } from './components/LicenseWarningToast';
+import { LicenseAcceptanceModal } from './components/LicenseAcceptanceModal';
 import { useLicenseStore } from './store/useLicenseStore';
 import { useAppStore } from './store/useAppStore';
 import { useUIStore } from './store/useUIStore';
 import { initAutoBackupScheduler } from './services/autoBackupEngine';
 
 export default function App() {
+  const { termsAccepted, acceptTerms } = useLicenseStore();
+
   useEffect(() => {
     localStorage.setItem('appVersion', APP_VERSION);
     initAutoBackupScheduler();
@@ -48,7 +51,6 @@ export default function App() {
       if (isRootMode && rootSessionUntil) {
         if (Date.now() > rootSessionUntil) {
           setIsRootMode(false);
-          // Optional: You could show a toast here
         }
       }
     };
@@ -86,6 +88,12 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 pb-20 font-sans overflow-x-clip max-w-full">
+      {/* First-launch mandatory license acceptance modal */}
+      <LicenseAcceptanceModal
+        isOpen={!termsAccepted}
+        onAccept={acceptTerms}
+      />
+
       {/* Bot Detection Toast & Modal */}
       <BotDetection />
 
@@ -266,4 +274,3 @@ export default function App() {
     </div>
   );
 }
-
