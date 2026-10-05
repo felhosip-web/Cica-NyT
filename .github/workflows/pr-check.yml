@@ -45,6 +45,8 @@ jobs:
 
       # --- 2. BUNDLE SIZE: modernebb, PR kommenttel ---
       - name: Bundle size check (size-limit)
+        id: size-limit
+        continue-on-error: true
         uses: andresz1/size-limit-action@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -52,7 +54,7 @@ jobs:
 
       # Fallback a te eredeti check-ed, ha nincs size-limit config
       - name: Bundle size fallback check
-        if: failure()
+        if: always() && steps.size-limit.outcome == 'failure'
         run: |
           SIZE=$(du -sk dist 2>/dev/null | cut -f1 || echo 0)
           echo "Bundle size: ${SIZE}KB"
