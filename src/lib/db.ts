@@ -112,6 +112,10 @@ try {
           cat_weights: '++id, catId, weight, date, createdAt'
         });
 
+        dbInstance.version(16).stores({
+          finances: '++id, type, category, amount, date, catId, fosterId, status, paymentMethod, taxYear, createdAt'
+        });
+
     }
 } catch (e) {
     console.warn("Failed to define versions because the database is already open/initialized:", e);

@@ -62,6 +62,9 @@ export const FinanceFormModal: React.FC<FinanceFormModalProps> = ({
   const [partnerName, setPartnerName] = useState<string>('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('banki_atutalas');
   const [status, setStatus] = useState<FinanceStatus>('teljesult');
+  const defaultTaxYear = new Date().getFullYear() - 1;
+  const [taxYear, setTaxYear] = useState<number>(defaultTaxYear);
+  const [navReference, setNavReference] = useState<string>('');
   const [invoiceNumber, setInvoiceNumber] = useState<string>('');
   const [catId, setCatId] = useState<string>('');
   const [fosterId, setFosterId] = useState<string>('');
@@ -80,6 +83,8 @@ export const FinanceFormModal: React.FC<FinanceFormModalProps> = ({
       setPaymentMethod(transactionToEdit.paymentMethod || 'banki_atutalas');
       setStatus(transactionToEdit.status || 'teljesult');
       setInvoiceNumber(transactionToEdit.invoiceNumber || '');
+      setTaxYear(transactionToEdit.taxYear || defaultTaxYear);
+      setNavReference(transactionToEdit.navReference || '');
       setCatId(transactionToEdit.catId || '');
       setFosterId(transactionToEdit.fosterId || '');
       setNotes(transactionToEdit.notes || '');
@@ -93,12 +98,30 @@ export const FinanceFormModal: React.FC<FinanceFormModalProps> = ({
       setPaymentMethod('banki_atutalas');
       setStatus('teljesult');
       setInvoiceNumber('');
+      setTaxYear(defaultTaxYear);
+      setNavReference('');
       setCatId('');
       setFosterId('');
       setNotes('');
     }
     setError(null);
   }, [transactionToEdit, initialType, isOpen]);
+
+  // Handle category change & pre-fill title for szazalek1
+  const handleCategoryChange = (newCat: FinanceCategory) => {
+    setCategory(newCat);
+    if (newCat === 'szazalek1' && !transactionToEdit) {
+      setTitle(`Adó 1% felajánlás – ${taxYear}`);
+    }
+  };
+
+  // Update pre-filled title when tax year changes for szazalek1 if title matches pattern or is empty
+  const handleTaxYearChange = (year: number) => {
+    setTaxYear(year);
+    if (category === 'szazalek1' && (!title || title.startsWith('Adó 1% felajánlás –'))) {
+      setTitle(`Adó 1% felajánlás – ${year}`);
+    }
+  };
 
   // Handle type change and select appropriate default category
   const handleTypeChange = (newType: FinanceType) => {
@@ -297,7 +320,7 @@ export const FinanceFormModal: React.FC<FinanceFormModalProps> = ({
               <label className="block text-slate-300 font-bold mb-1.5">Kategória</label>
               <CustomSelect
                 value={category}
-                onChange={(val) => setCategory(val as FinanceCategory)}
+                onChange={(val) => handleCategoryChange(val as FinanceCategory)}
                 options={Object.entries(CATEGORY_LABELS).map(([catKey, info]) => ({
                   value: catKey,
                   label: info.name,
@@ -328,10 +351,49 @@ export const FinanceFormModal: React.FC<FinanceFormModalProps> = ({
             </div>
           </div>
 
+          {/* Conditional 1% Felajánlás Additional Fields */}
+          {category === 'szazalek1' && (
+            <div className="p-3.5 rounded-2xl bg-amber-950/40 border border-amber-800/80 space-y-3">
+              <div className="flex items-center gap-2 text-amber-300 font-bold text-xs">
+                <span>🎗️</span>
+                <span>Adó 1% Felajánlás Részletei</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-amber-200 font-bold mb-1">
+                    Adóév <span className="text-rose-400">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min="2000"
+                    max="2100"
+                    value={taxYear}
+                    onChange={(e) => handleTaxYearChange(parseInt(e.target.value, 10) || defaultTaxYear)}
+                    placeholder="2025"
+                    className="w-full bg-slate-950 border border-amber-800/80 rounded-xl px-3 py-2 font-bold text-white focus:outline-hidden focus:border-amber-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-amber-200 font-bold mb-1">NAV / Utalási azonosító</label>
+                  <input
+                    type="text"
+                    value={navReference}
+                    onChange={(e) => setNavReference(e.target.value)}
+                    placeholder="pl. NAV-1percent-2025-001"
+                    className="w-full bg-slate-950 border border-amber-800/80 rounded-xl px-3 py-2 font-medium text-white focus:outline-hidden focus:border-amber-500"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Date & Status grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-slate-300 font-bold mb-1.5">Dátum</label>
+              <label className="block text-slate-300 font-bold mb-1.5">
+                {category === 'szazalek1' ? 'Beérkezés / Utalás dátuma' : 'Dátum'}
+              </label>
               <input
                 type="date"
                 required
