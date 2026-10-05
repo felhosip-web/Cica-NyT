@@ -59,6 +59,7 @@ jobs:
       - name: Codecov feltöltés
         uses: codecov/codecov-action@v4
         if: always()
+        continue-on-error: true
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false # ne blokkoljon ha nincs token
@@ -87,7 +88,7 @@ jobs:
 
       - name: Lighthouse audit és összehasonlítás futtatása
         run: |
-          node scripts/lighthouse-pr-compare.js "https://felhosip-web.github.io/Koltseg-Web/" "http://localhost:3000/"
+          node scripts/lighthouse-pr-compare.js "https://felhosip-web.github.io/Cica-NyT/" "http://localhost:3000/"
 
       - name: Helyi preview szerver leállítása
         if: always()
