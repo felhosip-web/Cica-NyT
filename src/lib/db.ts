@@ -116,6 +116,11 @@ try {
           finances: '++id, type, category, amount, date, catId, fosterId, status, paymentMethod, taxYear, createdAt'
         });
 
+        dbInstance.version(17).stores({
+          donationCampaigns: '++id, name, startDate, endDate, location, status, syncStatus, createdAt',
+          donationCampaignItems: '++id, campaignId, category, createdAt'
+        });
+
     }
 } catch (e) {
     console.warn("Failed to define versions because the database is already open/initialized:", e);

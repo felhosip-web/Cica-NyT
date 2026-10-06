@@ -6,8 +6,8 @@ import { useAppStore } from '../store/useAppStore';
 import { APP_VERSION } from '../version';
 
 interface HeaderProps {
-  activeTab: 'animals' | 'events' | 'calendar' | 'tnr' | 'foster' | 'inventory' | 'stats' | 'finance';
-  setActiveTab: (tab: 'animals' | 'events' | 'calendar' | 'tnr' | 'foster' | 'inventory' | 'stats' | 'finance') => void;
+  activeTab: 'animals' | 'events' | 'calendar' | 'tnr' | 'foster' | 'inventory' | 'donation' | 'stats' | 'finance';
+  setActiveTab: (tab: 'animals' | 'events' | 'calendar' | 'tnr' | 'foster' | 'inventory' | 'donation' | 'stats' | 'finance') => void;
   onOpenSettings: () => void;
   onOpenHelp: () => void;
   isRootMode: boolean;
@@ -65,6 +65,7 @@ export const Header: React.FC<HeaderProps> = ({
   const tnrCount = useLiveQuery(() => db.tnr.count(), []) || 0;
   const fosterCount = useLiveQuery(() => db.fosterParents.count(), []) || 0;
   const inventoryCount = useLiveQuery(() => db.inventory ? db.inventory.count() : 0, []) || 0;
+  const donationCount = useLiveQuery(() => db.donationCampaigns ? db.donationCampaigns.count() : 0, []) || 0;
   const financeCount = useLiveQuery(() => db.finances ? db.finances.count() : 0, []) || 0;
 
   useEffect(() => {
@@ -227,6 +228,20 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
 
         <button
+          onClick={() => setActiveTab('donation')}
+          className={`py-2 px-2.5 sm:px-3 border-b-2 transition flex items-center gap-1.5 cursor-pointer shrink-0 ${
+            activeTab === 'donation'
+              ? 'border-pink-600 text-pink-600 font-black'
+              : 'border-transparent text-gray-500 hover:text-gray-800'
+          }`}
+        >
+          <span>🎁 Adományakciók</span>
+          {donationCount > 0 && (
+            <span className="bg-pink-100 text-pink-800 text-[10px] sm:text-xs px-1.5 py-0.2 rounded-full font-extrabold">{donationCount}</span>
+          )}
+        </button>
+
+        <button
           onClick={() => setActiveTab('finance')}
           className={`py-2 px-2.5 sm:px-3 border-b-2 transition flex items-center gap-1.5 cursor-pointer shrink-0 ${
             activeTab === 'finance'
@@ -372,6 +387,19 @@ export const Header: React.FC<HeaderProps> = ({
                     >
                       <span>✂️ TNR</span>
                       <span className="text-[10px] font-black bg-white px-1.5 py-0.5 rounded-full border">{tnrCount}</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setActiveTab('donation');
+                        setShowMainMenu(false);
+                      }}
+                      className={`p-2.5 rounded-xl border text-left font-extrabold flex items-center justify-between cursor-pointer transition ${
+                        activeTab === 'donation' ? 'bg-pink-50 border-pink-300 text-pink-900' : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      <span>🎁 Adományakciók</span>
+                      <span className="text-[10px] font-black bg-white px-1.5 py-0.5 rounded-full border">{donationCount}</span>
                     </button>
 
                     <button
