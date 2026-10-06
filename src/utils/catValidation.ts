@@ -12,23 +12,23 @@ export interface DuplicateCheckResult {
 }
 
 /**
-  * Cleans microchip number string by stripping whitespace and dashes
-  */
+ * Cleans microchip number string by stripping whitespace and dashes
+ */
 export function cleanChipNumber(chip: string): string {
   return (chip || '').replace(/[\s-]/g, '');
 }
 
 /**
-  * Validates microchip number (must be exactly 15 digits)
-  */
+ * Validates microchip number (must be exactly 15 digits after stripping spaces/dashes)
+ */
 export function isValidHungarianMicrochip(chip: string): boolean {
   const cleaned = cleanChipNumber(chip);
   return /^\d{15}$/.test(cleaned);
 }
 
 /**
-  * Validate cat form input data
-  */
+ * Validate cat form input data before saving
+ */
 export function validateCatFormData(data: {
   nev: string;
   status: string;
@@ -45,15 +45,15 @@ export function validateCatFormData(data: {
   const errors: CatValidationError[] = [];
   const todayStr = new Date().toISOString().split('T')[0];
 
-  // 1. Name required
+  // 1. Name (nev) required
   if (!data.nev || !data.nev.trim()) {
     errors.push({ field: 'nev', message: 'A cica nevének megadása kötelező!' });
   }
 
-  // 2. Microchip required if hasChip is true, exactly 15 digits
+  // 2. Microchip required if hasChip is true, must be exactly 15 digits
   if (data.hasChip) {
     if (!data.chipNumber || !data.chipNumber.trim()) {
-      errors.push({ field: 'chipNumber', message: 'A mikrochip számának megadása kötelező, ha a jelölés be van pipálva!' });
+      errors.push({ field: 'chipNumber', message: 'A mikrochip számnak megadása kötelező, ha a jelölés be van pipálva!' });
     } else if (!isValidHungarianMicrochip(data.chipNumber)) {
       errors.push({
         field: 'chipNumber',
@@ -67,14 +67,14 @@ export function validateCatFormData(data: {
     errors.push({ field: 'szuletes', message: 'A születési dátum nem lehet jövőbeli dátum!' });
   }
 
-  // 4. Spay date cannot be before birth date
+  // 4. Spay date cannot be before birth date if both set
   if (data.isSpayed && data.spayedDate && data.szuletes) {
     if (data.spayedDate < data.szuletes) {
       errors.push({ field: 'spayedDate', message: 'Az ivartalanítás dátuma nem lehet korábbi a születési dátumnál!' });
     }
   }
 
-  // 5. Chip date cannot be before birth date
+  // 5. Chip date cannot be before birth date if both set
   if (data.hasChip && data.chipDate && data.szuletes) {
     if (data.chipDate < data.szuletes) {
       errors.push({ field: 'chipDate', message: 'A chip beültetés dátuma nem lehet korábbi a születési dátumnál!' });
@@ -96,8 +96,8 @@ export function validateCatFormData(data: {
 }
 
 /**
-  * Check for duplicates in Dexie database before save
-  */
+ * Check for duplicates in Dexie database before save
+ */
 export async function checkCatDuplicates(
   nev: string,
   chipNumber: string | null | undefined,

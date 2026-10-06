@@ -10,9 +10,13 @@ import { execSync } from 'child_process';
 const pkgPath = path.join(process.cwd(), 'package.json');
 
 try {
+  if (!fs.existsSync(pkgPath)) {
+    throw new Error(`package.json not found at ${pkgPath}`);
+  }
+
   const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-  const currentVersion = pkg.version || '2.2.1';
-  const arg = (process.argv[2] || 'patch').toLowerCase();
+  const currentVersion = pkg.version || '2.21.0';
+  const arg = (process.argv[2] || 'patch').trim().toLowerCase();
 
   let newVersion = '';
 
@@ -29,9 +33,10 @@ try {
     } else if (arg === 'minor') {
       parts[1] += 1;
       parts[2] = 0;
-    } else {
-      // default: patch
+    } else if (arg === 'patch') {
       parts[2] += 1;
+    } else {
+      throw new Error(`Invalid version argument: ${arg}`);
     }
 
     newVersion = parts.slice(0, 3).join('.');
