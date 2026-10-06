@@ -258,9 +258,9 @@ export const CatFormModal: React.FC<CatFormModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-xl w-full p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between border-b pb-3">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl max-w-xl w-full p-4 sm:p-5 shadow-2xl space-y-4 max-h-[92vh] sm:max-h-[90vh] overflow-y-auto relative">
+        <div className="flex items-center justify-between border-b pb-3 sticky top-0 bg-white z-10 pt-1">
           <h3 className="text-lg font-black text-gray-900 flex items-center gap-2">
             🐱 {catToEdit ? 'Cica Adatainak Módosítása' : 'Új Cica Felvétele'}
           </h3>
@@ -285,7 +285,7 @@ export const CatFormModal: React.FC<CatFormModalProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs font-semibold">
           {/* Sorszám & Név */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="block text-gray-700 font-bold mb-1"># Sorszám:</label>
               <input
@@ -293,10 +293,10 @@ export const CatFormModal: React.FC<CatFormModalProps> = ({
                 value={sorszam}
                 onChange={(e) => setSorszam(e.target.value)}
                 placeholder="pl. 001"
-                className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl font-mono focus:ring-2 focus:ring-pink-500"
+                className="w-full p-2.5 min-h-[44px] bg-gray-50 border border-gray-300 rounded-xl font-mono focus:ring-2 focus:ring-pink-500"
               />
             </div>
-            <div className="col-span-2">
+            <div className="sm:col-span-2">
               <label className="block text-gray-700 font-bold mb-1">
                 🐱 Cica Neve <span className="text-rose-500">*</span>:
               </label>
@@ -306,13 +306,13 @@ export const CatFormModal: React.FC<CatFormModalProps> = ({
                 value={nev}
                 onChange={(e) => setNev(e.target.value)}
                 placeholder="pl. Mirci, Foltos..."
-                className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl font-bold text-sm focus:ring-2 focus:ring-pink-500"
+                className="w-full p-2.5 min-h-[44px] bg-gray-50 border border-gray-300 rounded-xl font-bold text-sm focus:ring-2 focus:ring-pink-500"
               />
             </div>
           </div>
 
           {/* Ivar & Szín & Születés */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="block text-gray-700 font-bold mb-1">Ivar:</label>
               <CustomSelect
@@ -334,7 +334,7 @@ export const CatFormModal: React.FC<CatFormModalProps> = ({
                 value={szin}
                 onChange={(e) => setSzin(e.target.value)}
                 placeholder="pl. Cirmos, Fekete..."
-                className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl font-medium focus:ring-2 focus:ring-pink-500"
+                className="w-full p-2.5 min-h-[44px] bg-gray-50 border border-gray-300 rounded-xl font-medium focus:ring-2 focus:ring-pink-500"
               />
             </div>
 
@@ -344,7 +344,7 @@ export const CatFormModal: React.FC<CatFormModalProps> = ({
                 type="date"
                 value={szuletes}
                 onChange={(e) => setSzuletes(e.target.value)}
-                className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl font-medium focus:ring-2 focus:ring-pink-500"
+                className="w-full p-2.5 min-h-[44px] bg-gray-50 border border-gray-300 rounded-xl font-medium focus:ring-2 focus:ring-pink-500"
               />
             </div>
           </div>
@@ -363,7 +363,7 @@ export const CatFormModal: React.FC<CatFormModalProps> = ({
           </div>
 
           {/* Státusz & Beérkezés */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-gray-700 font-bold mb-1">🏡 Gondozási Státusz:</label>
               <CustomSelect
@@ -571,8 +571,8 @@ export const CatFormModal: React.FC<CatFormModalProps> = ({
 
             {hasChip && (
               <div className="space-y-2 pt-1 animate-in fade-in duration-150">
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="col-span-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <div className="sm:col-span-2">
                     <label className="block text-[11px] text-emerald-800 font-semibold mb-1">
                       Chip száma (15 számjegy) <span className="text-rose-500">*</span>:
                     </label>
@@ -581,7 +581,7 @@ export const CatFormModal: React.FC<CatFormModalProps> = ({
                       value={chipNumber}
                       onChange={(e) => setChipNumber(e.target.value)}
                       placeholder="pl. 941000023456789..."
-                      className="w-full p-2 bg-white border border-emerald-300 rounded-xl font-mono text-xs focus:ring-2 focus:ring-emerald-500"
+                      className="w-full p-2.5 min-h-[44px] bg-white border border-emerald-300 rounded-xl font-mono text-xs focus:ring-2 focus:ring-emerald-500"
                     />
                   </div>
                   <div>
@@ -592,7 +592,7 @@ export const CatFormModal: React.FC<CatFormModalProps> = ({
                       type="date"
                       value={chipDate}
                       onChange={(e) => setChipDate(e.target.value)}
-                      className="w-full p-2 bg-white border border-emerald-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500"
+                      className="w-full p-2.5 min-h-[44px] bg-white border border-emerald-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500"
                     />
                   </div>
                 </div>
@@ -721,7 +721,7 @@ export const CatFormModal: React.FC<CatFormModalProps> = ({
           </div>
 
           {/* Action buttons */}
-          <div className="pt-3 border-t flex items-center justify-between gap-2">
+          <div className="pt-3 border-t sticky bottom-0 bg-white z-10 pb-1 flex items-center justify-between gap-2">
             {catToEdit?.id ? (
               <button
                 type="button"

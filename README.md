@@ -57,4 +57,4 @@ Részletekért lásd a [LICENSE](LICENSE) fájlt.
 
 ## 🏷️ Jelenlegi verzió
 
-**v2.21.0**
+**v2.22.0**

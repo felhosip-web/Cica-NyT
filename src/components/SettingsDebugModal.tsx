@@ -755,8 +755,8 @@ export const SettingsDebugModal: React.FC<SettingsDebugModalProps> = ({
   );
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-2xl w-full p-5 shadow-2xl space-y-4 max-h-[90vh] flex flex-col text-xs border border-gray-200">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-xs z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl max-w-2xl w-full p-4 sm:p-5 shadow-2xl space-y-4 max-h-[92vh] sm:max-h-[90vh] flex flex-col text-xs border border-gray-200 relative my-auto">
         {/* Header */}
         <div className="flex items-center justify-between border-b pb-3">
           <div className="flex items-center gap-2">
@@ -2670,10 +2670,10 @@ CREATE POLICY "cats_delete_policy" ON cats FOR DELETE USING (check_user_permissi
         </div>
 
         {/* Footer */}
-        <div className="pt-2 border-t flex justify-end">
+        <div className="pt-2 border-t sticky bottom-0 bg-white z-10 pb-1 flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-800 hover:bg-gray-900 text-white font-bold rounded-xl transition cursor-pointer"
+            className="px-4 py-2 bg-gray-800 hover:bg-gray-900 text-white font-bold rounded-xl transition cursor-pointer min-h-[44px]"
           >
             Bezárás
           </button>

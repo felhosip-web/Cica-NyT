@@ -193,8 +193,8 @@ export const FinanceFormModal: React.FC<FinanceFormModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
-      <div className="bg-slate-900 border border-slate-800 text-slate-100 rounded-3xl max-w-xl w-full p-6 shadow-2xl relative my-8">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
+      <div className="bg-slate-900 border border-slate-800 text-slate-100 rounded-3xl max-w-xl w-full p-4 sm:p-6 shadow-2xl relative my-4 sm:my-8 max-h-[92vh] sm:max-h-[90vh] overflow-y-auto">
         {/* Modal Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-800">
           <div className="flex items-center gap-3">
@@ -507,7 +507,7 @@ export const FinanceFormModal: React.FC<FinanceFormModalProps> = ({
           </div>
 
           {/* Submit Actions */}
-          <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-800">
+          <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-800 sticky bottom-0 bg-slate-900 z-10 pb-1">
             <button
               type="button"
               onClick={onClose}

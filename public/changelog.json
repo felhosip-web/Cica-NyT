@@ -1,5 +1,16 @@
 [
   {
+    "version": "2.22.0",
+    "date": "2026-10-06",
+    "changes": [
+      "📱 Mobil UX felület optimalizálása: űrlapok, modalok, alsó navigációs sáv térközök",
+      "👆 Érintési célpontok és gombmagasságok növelése (min. ~44px)",
+      "📐 Egyoszlopos mobil elrendezés a túlzsúfolt 2-3 oszlopos rácsok helyett keskeny képernyőkön",
+      "📜 Görgethető modal törzs és rögzített (sticky) akciógombok (Mentés / Mégse) a képernyő alján",
+      "🔍 Szűrősávok és kártyák vízszintes törése és görgetése oldalirányú túlcsordulás nélkül"
+    ]
+  },
+  {
     "version": "2.21.0",
     "date": "2026-10-06",
     "changes": [
