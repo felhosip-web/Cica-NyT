@@ -507,6 +507,9 @@ export type CampaignStatus = 'tervezett' | 'folyamatban' | 'lezart';
 export type CampaignItemCategory = 'szaraz_tap' | 'nedves_tap' | 'alom' | 'felszereles' | 'egyeb';
 export type CampaignItemUnit = 'kg' | 'db' | 'tasak' | 'zsak' | 'doboz' | 'l' | 'csomag';
 
+/**
+ * Donation collection campaign data model
+ */
 export interface DonationCampaign extends AuditInfo {
   id?: number | string;
   name: string;
@@ -522,6 +525,9 @@ export interface DonationCampaign extends AuditInfo {
   updatedAt?: string;
 }
 
+/**
+ * Donation campaign individual collected item record
+ */
 export interface DonationCampaignItem {
   id?: number | string;
   campaignId: number | string;
