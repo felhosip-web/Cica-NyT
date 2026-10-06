@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Akciók rögzítése, tételes gyűjtött termékek, kategória összesítés és raktárba vezetés
 - **🛡️ Adatvalidáció & Duplikáció szűrés**:
   - Kötelező mezők, 15 jegyű magyar mikrochip formátum ellenőrzése, dátum-logika és duplikáció szűrés
+- **🛠️ Verzió szinkronizáció megerősítése**:
+  - `bump-version` és `sync-version` scriptek javítása, `package.json` mint egyetlen hiteles forrás
 - **📄 LICENSE fájl**: Kétnyelvű All Rights Reserved licenc (HES Projects® by FePe)
 
 ## [2.15.0] - 2026-09-06
