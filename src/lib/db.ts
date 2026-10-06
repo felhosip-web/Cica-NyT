@@ -117,7 +117,7 @@ try {
         });
 
         dbInstance.version(17).stores({
-          donationCampaigns: '++id, name, startDate, endDate, location, status, syncStatus, createdAt',
+          donationCampaigns: '++id, name, startDate, status, location, syncStatus, createdAt',
           donationCampaignItems: '++id, campaignId, category, createdAt'
         });
 
