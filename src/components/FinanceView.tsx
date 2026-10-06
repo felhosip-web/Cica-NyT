@@ -118,6 +118,34 @@ export const FinanceView: React.FC = () => {
     fosterMap,
   ]);
 
+  // Adó 1% KPI calculations
+  const tax1KPIs = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    let currentYearTotal = 0;
+    let previousYearTotal = 0;
+    let totalCount = 0;
+
+    transactions.forEach((t) => {
+      if (t.category === 'szazalek1' && t.status !== 'storno') {
+        totalCount++;
+        const tYear = t.date ? new Date(t.date).getFullYear() : (t.taxYear ? t.taxYear + 1 : currentYear);
+        if (tYear === currentYear) {
+          currentYearTotal += t.amount || 0;
+        } else if (tYear === currentYear - 1) {
+          previousYearTotal += t.amount || 0;
+        }
+      }
+    });
+
+    return {
+      currentYearTotal,
+      previousYearTotal,
+      totalCount,
+      currentYear,
+      previousYear: currentYear - 1,
+    };
+  }, [transactions]);
+
   // Overall Financial Key Figures
   const financialKPIs = useMemo(() => {
     let totalIncome = 0;
@@ -255,6 +283,8 @@ export const FinanceView: React.FC = () => {
       'Fizetési Mód',
       'Partner / Adományozó',
       'Számlaszám',
+      'Adóév (1%)',
+      'NAV iktatószám',
       'Státusz',
       'Kapcsolódó Cica',
       'Kapcsolódó Befogadó',
@@ -271,6 +301,8 @@ export const FinanceView: React.FC = () => {
       PAYMENT_METHOD_LABELS[t.paymentMethod]?.name || t.paymentMethod,
       `"${(t.partnerName || '').replace(/"/g, '""')}"`,
       `"${(t.invoiceNumber || '').replace(/"/g, '""')}"`,
+      t.taxYear || '',
+      `"${(t.navReference || '').replace(/"/g, '""')}"`,
       t.status === 'teljesult' ? 'Teljesült' : t.status === 'fuggoben' ? 'Függőben' : 'Stornó',
       t.catId ? `"${(catMap.get(t.catId)?.nev || '').replace(/"/g, '""')}"` : '',
       t.fosterId ? `"${(fosterMap.get(t.fosterId)?.name || '').replace(/"/g, '""')}"` : '',
@@ -341,7 +373,7 @@ export const FinanceView: React.FC = () => {
       </div>
 
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* Total Income Card */}
         <div className="p-5 rounded-3xl bg-slate-900 border border-emerald-900/60 shadow-lg relative overflow-hidden">
           <div className="flex items-center justify-between">
@@ -418,6 +450,38 @@ export const FinanceView: React.FC = () => {
             <p className="text-[11px] font-medium text-slate-400 mt-1">
               Bevételek és kiadások nettó különbözete
             </p>
+          </div>
+        </div>
+
+        {/* Adó 1% Bevételek Card */}
+        <div
+          onClick={() => {
+            setCategoryFilter('szazalek1');
+            setTypeFilter('bevetel');
+            setActiveSubTab('list');
+          }}
+          className="p-5 rounded-3xl bg-slate-900 border border-amber-900/60 hover:border-amber-500/80 shadow-lg relative overflow-hidden cursor-pointer transition group"
+          title="Kattints az Adó 1% felajánlások szűréséhez"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1">
+              🎗️ Adó 1% Bevételek
+            </span>
+            <span className="w-8 h-8 rounded-xl bg-amber-950 text-amber-400 border border-amber-800/80 flex items-center justify-center text-sm font-black group-hover:scale-110 transition-transform">
+              1%
+            </span>
+          </div>
+          <div className="mt-3">
+            <div className="text-2xl font-black text-white tracking-tight">
+              {tax1KPIs.currentYearTotal.toLocaleString('hu-HU')}{' '}
+              <span className="text-sm font-extrabold text-amber-400">Ft</span>
+            </div>
+            <div className="flex flex-col gap-0.5 text-[11px] font-medium text-amber-200/80 mt-1">
+              <span>{tax1KPIs.currentYear} beérkezett felajánlások</span>
+              <span className="text-slate-400">
+                {tax1KPIs.previousYear}: {tax1KPIs.previousYearTotal.toLocaleString('hu-HU')} Ft ({tax1KPIs.totalCount} tétel)
+              </span>
+            </div>
           </div>
         </div>
 
@@ -811,6 +875,20 @@ export const FinanceView: React.FC = () => {
                           {t.partnerName && (
                             <div className="text-[11px] text-slate-400 font-normal flex items-center gap-1 truncate mt-0.5">
                               <span>🤝 {t.partnerName}</span>
+                            </div>
+                          )}
+                          {(t.category === 'szazalek1' || t.taxYear || t.navReference) && (
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {t.taxYear && (
+                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-950/80 text-amber-300 border border-amber-800">
+                                  🎗️ Adóév: {t.taxYear}
+                                </span>
+                              )}
+                              {t.navReference && (
+                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-800 text-slate-300 border border-slate-700">
+                                  🏛️ NAV: {t.navReference}
+                                </span>
+                              )}
                             </div>
                           )}
                         </td>

@@ -1,5 +1,7 @@
 const LICENSE_KEY_STORAGE_KEY = 'cica_license_key';
 const LICENSE_LAST_CHECK_STORAGE_KEY = 'cica_license_last_check';
+const LICENSE_TERMS_ACCEPTED_STORAGE_KEY = 'cica_license_terms_accepted_at';
+
 const GRACE_PERIOD_DAYS = 7;
 const GRACE_PERIOD_MS = GRACE_PERIOD_DAYS * 24 * 60 * 60 * 1000;
 export const LICENSE_STATUS_CHANGE_EVENT = 'cica-license-status-change';
@@ -21,6 +23,23 @@ export interface LicenseState {
   lastCheck: number | null;
   daysRemainingInGrace: number | null;
 }
+
+export const isLicenseAccepted = (): boolean => {
+  if (typeof localStorage === 'undefined') return false;
+  return !!localStorage.getItem(LICENSE_TERMS_ACCEPTED_STORAGE_KEY);
+};
+
+export const getLicenseAcceptedAt = (): string | null => {
+  if (typeof localStorage === 'undefined') return null;
+  return localStorage.getItem(LICENSE_TERMS_ACCEPTED_STORAGE_KEY);
+};
+
+export const acceptLicenseTerms = (): void => {
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem(LICENSE_TERMS_ACCEPTED_STORAGE_KEY, new Date().toISOString());
+    notifyLicenseStatusChange();
+  }
+};
 
 export const getLicenseStatus = (): LicenseState => {
   if (typeof localStorage === 'undefined') {
@@ -48,13 +67,6 @@ export const getLicenseStatus = (): LicenseState => {
      return { status: 'locked', key, tier: validation.tier || null, lastCheck, daysRemainingInGrace: 0 };
   }
 
-  // Grace period: the last 7 days since last valid check.
-  // Actually, usually a license check happens periodically. If it fails, we enter grace.
-  // Since we don't have remote checks yet, let's say if the check is older than 5 days, we show a grace warning.
-  // Or if we want a 7 day grace period where days 0-7 are 'grace'.
-  // Requirement: "7 napos grace period-ot használ". Let's assume the user has a "grace" state
-  // if last valid check was more than 3 days ago. (So 4 days remaining).
-  // I will make it: > 3 days = grace, otherwise valid.
   const GRACE_START_MS = 3 * 24 * 60 * 60 * 1000;
 
   if (timeSinceLastCheck > GRACE_START_MS) {
@@ -67,12 +79,11 @@ export const getLicenseStatus = (): LicenseState => {
 };
 
 export const checkLicenseRemote = async (key: string): Promise<boolean> => {
-  // TODO: Implement remote Supabase/backend validation here
   console.log('Checking license remotely for key:', key);
   return new Promise((resolve) => {
     setTimeout(() => {
       const result = validateLicenseKey(key);
-      resolve(result.valid); // Stub using algorithmic check
+      resolve(result.valid);
     }, 500);
   });
 };

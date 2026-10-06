@@ -532,6 +532,8 @@ export interface FinancialTransaction extends AuditInfo {
   paymentMethod: PaymentMethod;
   status: FinanceStatus; // 'teljesult' | 'fuggoben' | 'storno'
   invoiceNumber?: string; // Számlaszám / Bizonylatszám
+  taxYear?: number; // Adóév (pl. 2025) adó 1% felajánlások esetén
+  navReference?: string; // NAV / Utalási azonosító adó 1% felajánlások esetén
   catId?: string; // Kapcsolódó cica ID
   fosterId?: string; // Kapcsolódó ideiglenes befogadó ID
   sourceModule?: FinanceSourceModule; // Honnan származik (kézi, orvosi esemény, készletvétel, befogadói költség, örökbefogadás)
