@@ -1,14 +1,15 @@
 # Cica-NyT
 **Macska nyilvántartó és menedzsment rendszer állatvédő szervezeteknek**
 
-Offline-first macska nyilvántartó, ideiglenes befogadó hálózat, készlet- és pénzügyi menedzsment rendszer (beleértve az Adó 1% felajánlásokat), automatikus biztonsági mentésekkel és licenckezeléssel.
+Offline-first macska nyilvántartó, ideiglenes befogadó hálózat, készlet- és pénzügyi menedzsment rendszer (beleértve az Adó 1% felajánlásokat), adománygyűjtő akciók, automatikus biztonsági mentések és licenckezelés.
 
 ## Főbb funkciók
-- 🐈 Macska nyilvántartás + címkék + események
+- 🐈 Macska nyilvántartás + címkék + események + szigorú adatvalidáció & duplikáció-szűrés
 - 🏡 Ideiglenes befogadó hálózat
 - 📦 Táp & alom készletkezelés
+- 🎁 Adománygyűjtő akciók
 - 💳 Pénzügyi modul (bevételek/kiadások, Adó 1% felajánlás)
-- ☁️ Google Drive + Supabase mentés / szinkron
+- ☁️ Google Drive + Supabase mentés / szinkron (élő szinkron állapot átláthatóság)
 - 🔑 Licenckezelés + soft-lock + Service kód
 - 📱 PWA támogatás
 

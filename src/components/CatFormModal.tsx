@@ -6,6 +6,12 @@ import { useAppStore } from '../store/useAppStore';
 import { createAuditStamp, updateAuditStamp } from '../utils/audit';
 import { PRESET_TAGS, getTagStyle, getTagIcon } from '../utils/tagUtils';
 import { CustomSelect } from './CustomSelect';
+import {
+  validateCatFormData,
+  checkCatDuplicates,
+  CatValidationError,
+  DuplicateCheckResult
+} from '../utils/catValidation';
 
 interface CatFormModalProps {
   catToEdit?: Cat | null;
@@ -26,6 +32,8 @@ export const CatFormModal: React.FC<CatFormModalProps> = ({
   const [szin, setSzin] = useState('');
   const [szuletes, setSzuletes] = useState('');
   const [status, setStatus] = useState<'gondozasban' | 'gazdis' | 'ideiglenes' | 'elhunyt'>('gondozasban');
+  const [gazdisDate, setGazdisDate] = useState('');
+  const [gazdisPerson, setGazdisPerson] = useState('');
   const [fosterId, setFosterId] = useState<string>('');
   const [tags, setTags] = useState<string[]>([]);
   const [newTagInput, setNewTagInput] = useState<string>('');
@@ -43,6 +51,11 @@ export const CatFormModal: React.FC<CatFormModalProps> = ({
   const [spayedLocation, setSpayedLocation] = useState('');
   const [notes, setNotes] = useState('');
 
+  // Validation & Duplicate modal states
+  const [validationErrors, setValidationErrors] = useState<CatValidationError[]>([]);
+  const [duplicateWarning, setDuplicateWarning] = useState<DuplicateCheckResult | null>(null);
+  const [pendingSavePayload, setPendingSavePayload] = useState<any>(null);
+
   useEffect(() => {
     if (catToEdit) {
       setSorszam(catToEdit.sorszam !== undefined && catToEdit.sorszam !== null ? String(catToEdit.sorszam) : '');
@@ -51,6 +64,8 @@ export const CatFormModal: React.FC<CatFormModalProps> = ({
       setSzin(catToEdit.szin ? String(catToEdit.szin) : '');
       setSzuletes(catToEdit.szuletes ? String(catToEdit.szuletes) : '');
       setStatus((catToEdit.status as any) || 'gondozasban');
+      setGazdisDate((catToEdit as any).gazdisDate || '');
+      setGazdisPerson((catToEdit as any).gazdisPerson || '');
       setFosterId(catToEdit.fosterId || '');
       setTags(Array.isArray(catToEdit.tags) ? catToEdit.tags : []);
       setIntakeType(catToEdit.intakeType ? String(catToEdit.intakeType) : 'sajat');
@@ -119,41 +134,8 @@ export const CatFormModal: React.FC<CatFormModalProps> = ({
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const executeSave = async (payload: any, numericWeight: number | null) => {
     const currentUser = useAppStore.getState().getCurrentUser();
-
-    const payload = {
-      sorszam: String(sorszam || '').trim(),
-      nev: String(nev || '').trim() || 'Névtelen cica',
-      ivar,
-      szin: String(szin || '').trim(),
-      szuletes,
-      status,
-      fosterId: status === 'ideiglenes' ? (fosterId || null) : null,
-      tags,
-      intakeType,
-      hasChip,
-      chipNumber: hasChip ? (String(chipNumber || '').trim() || null) : null,
-      chipDate: hasChip ? (chipDate || null) : null,
-      chipLocation: hasChip ? (String(chipLocation || '').trim() || null) : null,
-      hasKiskonyv,
-      kiskonyvSzam: hasKiskonyv ? (String(kiskonyvSzam || '').trim() || null) : null,
-      kiskonyvDate: hasKiskonyv ? (kiskonyvDate || null) : null,
-      isSpayed,
-      spayedDate: isSpayed ? (spayedDate || null) : null,
-      spayedLocation: isSpayed ? (String(spayedLocation || '').trim() || null) : null,
-      notes,
-    };
-
-    let numericWeight: number | null = null;
-    if (weight && weight.trim() !== '') {
-      const parsed = parseFloat(weight.replace(',', '.'));
-      if (isFinite(parsed) && parsed > 0) {
-        numericWeight = parsed;
-      }
-    }
 
     if (catToEdit?.id) {
       const audit = updateAuditStamp(catToEdit as any, currentUser);
@@ -199,6 +181,82 @@ export const CatFormModal: React.FC<CatFormModalProps> = ({
     onClose();
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setValidationErrors([]);
+
+    const formValidationData = {
+      nev: String(nev || '').trim(),
+      status,
+      szuletes,
+      hasChip,
+      chipNumber: hasChip ? String(chipNumber || '').trim() : undefined,
+      chipDate: hasChip ? chipDate : undefined,
+      isSpayed,
+      spayedDate: isSpayed ? spayedDate : undefined,
+      intakeType,
+      createdDate: catToEdit?.created || (catToEdit as any)?.created_at,
+      gazdisDate: status === 'gazdis' ? gazdisDate : undefined
+    };
+
+    // 1. Client-side Form Validation
+    const errors = validateCatFormData(formValidationData);
+    if (errors.length > 0) {
+      setValidationErrors(errors);
+      return;
+    }
+
+    // Prepare Payload
+    const payload = {
+      sorszam: String(sorszam || '').trim(),
+      nev: String(nev || '').trim(),
+      ivar,
+      szin: String(szin || '').trim(),
+      szuletes,
+      status,
+      gazdisDate: status === 'gazdis' ? (gazdisDate || null) : null,
+      gazdisPerson: status === 'gazdis' ? (gazdisPerson || null) : null,
+      fosterId: status === 'ideiglenes' ? (fosterId || null) : null,
+      tags,
+      intakeType,
+      hasChip,
+      chipNumber: hasChip ? (String(chipNumber || '').trim() || null) : null,
+      chipDate: hasChip ? (chipDate || null) : null,
+      chipLocation: hasChip ? (String(chipLocation || '').trim() || null) : null,
+      hasKiskonyv,
+      kiskonyvSzam: hasKiskonyv ? (String(kiskonyvSzam || '').trim() || null) : null,
+      kiskonyvDate: hasKiskonyv ? (kiskonyvDate || null) : null,
+      isSpayed,
+      spayedDate: isSpayed ? (spayedDate || null) : null,
+      spayedLocation: isSpayed ? (String(spayedLocation || '').trim() || null) : null,
+      notes,
+    };
+
+    let numericWeight: number | null = null;
+    if (weight && weight.trim() !== '') {
+      const parsed = parseFloat(weight.replace(',', '.'));
+      if (isFinite(parsed) && parsed > 0) {
+        numericWeight = parsed;
+      }
+    }
+
+    // 2. Check Duplicates
+    const dupCheck = await checkCatDuplicates(
+      payload.nev,
+      payload.chipNumber,
+      catToEdit?.id
+    );
+
+    if (dupCheck.exactChipMatchCat || dupCheck.similarNameMatches.length > 0) {
+      setDuplicateWarning(dupCheck);
+      setPendingSavePayload({ payload, numericWeight });
+      return;
+    }
+
+    // No duplicate warnings, proceed directly
+    await executeSave(payload, numericWeight);
+  };
+
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl max-w-xl w-full p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
@@ -210,6 +268,20 @@ export const CatFormModal: React.FC<CatFormModalProps> = ({
             ✕
           </button>
         </div>
+
+        {/* Validation Errors Banner */}
+        {validationErrors.length > 0 && (
+          <div className="p-3 bg-rose-50 border border-rose-300 rounded-xl space-y-1">
+            <h4 className="text-xs font-bold text-rose-800 flex items-center gap-1">
+              <span>⚠️</span> Kérjük, javítsa az alábbi hibákat a mentés előtt:
+            </h4>
+            <ul className="list-disc list-inside text-xs text-rose-700 font-semibold space-y-0.5">
+              {validationErrors.map((err, idx) => (
+                <li key={idx}>{err.message}</li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs font-semibold">
           {/* Sorszám & Név */}
@@ -225,7 +297,9 @@ export const CatFormModal: React.FC<CatFormModalProps> = ({
               />
             </div>
             <div className="col-span-2">
-              <label className="block text-gray-700 font-bold mb-1">🐱 Cica Neve:</label>
+              <label className="block text-gray-700 font-bold mb-1">
+                🐱 Cica Neve <span className="text-rose-500">*</span>:
+              </label>
               <input
                 type="text"
                 required
@@ -322,6 +396,40 @@ export const CatFormModal: React.FC<CatFormModalProps> = ({
               />
             </div>
           </div>
+
+          {/* Conditional Gazdis Details */}
+          {status === 'gazdis' && (
+            <div className="p-3 bg-emerald-50/80 border border-emerald-200 rounded-2xl space-y-2 animate-in fade-in duration-150">
+              <label className="block text-emerald-950 font-black text-xs">
+                🟢 Örökbefogadási Adatok:
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[11px] text-emerald-800 font-semibold mb-1">
+                    Örökbefogadás Dátuma:
+                  </label>
+                  <input
+                    type="date"
+                    value={gazdisDate}
+                    onChange={(e) => setGazdisDate(e.target.value)}
+                    className="w-full p-2 bg-white border border-emerald-300 rounded-xl text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] text-emerald-800 font-semibold mb-1">
+                    Örökbefogadó Neve / Elérhetősége:
+                  </label>
+                  <input
+                    type="text"
+                    value={gazdisPerson}
+                    onChange={(e) => setGazdisPerson(e.target.value)}
+                    placeholder="pl. Kiss Péter (+36 30 123...)"
+                    className="w-full p-2 bg-white border border-emerald-300 rounded-xl text-xs"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Conditional Foster Parent Select */}
           {status === 'ideiglenes' && (
@@ -466,7 +574,7 @@ export const CatFormModal: React.FC<CatFormModalProps> = ({
                 <div className="grid grid-cols-3 gap-2">
                   <div className="col-span-2">
                     <label className="block text-[11px] text-emerald-800 font-semibold mb-1">
-                      Chip száma (15 számjegy):
+                      Chip száma (15 számjegy) <span className="text-rose-500">*</span>:
                     </label>
                     <input
                       type="text"
@@ -690,6 +798,82 @@ export const CatFormModal: React.FC<CatFormModalProps> = ({
                     <span>Végleges törlés</span>
                   </>
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Duplicate Detection Warning Modal */}
+      {duplicateWarning && pendingSavePayload && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-xs z-[80] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-amber-200 space-y-4 animate-in fade-in duration-150">
+            <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-xl mx-auto font-black">
+              🔍
+            </div>
+            <div className="text-center space-y-2">
+              <h3 className="text-lg font-black text-gray-900">
+                Lehetséges Duplikáció Észlelve!
+              </h3>
+              <p className="text-xs text-gray-600 font-medium">
+                Az adatbázisban már található hasonló cica rekord.
+              </p>
+            </div>
+
+            {/* Exact Microchip Match Warning */}
+            {duplicateWarning.exactChipMatchCat && (
+              <div className="p-3.5 bg-rose-50 border border-rose-300 rounded-xl space-y-1 text-xs text-rose-900">
+                <p className="font-extrabold flex items-center gap-1.5">
+                  <span>🚨</span> Megegyező Chipszám:
+                </p>
+                <p className="font-medium">
+                  Már van cica ezzel a chipszámmal: <span className="font-bold underline">{duplicateWarning.exactChipMatchCat.nev}</span> (#{duplicateWarning.exactChipMatchCat.sorszam || 'id'}).
+                </p>
+              </div>
+            )}
+
+            {/* Similar Name Matches Warning */}
+            {duplicateWarning.similarNameMatches.length > 0 && (
+              <div className="p-3.5 bg-amber-50 border border-amber-300 rounded-xl space-y-1 text-xs text-amber-900">
+                <p className="font-extrabold flex items-center gap-1.5">
+                  <span>⚠️</span> Megegyező / Hasonló Cica Név ({duplicateWarning.similarNameMatches.length} találat):
+                </p>
+                <ul className="list-disc list-inside space-y-0.5 font-medium">
+                  {duplicateWarning.similarNameMatches.map((matchCat) => (
+                    <li key={matchCat.id}>
+                      <span className="font-bold">{matchCat.nev}</span> ({matchCat.szin || 'Szín nélkül'}, Státusz: {matchCat.status})
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <p className="text-xs text-gray-500 font-semibold text-center">
+              Biztosan el akarja menteni ezt a cica adatlapot a figyelmeztetés ellenére?
+            </p>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setDuplicateWarning(null);
+                  setPendingSavePayload(null);
+                }}
+                className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-extrabold rounded-xl transition text-xs cursor-pointer border border-gray-300"
+              >
+                Mégse (Javítás)
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const { payload, numericWeight } = pendingSavePayload;
+                  setDuplicateWarning(null);
+                  setPendingSavePayload(null);
+                  await executeSave(payload, numericWeight);
+                }}
+                className="flex-1 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-black rounded-xl shadow-md transition text-xs cursor-pointer"
+              >
+                Igen, Mentés Ennek Ellenére
               </button>
             </div>
           </div>

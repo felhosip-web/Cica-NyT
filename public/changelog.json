@@ -1,5 +1,14 @@
 [
   {
+    "version": "2.2.1",
+    "date": "2026-10-06",
+    "changes": [
+      "🛡️ Adatvalidáció erősítése: kötelező mezők, dátum-logika, 15 jegyű magyar mikrochip formátum ellenőrzése",
+      "🔍 Duplikáció figyelmeztetés: meglévő cica ellenőrzése chipszám (kényszerített egyezés) és hasonló név alapján",
+      "🔄 Szinkron állapot átláthatóság: függőben lévő (pending) és szinkronizált rekordok összesítője a Beállításokban"
+    ]
+  },
+  {
     "version": "2.16.0",
     "date": "2026-10-06",
     "changes": [

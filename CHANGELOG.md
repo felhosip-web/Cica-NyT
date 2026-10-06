@@ -8,12 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.16.0] - 2026-10-06
 
 ### Added / Hozzáadva
-- **🎁 Adománygyűjtő akciók modul**:
-  - Akciók rögzítése (dátum, helyszín, résztvevők, státusz)
-  - Összegyűjtött termékek tételes nyilvántartása (száraz/nedves táp, alom, stb.)
-  - Kategóriánkénti összesítés
-  - Szűrés, kimutatás, CSV és nyomtatható/PDF export
-  - Opcionális készletbe vezetés (bejövő adomány)
 - **📜 Licencfeltételek elfogadása (First-launch)**:
   - Kötelező, blokkoló License Acceptance Modal az első indításkor
   - Checkbox + „Elfogadom” gomb, elfogadás mentése localStorage-ba timestamppel
@@ -26,6 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Bővített rögzítés: adóév, NAV / utalási azonosító mezők
   - Dedikált 1% KPI kártya a Pénzügyek áttekintőn (idei / előző évi összeg, tranzakciószám)
   - Szűrhető 1% kategória a pénzügyi listában
+- **🎁 Adománygyűjtő akciók modul**:
+  - Akciók rögzítése, tételes gyűjtött termékek, kategória összesítés és raktárba vezetés
+- **🛡️ Adatvalidáció & Duplikáció szűrés**:
+  - Kötelező mezők, 15 jegyű magyar mikrochip formátum ellenőrzése, dátum-logika és duplikáció szűrés
 - **📄 LICENSE fájl**: Kétnyelvű All Rights Reserved licenc (HES Projects® by FePe)
 
 ## [2.15.0] - 2026-09-06
