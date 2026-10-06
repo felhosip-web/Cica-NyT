@@ -2,34 +2,48 @@ import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
 
+/**
+ * Bumps package.json version and triggers sync-version.js.
+ * Usage:
+ *   node scripts/bump-version.js [patch | minor | major | <explicit_version>]
+ */
 const pkgPath = path.join(process.cwd(), 'package.json');
 
-// Read package.json
-const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-const currentVersion = pkg.version || '2.9.1';
-const versionParts = currentVersion.split('.').map((n) => parseInt(n, 10) || 0);
+try {
+  const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+  const currentVersion = pkg.version || '2.2.1';
+  const arg = (process.argv[2] || 'patch').toLowerCase();
 
-// Bump patch version (or minor if patch is high)
-versionParts[2] += 1;
-const newVersion = versionParts.join('.');
+  let newVersion = '';
 
-pkg.version = newVersion;
-fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
-console.log(`[bump-version] Bumped package.json version to ${newVersion}`);
+  if (/^\d+\.\d+\.\d+/.test(arg)) {
+    newVersion = arg;
+  } else {
+    const parts = currentVersion.split('.').map((n) => parseInt(n, 10) || 0);
+    while (parts.length < 3) parts.push(0);
 
-// Run sync-version.js
-execSync('node scripts/sync-version.js', { stdio: 'inherit' });
-lePath, JSON.stringify(versionData, null, 2) + '\n');
-console.log(`Bumped version to ${newVersion} in version.json`);
+    if (arg === 'major') {
+      parts[0] += 1;
+      parts[1] = 0;
+      parts[2] = 0;
+    } else if (arg === 'minor') {
+      parts[1] += 1;
+      parts[2] = 0;
+    } else {
+      // default: patch
+      parts[2] += 1;
+    }
 
-// 2. Update service-worker.js
-let swContent = fs.readFileSync(swFilePath, 'utf8');
-swContent = swContent.replace(/const CACHE_NAME = 'cica-nyt-v[\d.]+';/, `const CACHE_NAME = 'cica-nyt-v${newVersion}';`);
-fs.writeFileSync(swFilePath, swContent);
-console.log(`Updated CACHE_NAME in service-worker.js to cica-nyt-v${newVersion}`);
+    newVersion = parts.slice(0, 3).join('.');
+  }
 
-// 3. Update index.html
-let indexContent = fs.readFileSync(indexFilePath, 'utf8');
-indexContent = indexContent.replace(/src="\/src\/js\/app\.js\?v=[\d.]+"/g, `src="/src/js/app.js?v=${newVersion}"`);
-fs.writeFileSync(indexFilePath, indexContent);
-console.log(`Updated index.html app.js script query string to ?v=${newVersion}`);
+  pkg.version = newVersion;
+  fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
+  console.log(`[bump-version] Bumped package.json version from ${currentVersion} to ${newVersion}`);
+
+  // Trigger sync-version.js
+  execSync('node scripts/sync-version.js', { stdio: 'inherit' });
+} catch (err) {
+  console.error('[bump-version] Failed to bump version:', err);
+  process.exit(1);
+}

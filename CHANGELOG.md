@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.16.0] - 2026-10-06
+
+### Added / Hozzáadva
+- **📜 Licencfeltételek elfogadása (First-launch)**:
+  - Kötelező, blokkoló License Acceptance Modal az első indításkor
+  - Checkbox + „Elfogadom” gomb, elfogadás mentése localStorage-ba timestamppel
+  - Teljes kétnyelvű (angol + magyar) licencszöveg megtekintése
+- **⚙️ Beállítások → Licenc fül bővítése**:
+  - Licencinformáció szekció (© HES Projects® by FePe – All Rights Reserved)
+  - Elfogadás dátumának megjelenítése
+  - Teljes licenc modal megnyitása
+- **🎗️ Adó 1% Felajánlás továbbfejlesztés**:
+  - Bővített rögzítés: adóév, NAV / utalási azonosító mezők
+  - Dedikált 1% KPI kártya a Pénzügyek áttekintőn (idei / előző évi összeg, tranzakciószám)
+  - Szűrhető 1% kategória a pénzügyi listában
+- **🎁 Adománygyűjtő akciók modul**:
+  - Akciók rögzítése, tételes gyűjtött termékek, kategória összesítés és raktárba vezetés
+- **🛡️ Adatvalidáció & Duplikáció szűrés**:
+  - Kötelező mezők, 15 jegyű magyar mikrochip formátum ellenőrzése, dátum-logika és duplikáció szűrés
+- **🛠️ Verzió szinkronizáció megerősítése**:
+  - `bump-version` és `sync-version` scriptek javítása, `package.json` mint egyetlen hiteles forrás
+- **📄 LICENSE fájl**: Kétnyelvű All Rights Reserved licenc (HES Projects® by FePe)
+
 ## [2.15.0] - 2026-09-06
 
 ### Added / Hozzáadva

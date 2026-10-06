@@ -15,6 +15,7 @@ import { APP_VERSION } from '../version';
 import { createAuditStamp } from '../utils/audit';
 import { CustomSelect } from './CustomSelect';
 import { LicenseSettingsTab } from './LicenseSettingsTab';
+import { SyncStatusSection } from './SyncStatusSection';
 
 interface SettingsDebugModalProps {
   onClose: () => void;
@@ -1296,6 +1297,8 @@ export const SettingsDebugModal: React.FC<SettingsDebugModalProps> = ({
           {/* TAB 1: General & Device View Settings */}
           {activeTab === 'general' && (
             <div className="space-y-3">
+              {/* Sync Status Section */}
+              <SyncStatusSection />
               {/* Patch Upgrade & Version Tracking Card */}
               <div className="p-3.5 bg-gradient-to-r from-pink-900 via-purple-900 to-indigo-950 text-white rounded-xl space-y-2.5 border border-pink-500/40 shadow-xs">
                 <div className="flex items-center justify-between">

@@ -1,5 +1,18 @@
 [
   {
+    "version": "2.16.0",
+    "date": "2026-10-06",
+    "changes": [
+      "📜 Licencfeltételek elfogadása (First-launch): Kötelező, blokkoló License Acceptance Modal az első indításkor",
+      "⚙️ Beállítások → Licenc fül bővítése: Licencinformációk, elfogadás dátumának kijelzése, teljes licenc modal megnyitása",
+      "🎗️ Adó 1% Felajánlás továbbfejlesztés: Bővített rögzítés (adóév, NAV / utalási azonosító), 1% KPI kártya és szűrhető 1% kategória",
+      "🎁 Adománygyűjtő akciók modul: Akciók rögzítése, tételes gyűjtött termékek, kategória összesítés és raktárba vezetés",
+      "🛡️ Adatvalidáció & Duplikáció szűrés: 15 jegyű mikrochip formátum ellenőrzése, dátum-logika és meglévő cica duplikáció figyelmeztetés",
+      "🛠️ Verzió szinkronizáció: bump-version és sync-version scriptek megerősítése, package.json mint egyetlen hiteles forrás",
+      "📄 LICENSE fájl: Hivatalos, kétnyelvű All Rights Reserved licenc (HES Projects® by FePe)"
+    ]
+  },
+  {
     "version": "2.15.0",
     "date": "2026-09-06",
     "changes": [

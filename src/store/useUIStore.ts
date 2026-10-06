@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { Cat } from '../components/CatCard';
 
-export type TabType = 'animals' | 'events' | 'calendar' | 'tnr' | 'foster' | 'inventory' | 'stats' | 'finance';
+export type TabType = 'animals' | 'events' | 'calendar' | 'tnr' | 'foster' | 'inventory' | 'donation' | 'stats' | 'finance';
 
 interface UIState {
   // Navigation

@@ -1,20 +1,31 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# Cica-NyT
+**Macska nyilvántartó és menedzsment rendszer állatvédő szervezeteknek**
 
-# Run and deploy your AI Studio app
+Offline-first macska nyilvántartó, ideiglenes befogadó hálózat, készlet- és pénzügyi menedzsment rendszer (beleértve az Adó 1% felajánlásokat), adománygyűjtő akciók, automatikus biztonsági mentések és licenckezelés.
 
-This contains everything you need to run your app locally.
+## Főbb funkciók
+- 🐈 Macska nyilvántartás + címkék + események + szigorú adatvalidáció & duplikáció-szűrés
+- 🏡 Ideiglenes befogadó hálózat
+- 📦 Táp & alom készletkezelés
+- 🎁 Adománygyűjtő akciók
+- 💳 Pénzügyi modul (bevételek/kiadások, Adó 1% felajánlás)
+- ☁️ Google Drive + Supabase mentés / szinkron (élő szinkron állapot átláthatóság)
+- 🔑 Licenckezelés + soft-lock + Service kód
+- 📱 PWA támogatás
 
-View your app in AI Studio: https://ai.studio/apps/c4447921-cd0a-4de1-90c7-bbc98f6fd1ef
+## Futtatás helyben
+Prerequisites: Node.js
 
-## Run Locally
+1. `npm install`
+2. Másold az `.env.example`-t `.env.local`-ra és töltsd ki a szükséges kulcsokat (ha kell)
+3. `npm run dev`
 
-**Prerequisites:**  Node.js
+## Licenc
+© 2025-2026 HES Projects® by FePe
+All Rights Reserved.
 
+A szoftver tulajdonosi (proprietary). A forráskód átláthatóság és audit céljából elérhető.
+Részletek: lásd a `LICENSE` fájlt.
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Verzió
+Jelenlegi verzió: **2.16.0**

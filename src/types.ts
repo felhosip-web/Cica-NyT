@@ -503,6 +503,36 @@ export interface InventoryItem extends AuditInfo {
   updatedAt?: string;
 }
 
+export type CampaignStatus = 'tervezett' | 'folyamatban' | 'lezart';
+export type CampaignItemCategory = 'szaraz_tap' | 'nedves_tap' | 'alom' | 'felszereles' | 'egyeb';
+export type CampaignItemUnit = 'kg' | 'db' | 'tasak' | 'zsak' | 'doboz' | 'l' | 'csomag';
+
+export interface DonationCampaign extends AuditInfo {
+  id?: number | string;
+  name: string;
+  startDate: string; // YYYY-MM-DD
+  endDate?: string;  // YYYY-MM-DD
+  location: string;
+  participants?: string[] | string;
+  status: CampaignStatus;
+  notes?: string;
+  inventoryConverted?: boolean; // Ha a gyűjtött tételek már be lettek vezetve a raktárba
+  syncStatus?: 'pending' | 'synced';
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface DonationCampaignItem {
+  id?: number | string;
+  campaignId: number | string;
+  category: CampaignItemCategory;
+  nameOrBrand?: string;
+  quantity: number;
+  unit: CampaignItemUnit;
+  notes?: string;
+  createdAt?: string;
+}
+
 export type FinanceType = 'bevetel' | 'kiadas';
 export type FinanceCategory =
   | 'adomany'

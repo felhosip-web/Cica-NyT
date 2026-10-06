@@ -9,6 +9,7 @@ const StatsView = React.lazy(() => import('./components/StatsView').then(module 
 const TnrView = React.lazy(() => import('./components/TnrView').then(module => ({ default: module.TnrView })));
 const FosterView = React.lazy(() => import('./components/FosterView').then(module => ({ default: module.FosterView })));
 const InventoryView = React.lazy(() => import('./components/InventoryView').then(module => ({ default: module.InventoryView })));
+const DonationCampaignsView = React.lazy(() => import('./components/DonationCampaignsView').then(module => ({ default: module.DonationCampaignsView })));
 const FinanceView = React.lazy(() => import('./components/FinanceView').then(module => ({ default: module.FinanceView })));
 const CatDetailModal = React.lazy(() => import('./components/CatDetailModal').then(module => ({ default: module.CatDetailModal })));
 const CatFormModal = React.lazy(() => import('./components/CatFormModal').then(module => ({ default: module.CatFormModal })));
@@ -165,7 +166,10 @@ export default function App() {
         {/* Tab 6: Inventory / Alom és Táp Készlet */}
         {activeTab === 'inventory' && <InventoryView />}
 
-        {/* Tab 7: Finance / Pénzügyi Kezelés */}
+        {/* Tab 7: Donation Campaigns / Adománygyűjtő Akciók */}
+        {activeTab === 'donation' && <DonationCampaignsView />}
+
+        {/* Tab 8: Finance / Pénzügyi Kezelés */}
         {activeTab === 'finance' && <FinanceView />}
 
         {/* Tab 8: Stats */}
