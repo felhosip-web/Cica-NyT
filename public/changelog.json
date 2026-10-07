@@ -1,5 +1,14 @@
 [
   {
+    "version": "2.24.0",
+    "date": "2026-10-06",
+    "changes": [
+      "🩺 Audit / Belső ellenőrzés modul (`SystemAuditPanel` & `runSystemHealthAudit`) egykattintásos átfogó egészségügyi teszttel a Beállítások menüben",
+      "📊 Területek ellenőrzése: Környezet (APP_VERSION, online status, localStorage, IndexedDB), Adatbázis (kapcsolat, séma, rekordszámok, adatintegritás, függőben lévő szinkronok), Zustand store, Service Worker & PWA, Licenc status, Felhő beállítások és Tárhely kvóta",
+      "📋 Összegző műszerfal (OK / FIGYELMEZTETÉS / HIBA számlálók), kategória szűrők, Text és JSON riport exportálás, valamint Root módból elérhető biztonságos adatbázis javítás"
+    ]
+  },
+  {
     "version": "2.23.0",
     "date": "2026-10-06",
     "changes": [

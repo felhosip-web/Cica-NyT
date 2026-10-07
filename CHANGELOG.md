@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.0] - 2026-10-06
+
+### Added
+- **🩺 Audit / Belső ellenőrzés modul (`SystemAuditPanel` & `runSystemHealthAudit`)**:
+  - Egykattintásos átfogó egészségügyi teszt a Beállítások menüben.
+  - Ellenőrzések: Környezet (APP_VERSION, online státusz, localStorage, IndexedDB), Adatbázis (kapcsolat, séma, táblák rekordszámai, adatintegritás, függőben lévő szinkronok), Zustand állapottár, Service Worker & PWA, Licenc státusz, Felhő beállítások (Supabase, Google Drive) és Tárhely kvóta.
+  - Összegző műszerfal (OK / FIGYELMEZTETÉS / HIBA számlálók), kategória szűrők, valamint Text és JSON formátumú riport exportálási lehetőség.
+  - Root módból elérhető biztonságos adatbázis javítási funkció hiányzó mezők pótlására.
+
 ## [2.23.0] - 2026-10-06
 
 ### Added

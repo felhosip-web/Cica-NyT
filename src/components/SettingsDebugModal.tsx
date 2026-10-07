@@ -17,6 +17,7 @@ import { CustomSelect } from './CustomSelect';
 import { LicenseSettingsTab } from './LicenseSettingsTab';
 import { SyncStatusSection } from './SyncStatusSection';
 import { generateFullSupabaseSchemaSql } from '../utils/supabaseFullSchema';
+import { SystemAuditPanel } from './SystemAuditPanel';
 
 interface SettingsDebugModalProps {
   onClose: () => void;
@@ -60,7 +61,7 @@ export const SettingsDebugModal: React.FC<SettingsDebugModalProps> = ({
     setFooterMode,
   } = useAppStore();
 
-  const [activeTab, setActiveTab] = useState<'general' | 'license' | 'notifications' | 'google_drive' | 'auto_backup' | 'patch' | 'pwa' | 'users' | 'supabase_rbac' | 'zustand' | 'schema' | 'inspector' | 'tuning' | 'audit'>(
+  const [activeTab, setActiveTab] = useState<'general' | 'health_audit' | 'license' | 'notifications' | 'google_drive' | 'auto_backup' | 'patch' | 'pwa' | 'users' | 'supabase_rbac' | 'zustand' | 'schema' | 'inspector' | 'tuning' | 'audit'>(
     isRootMode ? 'users' : 'general'
   );
 
@@ -837,6 +838,16 @@ export const SettingsDebugModal: React.FC<SettingsDebugModalProps> = ({
             🎨 Nézet & Beállítások
           </button>
           <button
+            onClick={() => setActiveTab('health_audit')}
+            className={`py-2.5 px-3.5 font-extrabold border-b-2 transition whitespace-nowrap cursor-pointer shrink-0 flex items-center gap-1.5 text-xs sm:text-sm ${
+              activeTab === 'health_audit'
+                ? 'border-indigo-600 text-indigo-600 font-black'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            🩺 Audit / Ellenőrzés
+          </button>
+          <button
             onClick={() => setActiveTab('license')}
             className={`py-2.5 px-3.5 font-extrabold border-b-2 transition whitespace-nowrap cursor-pointer shrink-0 flex items-center gap-1.5 text-xs sm:text-sm ${
               activeTab === 'license'
@@ -986,6 +997,9 @@ export const SettingsDebugModal: React.FC<SettingsDebugModalProps> = ({
 
         {/* Tab Content Body */}
         <div className="flex-1 overflow-y-auto pr-1 space-y-3">
+          {/* TAB: System Health Audit */}
+          {activeTab === 'health_audit' && <SystemAuditPanel />}
+
           {/* TAB: Notification Lead Days Settings */}
           {activeTab === 'notifications' && <NotificationSettingsPanel />}
 
