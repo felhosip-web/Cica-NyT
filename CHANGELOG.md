@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.23.0] - 2026-10-06
+
+### Added
+- Teljes Supabase DDL & RLS séma generáló modul (`generateFullSupabaseSchemaSql()`), amely hiánytalan, azonnal futtatható SQL scriptet ad a Supabase SQL Editor számára (minden tábla, RLS szabály, segédfüggvény, seed adatok és indexek).
+- Átdolgozott "Teljes Supabase séma (SQL Editor)" szekció a Beállítások diagnosztika fülén, egykattintásos vágólapra másolási és `.sql` fájlként történő letöltési opcióval.
+
+### Improved
+- Egységesített SQL séma generálás a `SupabaseRbacSection` és `VisualRbacCanvasModal` komponensekben a kódduplikáció elkerülésére.
+
 ## [2.22.0] - 2026-10-06
 
 ### Improved

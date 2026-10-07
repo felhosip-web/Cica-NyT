@@ -1,5 +1,14 @@
 [
   {
+    "version": "2.23.0",
+    "date": "2026-10-06",
+    "changes": [
+      "🛡️ Teljes Supabase DDL & RLS séma generáló modul (`generateFullSupabaseSchemaSql()`), hiánytalan, azonnal futtatható SQL scripttel a Supabase SQL Editorhoz",
+      "📜 Átdolgozott 'Teljes Supabase séma (SQL Editor)' szekció a Beállítások diagnosztika fülén vágólapra másolási és .sql fájl letöltési gombokkal",
+      "⚙️ Egységesített SQL séma generálás a SupabaseRbacSection és VisualRbacCanvasModal komponensekben"
+    ]
+  },
+  {
     "version": "2.22.0",
     "date": "2026-10-06",
     "changes": [

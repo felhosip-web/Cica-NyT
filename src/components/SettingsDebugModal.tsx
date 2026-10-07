@@ -16,6 +16,7 @@ import { createAuditStamp } from '../utils/audit';
 import { CustomSelect } from './CustomSelect';
 import { LicenseSettingsTab } from './LicenseSettingsTab';
 import { SyncStatusSection } from './SyncStatusSection';
+import { generateFullSupabaseSchemaSql } from '../utils/supabaseFullSchema';
 
 interface SettingsDebugModalProps {
   onClose: () => void;
@@ -2015,350 +2016,59 @@ export const SettingsDebugModal: React.FC<SettingsDebugModalProps> = ({
                 </div>
               </div>
 
-              {/* Supabase / PostgreSQL Row Level Security (RLS) Copyable SQL */}
+              {/* Teljes Supabase séma (SQL Editor) */}
               <div className="p-3.5 bg-slate-900 text-slate-100 rounded-xl border border-sky-800 space-y-2">
                 <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-lg">🛡️</span>
                     <div>
                       <h4 className="font-extrabold text-white text-xs uppercase tracking-wider">
-                        Supabase / PostgreSQL Row Level Security (RLS) SQL Script
+                        Teljes Supabase séma (SQL Editor)
                       </h4>
-                      <p className="text-[10px] text-slate-400">
-                        Másolható SQL utasítás a szerepkörök (ROOT, OWNER, STAFF) és granuláris jogosultságok (animal.*, health.*, tnr.*, users.*) SQL adatbázisba történő integrálásához
+                      <p className="text-[10px] text-slate-300">
+                        Másold ki és futtasd a Supabase Dashboard → SQL Editorban. Új projektnél egyszer futtasd; meglévőnél IF NOT EXISTS miatt biztonságosabb.
                       </p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => {
-                      const sqlScript = `-- ====================================================================
--- CICA NYILVÁNTARTÓ - SUPABASE / POSTGRESQL RLS (ROW LEVEL SECURITY) SÉMA
--- ====================================================================
-
--- 1. TÁBLÁK LÉTREHOZÁSA (TABLES & CONSTRAINTS)
-CREATE TABLE IF NOT EXISTS app_roles (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    description TEXT,
-    is_system BOOLEAN DEFAULT FALSE,
-    permissions JSONB NOT NULL DEFAULT '{}'::jsonb,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS app_users (
-    id TEXT PRIMARY KEY,
-    email TEXT,
-    name TEXT NOT NULL,
-    pin_code TEXT,
-    role_id TEXT REFERENCES app_roles(id) ON DELETE SET NULL,
-    custom_permissions JSONB DEFAULT '{}'::jsonb,
-    is_active BOOLEAN DEFAULT TRUE,
-    is_root BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS cats (
-    id TEXT PRIMARY KEY,
-    sorszam TEXT,
-    nev TEXT NOT NULL,
-    ivar TEXT,
-    szin TEXT,
-    szuletes TEXT,
-    status TEXT DEFAULT 'befogadott',
-    chip_number TEXT,
-    is_spayed BOOLEAN DEFAULT FALSE,
-    foster_id TEXT,
-    tags TEXT[] DEFAULT '{}',
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW(),
-    created_by TEXT,
-    created_by_name TEXT,
-    updated_by TEXT,
-    updated_by_name TEXT
-);
-
-CREATE TABLE IF NOT EXISTS foster_parents (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    phone TEXT,
-    email TEXT,
-    address TEXT,
-    city TEXT,
-    max_capacity INTEGER DEFAULT 1,
-    status TEXT DEFAULT 'aktiv',
-    notes TEXT,
-    is_quarantine BOOLEAN DEFAULT FALSE,
-    is_kitten_specialist BOOLEAN DEFAULT FALSE,
-    is_medical_specialist BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS foster_supplies (
-    id BIGSERIAL PRIMARY KEY,
-    foster_id TEXT REFERENCES foster_parents(id) ON DELETE CASCADE,
-    type TEXT NOT NULL,
-    item TEXT NOT NULL,
-    quantity NUMERIC DEFAULT 1,
-    unit TEXT DEFAULT 'db',
-    date TEXT NOT NULL,
-    status TEXT DEFAULT 'igenyelve',
-    notes TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS foster_expenses (
-    id BIGSERIAL PRIMARY KEY,
-    foster_id TEXT REFERENCES foster_parents(id) ON DELETE CASCADE,
-    cat_id TEXT REFERENCES cats(id) ON DELETE SET NULL,
-    category TEXT NOT NULL,
-    amount NUMERIC DEFAULT 0,
-    date TEXT NOT NULL,
-    receipt_number TEXT,
-    vendor TEXT,
-    notes TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS inventory (
-    id BIGSERIAL PRIMARY KEY,
-    direction TEXT NOT NULL,
-    item_type TEXT NOT NULL,
-    source_type TEXT,
-    brand_or_name TEXT,
-    quantity NUMERIC DEFAULT 1,
-    unit TEXT NOT NULL,
-    date TEXT NOT NULL,
-    source_or_recipient TEXT NOT NULL,
-    destination TEXT,
-    notes TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS finances (
-    id BIGSERIAL PRIMARY KEY,
-    type TEXT NOT NULL,
-    category TEXT NOT NULL,
-    amount NUMERIC NOT NULL,
-    date TEXT NOT NULL,
-    title TEXT NOT NULL,
-    partner_name TEXT,
-    payment_method TEXT,
-    status TEXT DEFAULT 'teljesult',
-    invoice_number TEXT,
-    cat_id TEXT,
-    foster_id TEXT,
-    notes TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS events (
-    id BIGSERIAL PRIMARY KEY,
-    cat_id TEXT REFERENCES cats(id) ON DELETE CASCADE,
-    type TEXT NOT NULL,
-    title TEXT NOT NULL,
-    date TEXT NOT NULL,
-    status TEXT DEFAULT 'esedekes',
-    cost NUMERIC DEFAULT 0,
-    notes TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW(),
-    created_by TEXT,
-    created_by_name TEXT,
-    updated_by TEXT,
-    updated_by_name TEXT
-);
-
-CREATE TABLE IF NOT EXISTS tnr_records (
-    id TEXT PRIMARY KEY,
-    cat_name_or_tag TEXT NOT NULL,
-    location_trapped TEXT,
-    trapped_date TEXT,
-    spayed_date TEXT,
-    released_date TEXT,
-    status TEXT DEFAULT 'befogva',
-    notes TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW(),
-    created_by TEXT,
-    created_by_name TEXT,
-    updated_by TEXT,
-    updated_by_name TEXT
-);
-
--- 2. ROW LEVEL SECURITY (RLS) BEKAPCSOLÁSA
-ALTER TABLE app_roles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE app_users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE cats ENABLE ROW LEVEL SECURITY;
-ALTER TABLE foster_parents ENABLE ROW LEVEL SECURITY;
-ALTER TABLE foster_supplies ENABLE ROW LEVEL SECURITY;
-ALTER TABLE foster_expenses ENABLE ROW LEVEL SECURITY;
-ALTER TABLE inventory ENABLE ROW LEVEL SECURITY;
-ALTER TABLE events ENABLE ROW LEVEL SECURITY;
-ALTER TABLE tnr_records ENABLE ROW LEVEL SECURITY;
-
--- 3. JOGOSULTSÁG ELLENŐRZŐ SEGÉDFUNKCIÓ (PL/pgSQL RLS HELPER)
-CREATE OR REPLACE FUNCTION check_user_permission(p_permission TEXT)
-RETURNS BOOLEAN AS $$
-DECLARE
-    v_user_id TEXT;
-    v_is_root BOOLEAN;
-    v_custom_perms JSONB;
-    v_role_perms JSONB;
-BEGIN
-    v_user_id := auth.uid()::text;
-    IF v_user_id IS NULL THEN
-        -- Anonim / Kódalapú fallback
-        RETURN TRUE;
-    END IF;
-
-    SELECT is_root, custom_permissions, r.permissions
-    INTO v_is_root, v_custom_perms, v_role_perms
-    FROM app_users u
-    LEFT JOIN app_roles r ON u.role_id = r.id
-    WHERE u.id = v_user_id;
-
-    IF v_is_root IS TRUE THEN
-        RETURN TRUE;
-    END IF;
-
-    IF v_custom_perms ? p_permission THEN
-        RETURN (v_custom_perms->>p_permission)::boolean;
-    END IF;
-
-    IF v_role_perms ? p_permission THEN
-        RETURN (v_role_perms->>p_permission)::boolean;
-    END IF;
-
-    RETURN FALSE;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- 4. RLS POLICIES (MÁSOLHATÓ SUPABASE SZABÁLYOK)
-
--- CATS (ÁLLATOK)
-DROP POLICY IF EXISTS "cats_select_policy" ON cats;
-CREATE POLICY "cats_select_policy" ON cats FOR SELECT USING (check_user_permission('animal.read'));
-
-DROP POLICY IF EXISTS "cats_insert_policy" ON cats;
-CREATE POLICY "cats_insert_policy" ON cats FOR INSERT WITH CHECK (check_user_permission('animal.create'));
-
-DROP POLICY IF EXISTS "cats_update_policy" ON cats;
-CREATE POLICY "cats_update_policy" ON cats FOR UPDATE USING (check_user_permission('animal.update'));
-
-DROP POLICY IF EXISTS "cats_delete_policy" ON cats;
-CREATE POLICY "cats_delete_policy" ON cats FOR DELETE USING (check_user_permission('animal.delete'));
-
--- FOSTER PARENTS & SUPPLIES & EXPENSES (BEFOGADÓ HÁLÓZAT)
-DROP POLICY IF EXISTS "foster_parents_select_policy" ON foster_parents;
-CREATE POLICY "foster_parents_select_policy" ON foster_parents FOR SELECT USING (check_user_permission('foster.read'));
-DROP POLICY IF EXISTS "foster_parents_insert_policy" ON foster_parents;
-CREATE POLICY "foster_parents_insert_policy" ON foster_parents FOR INSERT WITH CHECK (check_user_permission('foster.create'));
-DROP POLICY IF EXISTS "foster_parents_update_policy" ON foster_parents;
-CREATE POLICY "foster_parents_update_policy" ON foster_parents FOR UPDATE USING (check_user_permission('foster.update'));
-DROP POLICY IF EXISTS "foster_parents_delete_policy" ON foster_parents;
-CREATE POLICY "foster_parents_delete_policy" ON foster_parents FOR DELETE USING (check_user_permission('foster.delete'));
-
-DROP POLICY IF EXISTS "foster_supplies_select_policy" ON foster_supplies;
-CREATE POLICY "foster_supplies_select_policy" ON foster_supplies FOR SELECT USING (check_user_permission('foster.read'));
-DROP POLICY IF EXISTS "foster_supplies_insert_policy" ON foster_supplies;
-CREATE POLICY "foster_supplies_insert_policy" ON foster_supplies FOR INSERT WITH CHECK (check_user_permission('foster.create'));
-
-DROP POLICY IF EXISTS "foster_expenses_select_policy" ON foster_expenses;
-CREATE POLICY "foster_expenses_select_policy" ON foster_expenses FOR SELECT USING (check_user_permission('foster.read'));
-DROP POLICY IF EXISTS "foster_expenses_insert_policy" ON foster_expenses;
-CREATE POLICY "foster_expenses_insert_policy" ON foster_expenses FOR INSERT WITH CHECK (check_user_permission('foster.create'));
-
--- EVENTS (EGÉSZSÉGÜGYI ESEMÉNYEK)
-DROP POLICY IF EXISTS "events_select_policy" ON events;
-CREATE POLICY "events_select_policy" ON events FOR SELECT USING (check_user_permission('health.read'));
-
-DROP POLICY IF EXISTS "events_insert_policy" ON events;
-CREATE POLICY "events_insert_policy" ON events FOR INSERT WITH CHECK (check_user_permission('health.create'));
-
-DROP POLICY IF EXISTS "events_update_policy" ON events;
-CREATE POLICY "events_update_policy" ON events FOR UPDATE USING (check_user_permission('health.update'));
-
-DROP POLICY IF EXISTS "events_delete_policy" ON events;
-CREATE POLICY "events_delete_policy" ON events FOR DELETE USING (check_user_permission('health.delete'));
-
--- TNR (BEFOGÁS - IVARTALANÍTÁS)
-DROP POLICY IF EXISTS "tnr_select_policy" ON tnr_records;
-CREATE POLICY "tnr_select_policy" ON tnr_records FOR SELECT USING (check_user_permission('tnr.read'));
-
-DROP POLICY IF EXISTS "tnr_insert_policy" ON tnr_records;
-CREATE POLICY "tnr_insert_policy" ON tnr_records FOR INSERT WITH CHECK (check_user_permission('tnr.create'));
-
-DROP POLICY IF EXISTS "tnr_update_policy" ON tnr_records;
-CREATE POLICY "tnr_update_policy" ON tnr_records FOR UPDATE USING (check_user_permission('tnr.update'));
-
-DROP POLICY IF EXISTS "tnr_delete_policy" ON tnr_records;
-CREATE POLICY "tnr_delete_policy" ON tnr_records FOR DELETE USING (check_user_permission('tnr.delete'));
-
--- USERS (FELHASZNÁLÓK & SZEREPKÖRÖK)
-DROP POLICY IF EXISTS "users_select_policy" ON app_users;
-CREATE POLICY "users_select_policy" ON app_users FOR SELECT USING (check_user_permission('users.read'));
-
-DROP POLICY IF EXISTS "users_insert_policy" ON app_users;
-CREATE POLICY "users_insert_policy" ON app_users FOR INSERT WITH CHECK (check_user_permission('users.create'));
-
-DROP POLICY IF EXISTS "users_update_policy" ON app_users;
-CREATE POLICY "users_update_policy" ON app_users FOR UPDATE USING (check_user_permission('users.update'));
-
-DROP POLICY IF EXISTS "users_delete_policy" ON app_users;
-CREATE POLICY "users_delete_policy" ON app_users FOR DELETE USING (check_user_permission('users.delete'));
-
--- 5. ALAPÉRTELMEZETT SZEREPKÖRÖK ÉS SEED ADATOK
-INSERT INTO app_roles (id, name, description, is_system, permissions) VALUES
-('ROOT', 'Rendszergazda (ROOT)', 'Teljes hozzáférés minden modulhoz és beállításhoz', true, '{"animal.read":true,"animal.create":true,"animal.update":true,"animal.delete":true,"health.read":true,"health.create":true,"health.update":true,"health.delete":true,"tnr.read":true,"tnr.create":true,"tnr.update":true,"tnr.delete":true,"foster.read":true,"foster.create":true,"foster.update":true,"foster.delete":true,"finance.read":true,"finance.create":true,"finance.update":true,"finance.delete":true,"users.read":true,"users.create":true,"users.update":true,"users.delete":true}'::jsonb),
-('OWNER', 'Alapítványi Vezető (OWNER)', 'Minden funkció kezelése a felületen', true, '{"animal.read":true,"animal.create":true,"animal.update":true,"animal.delete":true,"health.read":true,"health.create":true,"health.update":true,"health.delete":true,"tnr.read":true,"tnr.create":true,"tnr.update":true,"tnr.delete":true,"foster.read":true,"foster.create":true,"foster.update":true,"foster.delete":true,"finance.read":true,"finance.create":true,"finance.update":true,"finance.delete":true,"users.read":true,"users.create":true,"users.update":true}'::jsonb),
-('STAFF', 'Munkatárs / Gondozó (STAFF)', 'Állat és egészségügyi adatok kezelése', true, '{"animal.read":true,"animal.create":true,"animal.update":true,"animal.delete":false,"health.read":true,"health.create":true,"health.update":true,"health.delete":false,"tnr.read":true,"tnr.create":true,"tnr.update":true,"tnr.delete":false,"foster.read":true,"foster.create":true,"foster.update":true,"foster.delete":false}'::jsonb)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO app_users (id, name, pin_code, role_id, is_root) VALUES
-('usr_root', 'Root Adminisztrátor', '1342', 'ROOT', true)
-ON CONFLICT (id) DO NOTHING;`;
-
-                      navigator.clipboard.writeText(sqlScript);
-                      setSqlCopied(true);
-                      setTimeout(() => setSqlCopied(false), 3000);
-                    }}
-                    className={`px-3 py-1.5 font-extrabold text-[11px] rounded-xl transition cursor-pointer flex items-center gap-1 shrink-0 ${
-                      sqlCopied
-                        ? 'bg-emerald-600 text-white shadow-md'
-                        : 'bg-sky-600 hover:bg-sky-500 text-white'
-                    }`}
-                  >
-                    {sqlCopied ? '✅ SQL Másolva!' : '📋 SQL Másolása Vágólapra'}
-                  </button>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      onClick={() => {
+                        const sqlScript = generateFullSupabaseSchemaSql();
+                        navigator.clipboard.writeText(sqlScript);
+                        setSqlCopied(true);
+                        setTimeout(() => setSqlCopied(false), 3000);
+                      }}
+                      className={`px-3 py-1.5 font-extrabold text-[11px] rounded-xl transition cursor-pointer flex items-center gap-1 shrink-0 ${
+                        sqlCopied
+                          ? 'bg-emerald-600 text-white shadow-md'
+                          : 'bg-sky-600 hover:bg-sky-500 text-white'
+                      }`}
+                    >
+                      {sqlCopied ? '✅ SQL Másolva!' : '📋 Másolás vágólapra'}
+                    </button>
+                    <button
+                      onClick={() => {
+                        const sqlScript = generateFullSupabaseSchemaSql();
+                        const blob = new Blob([sqlScript], { type: 'text/plain;charset=utf-8' });
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = `cica-nyt-full-supabase-schema-v${APP_VERSION}.sql`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
+                      }}
+                      className="px-3 py-1.5 font-extrabold text-[11px] rounded-xl transition cursor-pointer flex items-center gap-1 shrink-0 bg-indigo-600 hover:bg-indigo-500 text-white"
+                    >
+                      📥 Letöltés .sql fájlként
+                    </button>
+                  </div>
                 </div>
 
-                <div className="p-2.5 bg-black/90 rounded-lg text-emerald-400 font-mono text-[10px] max-h-56 overflow-y-auto border border-slate-800">
+                <div className="p-2.5 bg-black/90 rounded-lg text-emerald-400 font-mono text-[10px] max-h-64 overflow-y-auto border border-slate-800">
                   <pre className="whitespace-pre-wrap break-all leading-tight">
-{`-- SUPABASE / POSTGRESQL RLS (ROW LEVEL SECURITY)
--- Másold ki és illeszd be a Supabase SQL Editorba:
-
-ALTER TABLE cats ENABLE ROW LEVEL SECURITY;
-ALTER TABLE events ENABLE ROW LEVEL SECURITY;
-ALTER TABLE tnr_records ENABLE ROW LEVEL SECURITY;
-
-CREATE OR REPLACE FUNCTION check_user_permission(p_permission TEXT)
-RETURNS BOOLEAN AS $$
-...
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- RLS POLICIES FOR ANIMAL, HEALTH, TNR, USERS
-CREATE POLICY "cats_select_policy" ON cats FOR SELECT USING (check_user_permission('animal.read'));
-CREATE POLICY "cats_insert_policy" ON cats FOR INSERT WITH CHECK (check_user_permission('animal.create'));
-CREATE POLICY "cats_update_policy" ON cats FOR UPDATE USING (check_user_permission('animal.update'));
-CREATE POLICY "cats_delete_policy" ON cats FOR DELETE USING (check_user_permission('animal.delete'));
-...`}
+                    {generateFullSupabaseSchemaSql()}
                   </pre>
                 </div>
               </div>
