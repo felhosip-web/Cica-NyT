@@ -1,5 +1,13 @@
 [
   {
+    "version": "2.25.1",
+    "date": "2026-10-08",
+    "changes": [
+      "🔍 Raktárkészlet forrástípus szűrő bővítése 'Egyéb' (📝) opcióval",
+      "🛠️ Verziószám és PWA gyorsítótár egységesítés v2.25.1-re"
+    ]
+  },
+  {
     "version": "2.25.0",
     "date": "2026-10-08",
     "changes": [

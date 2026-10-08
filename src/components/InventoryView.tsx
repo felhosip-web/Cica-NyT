@@ -10,7 +10,7 @@ export const InventoryView: React.FC = () => {
   const inventoryItems = (useLiveQuery(() => db.inventory.toArray(), []) || []) as InventoryItem[];
 
   const [directionFilter, setDirectionFilter] = useState<'all' | InventoryDirection>('all');
-  const [sourceFilter, setSourceFilter] = useState<'all' | 'adomany_hozott' | 'adomany_gyujtott' | 'sajat_kor'>('all');
+  const [sourceFilter, setSourceFilter] = useState<'all' | 'adomany_hozott' | 'adomany_gyujtott' | 'sajat_kor' | 'egyeb'>('all');
   const [categoryFilter, setCategoryFilter] = useState<'all' | InventoryCategory>('all');
   const [expiryFilter, setExpiryFilter] = useState<'all' | 'expired' | 'expiring_soon'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -872,6 +872,19 @@ export const InventoryView: React.FC = () => {
               }`}
             >
               <span>🛒 Vásárolt</span>
+            </button>
+            <button
+              onClick={() => {
+                setDirectionFilter('bejovo');
+                setSourceFilter('egyeb');
+              }}
+              className={`px-3 py-1 rounded-xl text-xs font-extrabold transition cursor-pointer shrink-0 flex items-center gap-1 ${
+                sourceFilter === 'egyeb'
+                  ? 'bg-slate-700 text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-800 hover:bg-slate-200 border border-slate-300'
+              }`}
+            >
+              <span>📝 Egyéb</span>
             </button>
           </div>
         )}
