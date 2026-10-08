@@ -36,7 +36,7 @@ export const InventoryFormModal: React.FC<InventoryFormModalProps> = ({
     itemToEdit?.itemType || 'nedves_tap'
   );
   const [sourceType, setSourceType] = useState<InventorySourceType>(
-    itemToEdit?.sourceType || 'adomany'
+    itemToEdit?.sourceType || 'adomany_hozott'
   );
   const [date, setDate] = useState<string>(
     itemToEdit?.date || new Date().toISOString().split('T')[0]
@@ -323,23 +323,38 @@ export const InventoryFormModal: React.FC<InventoryFormModalProps> = ({
               <label className="block text-xs font-black text-emerald-950">
                 🎁 Bejövő Forrás Típusa:
               </label>
-              <div className="grid grid-cols-2 gap-2">
-                <label className={`p-2 rounded-xl border text-xs font-bold flex items-center gap-2 cursor-pointer transition ${
-                  sourceType === 'adomany'
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <label className={`p-2 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition ${
+                  sourceType === 'adomany_hozott' || sourceType === 'adomany'
                     ? 'bg-emerald-600 text-white border-emerald-700 shadow-xs'
                     : 'bg-white text-slate-800 border-slate-300 hover:bg-slate-50'
                 }`}>
                   <input
                     type="radio"
                     name="sourceType"
-                    value="adomany"
-                    checked={sourceType === 'adomany'}
-                    onChange={() => setSourceType('adomany')}
+                    value="adomany_hozott"
+                    checked={sourceType === 'adomany_hozott' || sourceType === 'adomany'}
+                    onChange={() => setSourceType('adomany_hozott')}
                     className="sr-only"
                   />
-                  <span>🎁 Adomány</span>
+                  <span>🎁 Behozott adomány</span>
                 </label>
-                <label className={`p-2 rounded-xl border text-xs font-bold flex items-center gap-2 cursor-pointer transition ${
+                <label className={`p-2 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition ${
+                  sourceType === 'adomany_gyujtott'
+                    ? 'bg-emerald-600 text-white border-emerald-700 shadow-xs'
+                    : 'bg-white text-slate-800 border-slate-300 hover:bg-slate-50'
+                }`}>
+                  <input
+                    type="radio"
+                    name="sourceType"
+                    value="adomany_gyujtott"
+                    checked={sourceType === 'adomany_gyujtott'}
+                    onChange={() => setSourceType('adomany_gyujtott')}
+                    className="sr-only"
+                  />
+                  <span>📦 Gyűjtött adomány</span>
+                </label>
+                <label className={`p-2 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition ${
                   sourceType === 'sajat_kor'
                     ? 'bg-emerald-600 text-white border-emerald-700 shadow-xs'
                     : 'bg-white text-slate-800 border-slate-300 hover:bg-slate-50'
@@ -352,20 +367,22 @@ export const InventoryFormModal: React.FC<InventoryFormModalProps> = ({
                     onChange={() => setSourceType('sajat_kor')}
                     className="sr-only"
                   />
-                  <span>🛒 Vett (saját/menhelyi)</span>
+                  <span>🛒 Vásárolt</span>
                 </label>
               </div>
 
               <div className="pt-1">
                 <label className="block text-xs font-black text-emerald-950 mb-1">
-                  🤝 Forrás / Honnan / Kitől (Bolt / Szállító):
+                  🤝 Forrás / Honnan / Kitől (Adományozó / Akció / Bolt / Szállító):
                 </label>
                 <input
                   type="text"
                   placeholder={
-                    sourceType === 'adomany'
-                      ? 'pl. Cuki Táp Kft adományozó, vagy Kovács Éva'
-                      : 'pl. Fressnapf, Alpha-Vet, AlphaZoo, saját vásárlás'
+                    sourceType === 'sajat_kor'
+                      ? 'pl. Fressnapf, Alpha-Vet, AlphaZoo, saját vásárlás'
+                      : sourceType === 'adomany_gyujtott'
+                      ? 'pl. Tápgyűjtő akció - Auchan Miskolc'
+                      : 'pl. Kovács Éva magánszemély adományozó'
                   }
                   value={sourceOrRecipient}
                   onChange={(e) => setSourceOrRecipient(e.target.value)}

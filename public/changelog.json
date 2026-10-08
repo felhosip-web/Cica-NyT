@@ -1,5 +1,15 @@
 [
   {
+    "version": "2.25.0",
+    "date": "2026-10-08",
+    "changes": [
+      "📦 Raktárkészlet bejövő forráskövetés fejlesztése: Behozott adomány (🎁), Gyűjtött adomány (📦) és Vásárolt (🛒) forrástípusok megkülönböztetése",
+      "📝 Kézi bevételezés űrlap frissítés és visszamenőleges kompatibilitás a korábbi adomány jelölésekkel",
+      "🔍 Raktárkészlet szűrősáv bővítése bejövő forrástípus szűrő gombokkal (Mind / Behozott / Gyűjtött / Vásárolt)",
+      "🎁 Adománygyűjtő akciók manuális raktárba vezetésének pontosítása 'Gyűjtött adomány' forrástípussal"
+    ]
+  },
+  {
     "version": "2.24.0",
     "date": "2026-10-06",
     "changes": [

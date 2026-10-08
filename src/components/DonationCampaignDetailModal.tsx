@@ -22,6 +22,7 @@ import {
   InventoryCategory
 } from '../types';
 import { db } from '../lib/db';
+import { syncService } from '../services/sync-service';
 import { CustomSelect } from './CustomSelect';
 
 interface DonationCampaignDetailModalProps {
@@ -189,18 +190,19 @@ export const DonationCampaignDetailModal: React.FC<DonationCampaignDetailModalPr
 
       for (const item of items) {
         const invCategory = categoryMap[item.category] || 'egyeb';
-        await db.table('inventory').add({
+        await syncService.queueInventorySync({
           direction: 'bejovo',
           itemType: invCategory,
-          sourceType: 'adomany',
+          sourceType: 'adomany_gyujtott',
           brandOrName: item.nameOrBrand || categoryLabels[item.category],
           quantity: Number(item.quantity),
-          unit: item.unit,
+          unit: item.unit as any,
           date: today,
           sourceOrRecipient: `Adományakció: ${campaign.name} (${campaign.location})`,
           notes: item.notes ? `Akció tétel: ${item.notes}` : `Gyűjtve: ${campaign.name}`,
           syncStatus: 'pending',
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
         });
       }
 
