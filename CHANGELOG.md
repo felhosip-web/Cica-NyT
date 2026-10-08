@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.28.0] - 2026-10-08
+
+### Fixed / Javítva
+- **💳 Pénzügyi Modul & Hivatalos Nyomtatási/PDF Rendszer Átfogó Audit (`docs/FINANCE_AUDIT.md`)**:
+  - Valódi `db.finances` főkönyv PDF exportálása a `PdfReportsModal`-ban cica adatok helyett.
+  - Magyar ékezetes karakterek megőrzése (`á, é, í, ó, ö, ú, ü`) a PDF generálóban.
+  - Nyomtatási nézet frissítése dinamikus szervezetnévvel (`orgName`), felhasználói névvel, timestamp-el és kötelező jogi disclaimerrel.
+  - Granuláris pénzügyi jogosultságok (`finance.read`, `finance.create`, `finance.update`, `finance.delete`) érvényesítése a felületen.
+
 ## [2.27.0] - 2026-10-08
 
 ### Fixed / Javítva

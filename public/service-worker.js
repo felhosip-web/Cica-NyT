@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cica-nyt-v2.27.0';
+const CACHE_NAME = 'cica-nyt-v2.28.0';
 const STATIC_ASSETS = [
     '/',
     '/index.html',

@@ -1,5 +1,16 @@
 [
   {
+    "version": "2.28.0",
+    "date": "2026-10-08",
+    "changes": [
+      "💳 Pénzügyi modul & Hivatalos nyomtatási/PDF rendszer átfogó auditálása (`docs/FINANCE_AUDIT.md`)",
+      "📄 Valódi pénzügyi főkönyv PDF exportálása (`db.finances`) tételekkel, kategóriákkal és mérleggel a PdfReportsModal-ban",
+      "🇭🇺 Magyar diakritikus ékezetkezelés javítása a PDF generálóban (`á, é, í, ó, ö, ú, ü` megőrzése)",
+      "🖨️ Nyomtatási nézet javítása: dinamikus szervezetnév (`orgName`), felhasználó/szerepkör, timestamp és kötelező jogi disclaimer",
+      "🛡️ Pénzügyi jogosultságok (`finance.read`, `finance.create`, `finance.update`, `finance.delete`) érvényesítése a felületen"
+    ]
+  },
+  {
     "version": "2.27.0",
     "date": "2026-10-08",
     "changes": [
