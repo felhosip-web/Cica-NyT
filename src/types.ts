@@ -476,14 +476,19 @@ export type InventoryUnit =
   | 'doboz'
   | 'pipetta'
   | 'tabletta';
-export type InventorySourceType = 'adomany' | 'sajat_kor' | 'egyeb';
+export type InventorySourceType =
+  | 'adomany_hozott'
+  | 'adomany_gyujtott'
+  | 'sajat_kor'
+  | 'egyeb'
+  | 'adomany'; // Legacy fallback alias for adomany_hozott
 
 export interface InventoryItem extends AuditInfo {
   id?: number | string;
   catId?: string; // Kapcsolódó cica ID (ha közvetlenül cicához rendelt)
   direction: InventoryDirection; // 'bejovo' (Bejövő) | 'kimeno' (Kimenő)
   itemType: InventoryCategory; // Kategória
-  sourceType?: InventorySourceType; // 'adomany' (Adomány) | 'sajat_kor' (Vett saját költségén) | 'egyeb'
+  sourceType?: InventorySourceType; // 'adomany_hozott' | 'adomany_gyujtott' | 'sajat_kor' | 'egyeb' | 'adomany'
   brandOrName?: string; // pl. "Royal Canin Kitten", "Milprazon tabletta", "Advocate csepp"
   quantity: number; // Mennyiség
   unit: InventoryUnit; // Egység

@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../lib/db';
-import { InventoryItem, InventoryDirection, InventoryCategory } from '../types';
+import { InventoryItem, InventoryDirection, InventoryCategory, InventorySourceType } from '../types';
+import { getInventorySourceLabel } from '../utils/inventoryUtils';
 import { InventoryFormModal } from './InventoryFormModal';
 import { CustomSelect } from './CustomSelect';
 
@@ -9,6 +10,7 @@ export const InventoryView: React.FC = () => {
   const inventoryItems = (useLiveQuery(() => db.inventory.toArray(), []) || []) as InventoryItem[];
 
   const [directionFilter, setDirectionFilter] = useState<'all' | InventoryDirection>('all');
+  const [sourceFilter, setSourceFilter] = useState<'all' | 'adomany_hozott' | 'adomany_gyujtott' | 'sajat_kor' | 'egyeb'>('all');
   const [categoryFilter, setCategoryFilter] = useState<'all' | InventoryCategory>('all');
   const [expiryFilter, setExpiryFilter] = useState<'all' | 'expired' | 'expiring_soon'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -216,6 +218,13 @@ export const InventoryView: React.FC = () => {
     return inventoryItems
       .filter((item) => {
         if (directionFilter !== 'all' && item.direction !== directionFilter) return false;
+        if (sourceFilter !== 'all') {
+          if (sourceFilter === 'adomany_hozott') {
+            if (item.sourceType && item.sourceType !== 'adomany_hozott' && item.sourceType !== 'adomany') return false;
+          } else if (item.sourceType !== sourceFilter) {
+            return false;
+          }
+        }
         if (categoryFilter !== 'all' && item.itemType !== categoryFilter) return false;
 
         // Expiry filter
@@ -258,7 +267,7 @@ export const InventoryView: React.FC = () => {
         // default date_desc
         return new Date(b.date).getTime() - new Date(a.date).getTime();
       });
-  }, [inventoryItems, directionFilter, categoryFilter, expiryFilter, searchQuery, sortBy]);
+  }, [inventoryItems, directionFilter, sourceFilter, categoryFilter, expiryFilter, searchQuery, sortBy]);
 
   const handleDelete = async (id?: number | string) => {
     if (!id) return;
@@ -751,7 +760,10 @@ export const InventoryView: React.FC = () => {
           {/* Direction Filter Tabs */}
           <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-2xl border border-slate-200 self-start md:self-auto shrink-0">
             <button
-              onClick={() => setDirectionFilter('all')}
+              onClick={() => {
+                setDirectionFilter('all');
+                setSourceFilter('all');
+              }}
               className={`px-3 py-1.5 rounded-xl font-extrabold text-xs transition cursor-pointer ${
                 directionFilter === 'all'
                   ? 'bg-white text-slate-900 shadow-xs'
@@ -772,7 +784,10 @@ export const InventoryView: React.FC = () => {
               <span>({balances.totalInbound})</span>
             </button>
             <button
-              onClick={() => setDirectionFilter('kimeno')}
+              onClick={() => {
+                setDirectionFilter('kimeno');
+                setSourceFilter('all');
+              }}
               className={`px-3 py-1.5 rounded-xl font-extrabold text-xs transition cursor-pointer flex items-center gap-1 ${
                 directionFilter === 'kimeno'
                   ? 'bg-blue-600 text-white shadow-xs'
@@ -804,6 +819,75 @@ export const InventoryView: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Inbound Source Filter Chips (if Inbound or All) */}
+        {(directionFilter === 'all' || directionFilter === 'bejovo') && (
+          <div className="flex items-center gap-2 pt-2 border-t border-slate-100 overflow-x-auto no-scrollbar pb-1">
+            <span className="text-xs font-black text-slate-500 shrink-0">Bejövő Forrás:</span>
+            <button
+              onClick={() => setSourceFilter('all')}
+              className={`px-3 py-1 rounded-xl text-xs font-extrabold transition cursor-pointer shrink-0 ${
+                sourceFilter === 'all'
+                  ? 'bg-emerald-800 text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              Mind
+            </button>
+            <button
+              onClick={() => {
+                setDirectionFilter('bejovo');
+                setSourceFilter('adomany_hozott');
+              }}
+              className={`px-3 py-1 rounded-xl text-xs font-extrabold transition cursor-pointer shrink-0 flex items-center gap-1 ${
+                sourceFilter === 'adomany_hozott'
+                  ? 'bg-purple-700 text-white shadow-xs'
+                  : 'bg-purple-50 text-purple-900 hover:bg-purple-100 border border-purple-200'
+              }`}
+            >
+              <span>🎁 Behozott adomány</span>
+            </button>
+            <button
+              onClick={() => {
+                setDirectionFilter('bejovo');
+                setSourceFilter('adomany_gyujtott');
+              }}
+              className={`px-3 py-1 rounded-xl text-xs font-extrabold transition cursor-pointer shrink-0 flex items-center gap-1 ${
+                sourceFilter === 'adomany_gyujtott'
+                  ? 'bg-amber-700 text-white shadow-xs'
+                  : 'bg-amber-50 text-amber-900 hover:bg-amber-100 border border-amber-200'
+              }`}
+            >
+              <span>📦 Gyűjtött adomány</span>
+            </button>
+            <button
+              onClick={() => {
+                setDirectionFilter('bejovo');
+                setSourceFilter('sajat_kor');
+              }}
+              className={`px-3 py-1 rounded-xl text-xs font-extrabold transition cursor-pointer shrink-0 flex items-center gap-1 ${
+                sourceFilter === 'sajat_kor'
+                  ? 'bg-emerald-700 text-white shadow-xs'
+                  : 'bg-emerald-50 text-emerald-900 hover:bg-emerald-100 border border-emerald-200'
+              }`}
+            >
+              <span>🛒 Vásárolt</span>
+            </button>
+            <button
+              onClick={() => {
+                setDirectionFilter('bejovo');
+                setSourceFilter('egyeb');
+              }}
+              className={`px-3 py-1 rounded-xl text-xs font-extrabold transition cursor-pointer shrink-0 flex items-center gap-1 ${
+                sourceFilter === 'egyeb'
+                  ? 'bg-slate-700 text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-800 hover:bg-slate-200 border border-slate-300'
+              }`}
+            >
+              <span>📝 Egyéb</span>
+            </button>
+          </div>
+        )}
 
         {/* 8 Category Selection Pills */}
         <div className="flex items-center gap-2 pt-2 border-t border-slate-100 overflow-x-auto no-scrollbar pb-1">
@@ -941,6 +1025,8 @@ export const InventoryView: React.FC = () => {
               const catBadge = getCategoryBadge(item.itemType);
               const expiryBadge = getExpiryStatus(item.expiryDate);
 
+              const sourceLabelInfo = isBejovo ? getInventorySourceLabel(item.sourceType) : null;
+
               return (
                 <div
                   key={item.id}
@@ -954,23 +1040,21 @@ export const InventoryView: React.FC = () => {
                           : 'bg-blue-100 text-blue-900 border border-blue-300'
                       }`}
                     >
-                      {isBejovo ? '📥' : '📤'}
+                      {isBejovo ? (sourceLabelInfo?.icon || '📥') : '📤'}
                     </div>
 
                     <div className="space-y-1.5 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        {/* Direction Badge */}
+                        {/* Direction / Source Badge */}
                         <span
-                          className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                          className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider border ${
                             isBejovo
-                              ? 'bg-emerald-700 text-white'
-                              : 'bg-blue-700 text-white'
+                              ? sourceLabelInfo?.badgeClass || 'bg-emerald-700 text-white border-emerald-800'
+                              : 'bg-blue-700 text-white border-blue-800'
                           }`}
                         >
                           {isBejovo
-                            ? item.sourceType === 'sajat_kor'
-                              ? '🛒 Saját Vásárlás'
-                              : '🎁 Adomány'
+                            ? `${sourceLabelInfo?.icon || '📥'} ${sourceLabelInfo?.label || 'Bejövő'}`
                             : '📤 Kimenő Kiadás'}
                         </span>
 
