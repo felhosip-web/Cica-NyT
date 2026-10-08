@@ -220,7 +220,7 @@ export const InventoryView: React.FC = () => {
         if (directionFilter !== 'all' && item.direction !== directionFilter) return false;
         if (sourceFilter !== 'all') {
           if (sourceFilter === 'adomany_hozott') {
-            if (item.sourceType !== 'adomany_hozott' && item.sourceType !== 'adomany') return false;
+            if (item.sourceType && item.sourceType !== 'adomany_hozott' && item.sourceType !== 'adomany') return false;
           } else if (item.sourceType !== sourceFilter) {
             return false;
           }
@@ -267,7 +267,7 @@ export const InventoryView: React.FC = () => {
         // default date_desc
         return new Date(b.date).getTime() - new Date(a.date).getTime();
       });
-  }, [inventoryItems, directionFilter, categoryFilter, expiryFilter, searchQuery, sortBy]);
+  }, [inventoryItems, directionFilter, sourceFilter, categoryFilter, expiryFilter, searchQuery, sortBy]);
 
   const handleDelete = async (id?: number | string) => {
     if (!id) return;
