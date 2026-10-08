@@ -168,9 +168,9 @@ export const SupabaseRbacSection: React.FC = () => {
     },
     {
       id: 'finance',
-      name: 'Pénzügyek & Kiadások (Finance / Expenses)',
+      name: 'Pénzügyek & Kiadások (Finance / Finances)',
       icon: '💰',
-      table: 'expenses',
+      table: 'finances',
       color: 'emerald',
       operations: [
         { op: 'read', label: 'Olvasás (Read)', badge: 'READ', sqlOp: 'SELECT', permKey: 'finance.read', desc: 'Kiadások és pénzügyi kimutatások olvasása' },

@@ -325,16 +325,19 @@ CREATE TABLE IF NOT EXISTS public.settings (
 -- ====================================================================
 
 INSERT INTO public.app_roles (id, name, description, is_system, permissions) VALUES
-('ROOT', 'Rendszergazda (ROOT)', 'Teljes hozzáférés minden modulhoz és beállításhoz', true, '{"animal.read":true,"animal.create":true,"animal.update":true,"animal.delete":true,"health.read":true,"health.create":true,"health.update":true,"health.delete":true,"tnr.read":true,"tnr.create":true,"tnr.update":true,"tnr.delete":true,"foster.read":true,"foster.create":true,"foster.update":true,"foster.delete":true,"finance.read":true,"finance.create":true,"finance.update":true,"finance.delete":true,"users.read":true,"users.create":true,"users.update":true,"users.delete":true}'::jsonb),
-('OWNER', 'Alapítványi Vezető (OWNER)', 'Minden funkció kezelése a felületen', true, '{"animal.read":true,"animal.create":true,"animal.update":true,"animal.delete":true,"health.read":true,"health.create":true,"health.update":true,"health.delete":true,"tnr.read":true,"tnr.create":true,"tnr.update":true,"tnr.delete":true,"foster.read":true,"foster.create":true,"foster.update":true,"foster.delete":true,"finance.read":true,"finance.create":true,"finance.update":true,"finance.delete":true,"users.read":true,"users.create":true,"users.update":true}'::jsonb),
-('STAFF', 'Munkatárs / Gondozó (STAFF)', 'Állat és egészségügyi adatok kezelése', true, '{"animal.read":true,"animal.create":true,"animal.update":true,"animal.delete":false,"health.read":true,"health.create":true,"health.update":true,"health.delete":false,"tnr.read":true,"tnr.create":true,"tnr.update":true,"tnr.delete":false,"foster.read":true,"foster.create":true,"foster.update":true,"foster.delete":false,"finance.read":true,"finance.create":true,"finance.update":false,"finance.delete":false}'::jsonb)
+('root', '👑 ROOT / Főadminisztrátor', 'Korlátlan hozzáférés a teljes rendszerhez, adatbázishoz, beállításokhoz és jogosultságkezeléshez.', true, '{"animal.read":true,"animal.create":true,"animal.update":true,"animal.delete":true,"health.read":true,"health.create":true,"health.update":true,"health.delete":true,"tnr.read":true,"tnr.create":true,"tnr.update":true,"tnr.delete":true,"finance.read":true,"finance.create":true,"finance.update":true,"finance.delete":true,"users.read":true,"users.create":true,"users.update":true,"users.delete":true}'::jsonb),
+('owner', '🏆 OWNER / Menhely Vezető', 'A menhely / egyesület tulajdonosa. Teljes üzleti hozzáférés: Állatok CRUD, Egészségügy CRUD, TNR CRUD, Pénzügy CRUD, Felhasználók CRUD, Beállítások CRUD.', true, '{"animal.read":true,"animal.create":true,"animal.update":true,"animal.delete":true,"health.read":true,"health.create":true,"health.update":true,"health.delete":true,"tnr.read":true,"tnr.create":true,"tnr.update":true,"tnr.delete":true,"finance.read":true,"finance.create":true,"finance.update":true,"finance.delete":true,"users.read":true,"users.create":true,"users.update":true,"users.delete":true}'::jsonb),
+('staff', '🩺 STAFF / Munkatárs', 'Gondozó / munkatárs: Állatok CRUD, Egészségügy CRUD, TNR CRUD, Pénzügy Read (korlátozott olvasás), Felhasználókezelés nélkül.', true, '{"animal.read":true,"animal.create":true,"animal.update":true,"animal.delete":true,"health.read":true,"health.create":true,"health.update":true,"health.delete":true,"tnr.read":true,"tnr.create":true,"tnr.update":true,"tnr.delete":true,"finance.read":true,"finance.create":false,"finance.update":false,"finance.delete":false,"users.read":false,"users.create":false,"users.update":false,"users.delete":false}'::jsonb),
+('foster', '🏡 FOSTER / Ideiglenes Befogadó', 'Ideiglenes befogadó: Állatok Read/Update, Egészségügy Read/Update, TNR Read, Pénzügy -, Felhasználók -.', true, '{"animal.read":true,"animal.create":false,"animal.update":true,"animal.delete":false,"health.read":true,"health.create":true,"health.update":true,"health.delete":false,"tnr.read":true,"tnr.create":false,"tnr.update":false,"tnr.delete":false,"finance.read":false,"finance.create":false,"finance.update":false,"finance.delete":false,"users.read":false,"users.create":false,"users.update":false,"users.delete":false}'::jsonb),
+('volunteer', '🤝 VOLUNTEER / Önkéntes', 'Önkéntes segítő: Állatok Read/Korlátozott Update, Egészségügy Read, TNR Read/Create, Pénzügy -, Felhasználók -.', true, '{"animal.read":true,"animal.create":false,"animal.update":true,"animal.delete":false,"health.read":true,"health.create":false,"health.update":false,"health.delete":false,"tnr.read":true,"tnr.create":true,"tnr.update":false,"tnr.delete":false,"finance.read":false,"finance.create":false,"finance.update":false,"finance.delete":false,"users.read":false,"users.create":false,"users.update":false,"users.delete":false}'::jsonb),
+('guest', '👁️ GUEST / Vendég (Olvasó)', 'Vendég / Látogató: Kizárólag olvasási jogosultság (Állatok R, Egészségügy R, TNR R).', true, '{"animal.read":true,"animal.create":false,"animal.update":false,"animal.delete":false,"health.read":true,"health.create":false,"health.update":false,"health.delete":false,"tnr.read":true,"tnr.create":false,"tnr.update":false,"tnr.delete":false,"finance.read":false,"finance.create":false,"finance.update":false,"finance.delete":false,"users.read":false,"users.create":false,"users.update":false,"users.delete":false}'::jsonb)
 ON CONFLICT (id) DO UPDATE SET
     name = EXCLUDED.name,
     description = EXCLUDED.description,
     permissions = EXCLUDED.permissions;
 
 INSERT INTO public.app_users (id, name, pin_code, role_id, is_root) VALUES
-('usr_root', 'Root Adminisztrátor', '1342', 'ROOT', true)
+('usr_root', 'Root Adminisztrátor', '1342', 'root', true)
 ON CONFLICT (id) DO NOTHING;
 
 -- ====================================================================
@@ -421,6 +424,32 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- 6. GRANULÁRIS RLS POLICIES (MÁSOLHATÓ SUPABASE SZABÁLYOK)
 -- ====================================================================
 
+-- APP ROLES (SZEREPKÖRÖK)
+DROP POLICY IF EXISTS "roles_select_policy" ON public.app_roles;
+CREATE POLICY "roles_select_policy" ON public.app_roles FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "roles_insert_policy" ON public.app_roles;
+CREATE POLICY "roles_insert_policy" ON public.app_roles FOR INSERT WITH CHECK (public.check_user_permission('users.create'));
+
+DROP POLICY IF EXISTS "roles_update_policy" ON public.app_roles;
+CREATE POLICY "roles_update_policy" ON public.app_roles FOR UPDATE USING (public.check_user_permission('users.update'));
+
+DROP POLICY IF EXISTS "roles_delete_policy" ON public.app_roles;
+CREATE POLICY "roles_delete_policy" ON public.app_roles FOR DELETE USING (public.check_user_permission('users.delete'));
+
+-- USERS (FELHASZNÁLÓK & PROFILOK)
+DROP POLICY IF EXISTS "users_select_policy" ON public.app_users;
+CREATE POLICY "users_select_policy" ON public.app_users FOR SELECT USING (public.check_user_permission('users.read'));
+
+DROP POLICY IF EXISTS "users_insert_policy" ON public.app_users;
+CREATE POLICY "users_insert_policy" ON public.app_users FOR INSERT WITH CHECK (public.check_user_permission('users.create'));
+
+DROP POLICY IF EXISTS "users_update_policy" ON public.app_users;
+CREATE POLICY "users_update_policy" ON public.app_users FOR UPDATE USING (public.check_user_permission('users.update'));
+
+DROP POLICY IF EXISTS "users_delete_policy" ON public.app_users;
+CREATE POLICY "users_delete_policy" ON public.app_users FOR DELETE USING (public.check_user_permission('users.delete'));
+
 -- CATS (ÁLLATOK)
 DROP POLICY IF EXISTS "cats_select_policy" ON public.cats;
 CREATE POLICY "cats_select_policy" ON public.cats FOR SELECT USING (public.check_user_permission('animal.read'));
@@ -434,18 +463,57 @@ CREATE POLICY "cats_update_policy" ON public.cats FOR UPDATE USING (public.check
 DROP POLICY IF EXISTS "cats_delete_policy" ON public.cats;
 CREATE POLICY "cats_delete_policy" ON public.cats FOR DELETE USING (public.check_user_permission('animal.delete'));
 
+-- CAT WEIGHTS (CICA SÚLY MÉRÉSEK)
+DROP POLICY IF EXISTS "cat_weights_select_policy" ON public.cat_weights;
+CREATE POLICY "cat_weights_select_policy" ON public.cat_weights FOR SELECT USING (public.check_user_permission('animal.read'));
+
+DROP POLICY IF EXISTS "cat_weights_insert_policy" ON public.cat_weights;
+CREATE POLICY "cat_weights_insert_policy" ON public.cat_weights FOR INSERT WITH CHECK (public.check_user_permission('health.create'));
+
+DROP POLICY IF EXISTS "cat_weights_update_policy" ON public.cat_weights;
+CREATE POLICY "cat_weights_update_policy" ON public.cat_weights FOR UPDATE USING (public.check_user_permission('health.update'));
+
+DROP POLICY IF EXISTS "cat_weights_delete_policy" ON public.cat_weights;
+CREATE POLICY "cat_weights_delete_policy" ON public.cat_weights FOR DELETE USING (public.check_user_permission('health.delete'));
+
 -- FOSTER PARENTS (BEFOGADÓ HÁLÓZAT)
 DROP POLICY IF EXISTS "foster_parents_select_policy" ON public.foster_parents;
-CREATE POLICY "foster_parents_select_policy" ON public.foster_parents FOR SELECT USING (public.check_user_permission('foster.read'));
+CREATE POLICY "foster_parents_select_policy" ON public.foster_parents FOR SELECT USING (public.check_user_permission('animal.read'));
 
 DROP POLICY IF EXISTS "foster_parents_insert_policy" ON public.foster_parents;
-CREATE POLICY "foster_parents_insert_policy" ON public.foster_parents FOR INSERT WITH CHECK (public.check_user_permission('foster.create'));
+CREATE POLICY "foster_parents_insert_policy" ON public.foster_parents FOR INSERT WITH CHECK (public.check_user_permission('animal.create'));
 
 DROP POLICY IF EXISTS "foster_parents_update_policy" ON public.foster_parents;
-CREATE POLICY "foster_parents_update_policy" ON public.foster_parents FOR UPDATE USING (public.check_user_permission('foster.update'));
+CREATE POLICY "foster_parents_update_policy" ON public.foster_parents FOR UPDATE USING (public.check_user_permission('animal.update'));
 
 DROP POLICY IF EXISTS "foster_parents_delete_policy" ON public.foster_parents;
-CREATE POLICY "foster_parents_delete_policy" ON public.foster_parents FOR DELETE USING (public.check_user_permission('foster.delete'));
+CREATE POLICY "foster_parents_delete_policy" ON public.foster_parents FOR DELETE USING (public.check_user_permission('animal.delete'));
+
+-- FOSTER SUPPLIES (BEFOGADÓI ELLÁTMÁNYOK)
+DROP POLICY IF EXISTS "foster_supplies_select_policy" ON public.foster_supplies;
+CREATE POLICY "foster_supplies_select_policy" ON public.foster_supplies FOR SELECT USING (public.check_user_permission('animal.read'));
+
+DROP POLICY IF EXISTS "foster_supplies_insert_policy" ON public.foster_supplies;
+CREATE POLICY "foster_supplies_insert_policy" ON public.foster_supplies FOR INSERT WITH CHECK (public.check_user_permission('animal.create'));
+
+DROP POLICY IF EXISTS "foster_supplies_update_policy" ON public.foster_supplies;
+CREATE POLICY "foster_supplies_update_policy" ON public.foster_supplies FOR UPDATE USING (public.check_user_permission('animal.update'));
+
+DROP POLICY IF EXISTS "foster_supplies_delete_policy" ON public.foster_supplies;
+CREATE POLICY "foster_supplies_delete_policy" ON public.foster_supplies FOR DELETE USING (public.check_user_permission('animal.delete'));
+
+-- FOSTER EXPENSES (BEFOGADÓI KIADÁSOK)
+DROP POLICY IF EXISTS "foster_expenses_select_policy" ON public.foster_expenses;
+CREATE POLICY "foster_expenses_select_policy" ON public.foster_expenses FOR SELECT USING (public.check_user_permission('finance.read'));
+
+DROP POLICY IF EXISTS "foster_expenses_insert_policy" ON public.foster_expenses;
+CREATE POLICY "foster_expenses_insert_policy" ON public.foster_expenses FOR INSERT WITH CHECK (public.check_user_permission('finance.create'));
+
+DROP POLICY IF EXISTS "foster_expenses_update_policy" ON public.foster_expenses;
+CREATE POLICY "foster_expenses_update_policy" ON public.foster_expenses FOR UPDATE USING (public.check_user_permission('finance.update'));
+
+DROP POLICY IF EXISTS "foster_expenses_delete_policy" ON public.foster_expenses;
+CREATE POLICY "foster_expenses_delete_policy" ON public.foster_expenses FOR DELETE USING (public.check_user_permission('finance.delete'));
 
 -- EVENTS (EGÉSZSÉGÜGYI ESEMÉNYEK)
 DROP POLICY IF EXISTS "events_select_policy" ON public.events;
@@ -459,6 +527,19 @@ CREATE POLICY "events_update_policy" ON public.events FOR UPDATE USING (public.c
 
 DROP POLICY IF EXISTS "events_delete_policy" ON public.events;
 CREATE POLICY "events_delete_policy" ON public.events FOR DELETE USING (public.check_user_permission('health.delete'));
+
+-- EVENT TEMPLATES (ESEMÉNY SABLONOK)
+DROP POLICY IF EXISTS "event_templates_select_policy" ON public.event_templates;
+CREATE POLICY "event_templates_select_policy" ON public.event_templates FOR SELECT USING (public.check_user_permission('health.read'));
+
+DROP POLICY IF EXISTS "event_templates_insert_policy" ON public.event_templates;
+CREATE POLICY "event_templates_insert_policy" ON public.event_templates FOR INSERT WITH CHECK (public.check_user_permission('health.create'));
+
+DROP POLICY IF EXISTS "event_templates_update_policy" ON public.event_templates;
+CREATE POLICY "event_templates_update_policy" ON public.event_templates FOR UPDATE USING (public.check_user_permission('health.update'));
+
+DROP POLICY IF EXISTS "event_templates_delete_policy" ON public.event_templates;
+CREATE POLICY "event_templates_delete_policy" ON public.event_templates FOR DELETE USING (public.check_user_permission('health.delete'));
 
 -- TNR (BEFOGÁS - IVARTALANÍTÁS)
 DROP POLICY IF EXISTS "tnr_select_policy" ON public.tnr_records;
@@ -512,18 +593,44 @@ CREATE POLICY "campaigns_update_policy" ON public.donation_campaigns FOR UPDATE 
 DROP POLICY IF EXISTS "campaigns_delete_policy" ON public.donation_campaigns;
 CREATE POLICY "campaigns_delete_policy" ON public.donation_campaigns FOR DELETE USING (public.check_user_permission('finance.delete'));
 
--- USERS (FELHASZNÁLÓK & SZEREPKÖRÖK)
-DROP POLICY IF EXISTS "users_select_policy" ON public.app_users;
-CREATE POLICY "users_select_policy" ON public.app_users FOR SELECT USING (public.check_user_permission('users.read'));
+-- DONATION CAMPAIGN ITEMS (ADOMÁNY TÉTELEK)
+DROP POLICY IF EXISTS "campaign_items_select_policy" ON public.donation_campaign_items;
+CREATE POLICY "campaign_items_select_policy" ON public.donation_campaign_items FOR SELECT USING (public.check_user_permission('finance.read'));
 
-DROP POLICY IF EXISTS "users_insert_policy" ON public.app_users;
-CREATE POLICY "users_insert_policy" ON public.app_users FOR INSERT WITH CHECK (public.check_user_permission('users.create'));
+DROP POLICY IF EXISTS "campaign_items_insert_policy" ON public.donation_campaign_items;
+CREATE POLICY "campaign_items_insert_policy" ON public.donation_campaign_items FOR INSERT WITH CHECK (public.check_user_permission('finance.create'));
 
-DROP POLICY IF EXISTS "users_update_policy" ON public.app_users;
-CREATE POLICY "users_update_policy" ON public.app_users FOR UPDATE USING (public.check_user_permission('users.update'));
+DROP POLICY IF EXISTS "campaign_items_update_policy" ON public.donation_campaign_items;
+CREATE POLICY "campaign_items_update_policy" ON public.donation_campaign_items FOR UPDATE USING (public.check_user_permission('finance.update'));
 
-DROP POLICY IF EXISTS "users_delete_policy" ON public.app_users;
-CREATE POLICY "users_delete_policy" ON public.app_users FOR DELETE USING (public.check_user_permission('users.delete'));
+DROP POLICY IF EXISTS "campaign_items_delete_policy" ON public.donation_campaign_items;
+CREATE POLICY "campaign_items_delete_policy" ON public.donation_campaign_items FOR DELETE USING (public.check_user_permission('finance.delete'));
+
+-- AUTO BACKUPS (AUTOMATIKUS MENTÉSEK)
+DROP POLICY IF EXISTS "backups_select_policy" ON public.auto_backups;
+CREATE POLICY "backups_select_policy" ON public.auto_backups FOR SELECT USING (public.check_user_permission('users.read'));
+
+DROP POLICY IF EXISTS "backups_insert_policy" ON public.auto_backups;
+CREATE POLICY "backups_insert_policy" ON public.auto_backups FOR INSERT WITH CHECK (public.check_user_permission('users.create'));
+
+DROP POLICY IF EXISTS "backups_update_policy" ON public.auto_backups;
+CREATE POLICY "backups_update_policy" ON public.auto_backups FOR UPDATE USING (public.check_user_permission('users.update'));
+
+DROP POLICY IF EXISTS "backups_delete_policy" ON public.auto_backups;
+CREATE POLICY "backups_delete_policy" ON public.auto_backups FOR DELETE USING (public.check_user_permission('users.delete'));
+
+-- SETTINGS (RENDSZER BEÁLLÍTÁSOK)
+DROP POLICY IF EXISTS "settings_select_policy" ON public.settings;
+CREATE POLICY "settings_select_policy" ON public.settings FOR SELECT USING (public.check_user_permission('users.read'));
+
+DROP POLICY IF EXISTS "settings_insert_policy" ON public.settings;
+CREATE POLICY "settings_insert_policy" ON public.settings FOR INSERT WITH CHECK (public.check_user_permission('users.update'));
+
+DROP POLICY IF EXISTS "settings_update_policy" ON public.settings;
+CREATE POLICY "settings_update_policy" ON public.settings FOR UPDATE USING (public.check_user_permission('users.update'));
+
+DROP POLICY IF EXISTS "settings_delete_policy" ON public.settings;
+CREATE POLICY "settings_delete_policy" ON public.settings FOR DELETE USING (public.check_user_permission('users.delete'));
 
 -- ====================================================================
 -- 7. JOGOSULTSÁGOK A SUPABASE API RÉSZÉRE (GRANTS)

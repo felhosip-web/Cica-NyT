@@ -58,7 +58,6 @@ const DB_TABLES: TableInfo[] = [
   { name: 'cats', label: 'Állatnyilvántartás (cats)', icon: '🐾', rlsEnabled: true },
   { name: 'events', label: 'Egészségügyi Lapok (events)', icon: '🩺', rlsEnabled: true },
   { name: 'tnr_records', label: 'TNR Műtéti Akciók (tnr_records)', icon: '✂️', rlsEnabled: true },
-  { name: 'expenses', label: 'Kiadások (expenses)', icon: '💰', rlsEnabled: true },
   { name: 'app_users', label: 'Felhasználók (app_users)', icon: '🔑', rlsEnabled: true },
   { name: 'event_templates', label: 'Esemény Sablonok (event_templates)', icon: '📑', rlsEnabled: true },
   { name: 'foster_parents', label: 'Befogadók (foster_parents)', icon: '🏡', rlsEnabled: true },
@@ -87,11 +86,11 @@ const PERMISSION_NODES: PermKeyInfo[] = [
   { key: 'tnr.create', module: 'tnr_records', op: 'create', label: 'Új TNR Akció', table: 'tnr_records' },
   { key: 'tnr.update', module: 'tnr_records', op: 'update', label: 'TNR Módosítás', table: 'tnr_records' },
   { key: 'tnr.delete', module: 'tnr_records', op: 'delete', label: 'TNR Törlés', table: 'tnr_records' },
-  // Expenses
-  { key: 'finance.read', module: 'expenses', op: 'read', label: 'Pénzügyek Látása', table: 'expenses' },
-  { key: 'finance.create', module: 'expenses', op: 'create', label: 'Új Költség', table: 'expenses' },
-  { key: 'finance.update', module: 'expenses', op: 'update', label: 'Költség Módosítás', table: 'expenses' },
-  { key: 'finance.delete', module: 'expenses', op: 'delete', label: 'Költség Törlés', table: 'expenses' },
+  // Finances
+  { key: 'finance.read', module: 'finances', op: 'read', label: 'Pénzügyek Látása', table: 'finances' },
+  { key: 'finance.create', module: 'finances', op: 'create', label: 'Új Költség', table: 'finances' },
+  { key: 'finance.update', module: 'finances', op: 'update', label: 'Költség Módosítás', table: 'finances' },
+  { key: 'finance.delete', module: 'finances', op: 'delete', label: 'Költség Törlés', table: 'finances' },
   // Users
   { key: 'users.read', module: 'app_users', op: 'read', label: 'Felhasználók Látása', table: 'app_users' },
   { key: 'users.create', module: 'app_users', op: 'create', label: 'Új Felhasználó', table: 'app_users' },
@@ -331,7 +330,7 @@ export const VisualRbacCanvasModal: React.FC<Props> = ({ isOpen, onClose }) => {
       { name: 'Állatnyilvántartás (cats)', table: 'cats', readKey: 'animal.read', writeKeys: ['animal.create', 'animal.update', 'animal.delete'] as (keyof UserPermissions)[] },
       { name: 'Egészségügyi Lapok (events)', table: 'events', readKey: 'health.read', writeKeys: ['health.create', 'health.update', 'health.delete'] as (keyof UserPermissions)[] },
       { name: 'TNR Műtéti Akciók (tnr_records)', table: 'tnr_records', readKey: 'tnr.read', writeKeys: ['tnr.create', 'tnr.update', 'tnr.delete'] as (keyof UserPermissions)[] },
-      { name: 'Pénzügyek (expenses)', table: 'expenses', readKey: 'finance.read', writeKeys: ['finance.create', 'finance.update', 'finance.delete'] as (keyof UserPermissions)[] },
+      { name: 'Pénzügyek (finances)', table: 'finances', readKey: 'finance.read', writeKeys: ['finance.create', 'finance.update', 'finance.delete'] as (keyof UserPermissions)[] },
       { name: 'Felhasználók (app_users)', table: 'app_users', readKey: 'users.read', writeKeys: ['users.create', 'users.update', 'users.delete'] as (keyof UserPermissions)[] },
     ];
 

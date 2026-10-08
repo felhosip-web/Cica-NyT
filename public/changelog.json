@@ -1,5 +1,16 @@
 [
   {
+    "version": "2.26.0",
+    "date": "2026-10-08",
+    "changes": [
+      "🛡️ RBAC, Szerepkör és SQL RLS átfogó audit és hibajavítások (`docs/RBAC_AUDIT.md`)",
+      "🔑 Supabase SQL RLS role ID-k kisbetűsítése (`'root'`, `'owner'`, `'staff'`, `'foster'`, `'volunteer'`, `'guest'`) és mind a 6 gyári szerepkör beszúrása az adatbázis seed-be",
+      "📜 Hiánytalan RLS házirendek (SELECT/INSERT/UPDATE/DELETE) hozzáadása mind az 16 adatbázis táblához (`foster_supplies`, `foster_expenses`, `cat_weights`, `donation_campaign_items`, `event_templates`, `auto_backups`, `settings`, `app_roles`)",
+      "💰 Táblanév elnevezés szinkronizálása: `expenses` javítása `finances` névre az RBAC Mátrix és Drag-and-Drop Canvas felületeken",
+      "👥 Új felhasználó felvételekor az alapértelmezett szerepkör javítása `caregiver`-ről `staff`-ra"
+    ]
+  },
+  {
     "version": "2.25.1",
     "date": "2026-10-08",
     "changes": [
