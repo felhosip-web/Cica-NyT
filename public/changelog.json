@@ -1,5 +1,14 @@
 [
   {
+    "version": "2.27.0",
+    "date": "2026-10-08",
+    "changes": [
+      "📜 Licenckezelési rendszer és soft-lock architektúra átfogó auditálása (`docs/LICENSE_AUDIT.md`)",
+      "⚡ Reaktív `useLicenseStore` állapotfrissítés globális custom event feliratkozással (`cica-license-status-change`)",
+      "🛡️ Soft-lock írásvédelem (Dexie hooks), First-launch elfogadás és Root bypass működés megerősítése"
+    ]
+  },
+  {
     "version": "2.26.0",
     "date": "2026-10-08",
     "changes": [
