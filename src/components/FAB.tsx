@@ -12,7 +12,7 @@ export const FAB: React.FC<FABProps> = ({ onAddCat, onAddEvent }) => {
   const isCompactActive = footerMode === 'compact' || footerMode === 'both';
 
   return (
-    <div className={`fixed right-6 z-40 flex flex-col items-end gap-2 transition-all ${isCompactActive ? 'bottom-16' : 'bottom-6'}`}>
+    <div className={`fixed right-4 sm:right-6 z-40 flex flex-col items-end gap-2 transition-all pb-safe ${isCompactActive ? 'bottom-16 sm:bottom-16' : 'bottom-4 sm:bottom-6'}`}>
       {isOpen && (
         <div className="flex flex-col gap-2 items-end animate-in fade-in slide-in-from-bottom-2">
           <button

@@ -5,6 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.0] - 2026-10-06
+
+### Added
+- **🩺 Audit / Belső ellenőrzés modul (`SystemAuditPanel` & `runSystemHealthAudit`)**:
+  - Egykattintásos átfogó egészségügyi teszt a Beállítások menüben.
+  - Ellenőrzések: Környezet (APP_VERSION, online státusz, localStorage, IndexedDB), Adatbázis (kapcsolat, séma, táblák rekordszámai, adatintegritás, függőben lévő szinkronok), Zustand állapottár, Service Worker & PWA, Licenc státusz, Felhő beállítások (Supabase, Google Drive) és Tárhely kvóta.
+  - Összegző műszerfal (OK / FIGYELMEZTETÉS / HIBA számlálók), kategória szűrők, valamint Text és JSON formátumú riport exportálási lehetőség.
+  - Root módból elérhető biztonságos adatbázis javítási funkció hiányzó mezők pótlására.
+
+## [2.23.0] - 2026-10-06
+
+### Added
+- Teljes Supabase DDL & RLS séma generáló modul (`generateFullSupabaseSchemaSql()`), amely hiánytalan, azonnal futtatható SQL scriptet ad a Supabase SQL Editor számára (minden tábla, RLS szabály, segédfüggvény, seed adatok és indexek).
+- Átdolgozott "Teljes Supabase séma (SQL Editor)" szekció a Beállítások diagnosztika fülén, egykattintásos vágólapra másolási és `.sql` fájlként történő letöltési opcióval.
+
+### Improved
+- Egységesített SQL séma generálás a `SupabaseRbacSection` és `VisualRbacCanvasModal` komponensekben a kódduplikáció elkerülésére.
+
+## [2.22.0] - 2026-10-06
+
+### Improved
+- Mobile UX: forms, modals, bottom nav spacing, touch targets, list/filter layouts on small screens
+
+## [2.21.0] - 2026-10-06
+
+### Fixed
+- Fixed broken bump-version.js; package.json remains single source of truth for version
+
+### Added
+- Stronger cat form validation (chip 15 digits, date logic, required fields)
+- Duplicate warning for similar name / same chip on cat save
+
+### Changed
+- Replaced default README with proper Hungarian project README
+
 ## [2.20.0] - 2026-10-06
 
 ### Fixed

@@ -336,7 +336,7 @@ export const Footer: React.FC<FooterProps> = ({
 
       {/* Compact Fixed Bottom Bar */}
       {showCompact && (
-        <footer className="fixed bottom-0 left-0 right-0 z-30 bg-slate-950/95 backdrop-blur-md text-gray-200 border-t border-slate-800/80 px-3 sm:px-6 py-2.5 shadow-2xl transition-all">
+        <footer className="fixed bottom-0 left-0 right-0 z-30 bg-slate-950/95 backdrop-blur-md text-gray-200 border-t border-slate-800/80 px-2.5 sm:px-6 py-2.5 shadow-2xl transition-all pb-safe">
           <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4 text-xs">
             {/* Left side: Live counters */}
             <div className="flex items-center gap-2 sm:gap-4 overflow-x-auto no-scrollbar font-bold text-gray-300 text-[11px] sm:text-xs">

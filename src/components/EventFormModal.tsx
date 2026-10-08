@@ -267,8 +267,8 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl max-w-lg w-full p-4 sm:p-5 shadow-2xl space-y-4 max-h-[92vh] sm:max-h-[90vh] overflow-y-auto relative">
         <div className="flex items-center justify-between border-b pb-3">
           <h3 className="text-lg font-black text-gray-900 flex items-center gap-2">
             📅 {eventId ? 'Esemény Szerkesztése' : 'Új Esemény Rögzítése'}
@@ -325,7 +325,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
           </div>
 
           {/* Event Type & Status */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-gray-700 font-bold mb-1">🏷️ Típus:</label>
               <CustomSelect
@@ -363,7 +363,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
           </div>
 
           {/* Date & Cost */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-gray-700 font-bold mb-1">📅 Dátum:</label>
               <input
@@ -371,7 +371,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
                 required
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl font-semibold focus:ring-2 focus:ring-pink-500"
+                className="w-full p-2.5 min-h-[44px] bg-gray-50 border border-gray-300 rounded-xl font-semibold focus:ring-2 focus:ring-pink-500"
               />
             </div>
 
@@ -382,7 +382,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
                 value={cost}
                 onChange={(e) => setCost(e.target.value ? Number(e.target.value) : '')}
                 placeholder="0"
-                className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl font-bold font-mono text-emerald-800 focus:ring-2 focus:ring-pink-500"
+                className="w-full p-2.5 min-h-[44px] bg-gray-50 border border-gray-300 rounded-xl font-bold font-mono text-emerald-800 focus:ring-2 focus:ring-pink-500"
               />
             </div>
           </div>
@@ -468,12 +468,12 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
           )}
 
           {/* Buttons */}
-          <div className="pt-3 border-t flex items-center justify-between gap-2">
+          <div className="pt-3 border-t sticky bottom-0 bg-white z-10 pb-1 flex items-center justify-between gap-2">
             {eventId ? (
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirm(true)}
-                className="px-3.5 py-2 bg-red-100 hover:bg-red-200 text-red-700 font-extrabold rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5"
+                className="px-3.5 py-2 bg-red-100 hover:bg-red-200 text-red-700 font-extrabold rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 min-h-[44px]"
               >
                 <span>🗑️</span>
                 <span>Törlés</span>
@@ -484,13 +484,13 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-xl transition cursor-pointer"
+                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-xl transition cursor-pointer min-h-[44px]"
               >
                 Mégse
               </button>
               <button
                 type="submit"
-                className="px-5 py-2 bg-pink-600 hover:bg-pink-700 text-white font-extrabold rounded-xl shadow-xs transition cursor-pointer"
+                className="px-5 py-2 bg-pink-600 hover:bg-pink-700 text-white font-extrabold rounded-xl shadow-xs transition cursor-pointer min-h-[44px]"
               >
                 💾 Mentés
               </button>

@@ -187,9 +187,9 @@ export const CatList: React.FC<CatListProps> = ({ onOpenDetail, onEditCat, onAdd
         </div>
 
         {/* Filter Controls (Gender & Intake) */}
-        <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap sm:flex-nowrap">
+        <div className="grid grid-cols-1 sm:flex sm:items-center gap-2 w-full sm:w-auto">
           {/* Tag Filter Dropdown */}
-          <div className="min-w-[140px] flex-1 sm:flex-none">
+          <div className="w-full sm:min-w-[140px] sm:w-auto">
             <CustomSelect
               value={tagFilter}
               onChange={(val) => setTagFilter(val)}
@@ -199,11 +199,11 @@ export const CatList: React.FC<CatListProps> = ({ onOpenDetail, onEditCat, onAdd
               ]}
               title="🏷️ Címke szerinti szűrés"
               colorScheme="purple"
-              buttonClassName="text-xs font-semibold bg-gray-50 border border-gray-300 rounded-xl px-2.5 py-2 text-gray-700"
+              buttonClassName="text-xs font-semibold bg-gray-50 border border-gray-300 rounded-xl px-2.5 py-2 text-gray-700 w-full"
             />
           </div>
 
-          <div className="min-w-[120px] flex-1 sm:flex-none">
+          <div className="w-full sm:min-w-[120px] sm:w-auto">
             <CustomSelect
               value={genderFilter}
               onChange={(val) => setGenderFilter(val as any)}
@@ -214,11 +214,11 @@ export const CatList: React.FC<CatListProps> = ({ onOpenDetail, onEditCat, onAdd
               ]}
               title="Ivar szerinti szűrés"
               colorScheme="pink"
-              buttonClassName="text-xs font-semibold bg-gray-50 border border-gray-300 rounded-xl px-2.5 py-2 text-gray-700"
+              buttonClassName="text-xs font-semibold bg-gray-50 border border-gray-300 rounded-xl px-2.5 py-2 text-gray-700 w-full"
             />
           </div>
 
-          <div className="min-w-[130px] flex-1 sm:flex-none">
+          <div className="w-full sm:min-w-[130px] sm:w-auto">
             <CustomSelect
               value={intakeFilter}
               onChange={(val) => setIntakeFilter(val as any)}
@@ -231,7 +231,7 @@ export const CatList: React.FC<CatListProps> = ({ onOpenDetail, onEditCat, onAdd
               ]}
               title="📥 Bekerülés szerinti szűrés"
               colorScheme="indigo"
-              buttonClassName="text-xs font-semibold bg-gray-50 border border-gray-300 rounded-xl px-2.5 py-2 text-gray-700"
+              buttonClassName="text-xs font-semibold bg-gray-50 border border-gray-300 rounded-xl px-2.5 py-2 text-gray-700 w-full"
             />
           </div>
         </div>

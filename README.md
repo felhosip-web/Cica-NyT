@@ -1,31 +1,60 @@
-# Cica-NyT
-**Macska nyilvántartó és menedzsment rendszer állatvédő szervezeteknek**
+# Cica-NyT — Macska nyilvántartó állatvédő szervezeteknek
 
-Offline-first macska nyilvántartó, ideiglenes befogadó hálózat, készlet- és pénzügyi menedzsment rendszer (beleértve az Adó 1% felajánlásokat), adománygyűjtő akciók, automatikus biztonsági mentések és licenckezelés.
+A **Cica-NyT** egy offline-first felépítésű, webes és Progressive Web App (PWA) alapon működő nyilvántartó és menedzsment rendszer macskamentő egyesületek, alapítványok és menhelyek számára.
 
-## Főbb funkciók
-- 🐈 Macska nyilvántartás + címkék + események + szigorú adatvalidáció & duplikáció-szűrés
-- 🏡 Ideiglenes befogadó hálózat
-- 📦 Táp & alom készletkezelés
-- 🎁 Adománygyűjtő akciók
-- 💳 Pénzügyi modul (bevételek/kiadások, Adó 1% felajánlás)
-- ☁️ Google Drive + Supabase mentés / szinkron (élő szinkron állapot átláthatóság)
-- 🔑 Licenckezelés + soft-lock + Service kód
-- 📱 PWA támogatás
+🔗 **Élő weboldal / PWA:** [https://felhosip-web.github.io/Cica-NyT/](https://felhosip-web.github.io/Cica-NyT/)
 
-## Futtatás helyben
-Prerequisites: Node.js
+---
 
-1. `npm install`
-2. Másold az `.env.example`-t `.env.local`-ra és töltsd ki a szükséges kulcsokat (ha kell)
-3. `npm run dev`
+## 🌟 Főbb funkciók
 
-## Licenc
+- 🐈 **Macska nyilvántartás:** Részletes adatlapon kezelhető macska profilok, szigorú adatvalidáció (15 jegyű mikrochipszám, dátum-logika), automatikus duplikáció-szűrés, orvosi napló (oltások, ivartalanítás, kezelések) és egyedi állapotcímkék.
+- 🏡 **Ideiglenes befogadó hálózat:** Befogadók kapacitásának, a hozzájuk rendelhető macskáknak, ellátási igényeiknek és támogatásaiknak nyomon követése.
+- 📦 **Táp & alom készletkezelés:** Bejövő adományok és saját vásárlások, valamint kimenő készletmozgások pontos nyilvántartása (nedves/száraz táp, alom).
+- 💳 **Pénzügyi modul (beleértve az Adó 1%-ot):** Bevételek és kiadások tételes rögzítése, kategorizálás, bizonylatszámok, Adó 1% felajánlások dedikált nyilvántartása és pénzügyi kimutatások.
+- 🎁 **Adománygyűjtő akciók:** Akciók indítása, beérkezett adományok tételes rögzítése és raktárkészletbe vezetése.
+- ☁️ **Mentés & Szinkronizáció:** Helyi offline tárolás (IndexedDB/Dexie.js), automatikus és manuális biztonsági mentések helyben, Google Drive integráció, valamint Supabase felhőszinkronizáció élő állapotkövetéssel.
+- 🔑 **Licenckezelés:** Kliensoldali algoritmus-alapú licencellenőrzés, soft-lock írásvédelem, First-launch licencelfogadás és Service kódos távoli segítségnyújtás.
+- 📱 **Progressive Web App (PWA):** Telepíthető mobilra és asztali számítógépre, teljes offline működéssel és automatikus frissítéssel.
+
+---
+
+## 🚀 Futtatás helyben
+
+### Előfeltételek
+- **Node.js** (v18 vagy újabb ajánlott)
+- **npm** (v9 vagy újabb)
+
+### Lépések
+
+1. Telepítsd a függőségeket:
+   ```bash
+   npm install
+   ```
+
+2. Szükség esetén hozz létre helyi környezeti változókat az `.env.example` alapján:
+   ```bash
+   cp .env.example .env.local
+   ```
+
+3. Indítsd el a fejlesztői szervert:
+   ```bash
+   npm run dev
+   ```
+
+4. Nyisd meg a böngészőben a megjelenő címet (alapértelmezetten: `http://localhost:3000/Cica-NyT/`).
+
+---
+
+## 📜 Licenc
+
 © 2025-2026 HES Projects® by FePe
 All Rights Reserved.
 
-A szoftver tulajdonosi (proprietary). A forráskód átláthatóság és audit céljából elérhető.
-Részletek: lásd a `LICENSE` fájlt.
+Részletekért lásd a [LICENSE](LICENSE) fájlt.
 
-## Verzió
-Jelenlegi verzió: **2.16.0**
+---
+
+## 🏷️ Jelenlegi verzió
+
+**v2.22.0**

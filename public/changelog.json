@@ -1,5 +1,44 @@
 [
   {
+    "version": "2.24.0",
+    "date": "2026-10-06",
+    "changes": [
+      "🩺 Audit / Belső ellenőrzés modul (`SystemAuditPanel` & `runSystemHealthAudit`) egykattintásos átfogó egészségügyi teszttel a Beállítások menüben",
+      "📊 Területek ellenőrzése: Környezet (APP_VERSION, online status, localStorage, IndexedDB), Adatbázis (kapcsolat, séma, rekordszámok, adatintegritás, függőben lévő szinkronok), Zustand store, Service Worker & PWA, Licenc status, Felhő beállítások és Tárhely kvóta",
+      "📋 Összegző műszerfal (OK / FIGYELMEZTETÉS / HIBA számlálók), kategória szűrők, Text és JSON riport exportálás, valamint Root módból elérhető biztonságos adatbázis javítás"
+    ]
+  },
+  {
+    "version": "2.23.0",
+    "date": "2026-10-06",
+    "changes": [
+      "🛡️ Teljes Supabase DDL & RLS séma generáló modul (`generateFullSupabaseSchemaSql()`), hiánytalan, azonnal futtatható SQL scripttel a Supabase SQL Editorhoz",
+      "📜 Átdolgozott 'Teljes Supabase séma (SQL Editor)' szekció a Beállítások diagnosztika fülén vágólapra másolási és .sql fájl letöltési gombokkal",
+      "⚙️ Egységesített SQL séma generálás a SupabaseRbacSection és VisualRbacCanvasModal komponensekben"
+    ]
+  },
+  {
+    "version": "2.22.0",
+    "date": "2026-10-06",
+    "changes": [
+      "📱 Mobil UX felület optimalizálása: űrlapok, modalok, alsó navigációs sáv térközök",
+      "👆 Érintési célpontok és gombmagasságok növelése (min. ~44px)",
+      "📐 Egyoszlopos mobil elrendezés a túlzsúfolt 2-3 oszlopos rácsok helyett keskeny képernyőkön",
+      "📜 Görgethető modal törzs és rögzített (sticky) akciógombok (Mentés / Mégse) a képernyő alján",
+      "🔍 Szűrősávok és kártyák vízszintes törése és görgetése oldalirányú túlcsordulás nélkül"
+    ]
+  },
+  {
+    "version": "2.21.0",
+    "date": "2026-10-06",
+    "changes": [
+      "🛠️ Verzió szinkronizáció javítása (bump-version.js script újráírása)",
+      "📖 Teljes magyar nyelvű projekt README.md leírás elkészítése",
+      "🛡️ Erősebb cica adatvalidáció (15 jegyű mikrochip, dátum-logika, kötelező mezők)",
+      "🔍 Duplikáció szűrés megegyező chipszám és hasonló cica név esetén mentéskor"
+    ]
+  },
+  {
     "version": "2.16.0",
     "date": "2026-10-06",
     "changes": [
@@ -112,7 +151,7 @@
       "🛠️ PostgreSQL / SQL Dump Export (.sql): Szabványos SQL adatbázis mentés beszúró script generálás Supabase / PostgreSQL rendszerekhez",
       "💾 Célhely & Formátum Finomhangolás: Mentés helyi IndexedDB pillanatképekbe, Google Drive-ra, vagy mindkettőbe JSON és SQL formátumban",
       "🕒 Helyi Mentési Pontok Története & 1-Kattintásos Visszaállítás: Visszaállítási felület rekordszámokkal, előnézettel, letöltési opcióval és megerősítéssel",
-      "🔍 Mentési Validáció & Különbség-Elemzés: Visszaállítás előtti automatikus összehasonlítás a helyi adatbázis és a mentési fájl között (nettó eltérések, új, módosuló és felülíródó elemek)"
+      "🔍 Mentési Validáció & Különbség-Elemzés: Visszaállítás előtti automatikus összehasonlítás a helyi adatbázis és a mentési fájl között (nettó eltérések, új, módosuló és felülírt elemek)"
     ]
   },
   {

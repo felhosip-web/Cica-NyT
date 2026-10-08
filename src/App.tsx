@@ -88,7 +88,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 pb-20 font-sans overflow-x-clip max-w-full">
+    <div className="min-h-screen bg-slate-50 text-slate-800 pb-28 sm:pb-24 font-sans overflow-x-clip max-w-full">
       {/* First-launch mandatory license acceptance modal */}
       <LicenseAcceptanceModal
         isOpen={!termsAccepted}

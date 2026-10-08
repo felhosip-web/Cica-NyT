@@ -103,8 +103,8 @@ export const DonationCampaignFormModal: React.FC<DonationCampaignFormModalProps>
   ];
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
-      <div className="relative w-full max-w-lg bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden my-8">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
+      <div className="relative w-full max-w-lg bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 max-h-[92vh] sm:max-h-[90vh] overflow-y-auto my-4 sm:my-8">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-pink-500 to-rose-600 text-white">
           <div className="flex items-center gap-2">
@@ -226,18 +226,18 @@ export const DonationCampaignFormModal: React.FC<DonationCampaignFormModalProps>
           </div>
 
           {/* Buttons */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-700 sticky bottom-0 bg-white dark:bg-slate-800 z-10 pb-1">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors"
+              className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors min-h-[44px]"
             >
               Mégse
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2 text-sm font-semibold text-white bg-pink-600 hover:bg-pink-700 rounded-xl shadow-lg shadow-pink-500/20 transition-all disabled:opacity-50"
+              className="px-5 py-2 text-sm font-semibold text-white bg-pink-600 hover:bg-pink-700 rounded-xl shadow-lg shadow-pink-500/20 transition-all disabled:opacity-50 min-h-[44px]"
             >
               {isSubmitting ? 'Mentés...' : 'Mentés'}
             </button>

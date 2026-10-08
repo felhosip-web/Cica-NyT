@@ -226,8 +226,8 @@ export const InventoryFormModal: React.FC<InventoryFormModalProps> = ({
   const inputStyle = { colorScheme: 'light' as const };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
-      <div className="bg-white text-slate-900 rounded-3xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden my-auto animate-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
+      <div className="bg-white text-slate-900 rounded-3xl shadow-2xl border border-slate-200 w-full max-w-lg my-auto animate-in zoom-in-95 duration-150 max-h-[92vh] sm:max-h-[90vh] overflow-y-auto relative">
         {/* Header */}
         <div
           className={`p-4 sm:p-5 flex items-center justify-between rounded-t-3xl border-b ${
@@ -722,7 +722,7 @@ export const InventoryFormModal: React.FC<InventoryFormModalProps> = ({
           </div>
 
           {/* Actions */}
-          <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-200">
+          <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-200 sticky bottom-0 bg-white z-10 pb-1">
             <button
               type="button"
               onClick={onClose}

@@ -293,14 +293,14 @@ export const DonationCampaignsView: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-          <div className="w-40">
+          <div className="w-full sm:w-40">
             <CustomSelect
               options={statusOptions}
               value={statusFilter}
               onChange={(val) => setStatusFilter(val)}
             />
           </div>
-          <div className="w-40">
+          <div className="w-full sm:w-40">
             <CustomSelect
               options={dateOptions}
               value={dateFilter}
