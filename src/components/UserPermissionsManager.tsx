@@ -32,7 +32,7 @@ export const UserPermissionsManager: React.FC = () => {
   // --- User Form Modal State ---
   const [editingUser, setEditingUser] = useState<UserAccount | null | 'new'>(null);
   const [userName, setUserName] = useState('');
-  const [userRole, setUserRole] = useState('caregiver');
+  const [userRole, setUserRole] = useState('staff');
   const [userEmoji, setUserEmoji] = useState('🩺');
   const [userPin, setUserPin] = useState('');
   const [userEmail, setUserEmail] = useState('');
@@ -60,7 +60,7 @@ export const UserPermissionsManager: React.FC = () => {
   const handleOpenNewUserModal = () => {
     setEditingUser('new');
     setUserName('');
-    setUserRole('caregiver');
+    setUserRole('staff');
     setUserEmoji('🩺');
     setUserPin('');
     setUserEmail('');

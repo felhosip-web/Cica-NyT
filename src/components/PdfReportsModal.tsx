@@ -4,35 +4,22 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { db } from '../lib/db';
 import { useAppStore } from '../store/useAppStore';
-import { Cat, TnrRecord } from '../types';
+import { Cat, TnrRecord, FinancialTransaction } from '../types';
 import { CustomSelect } from './CustomSelect';
 
 interface PdfReportsModalProps {
   onClose: () => void;
 }
 
-// Convert Hungarian specific characters to closest ASCII match for standard jsPDF fonts
+// Convert Hungarian double-acute characters (ő, ű) to closest standard accents (ö, ü)
+// for standard jsPDF Helvetica font compatibility while preserving standard Hungarian accented vowels (á, é, í, ó, ö, ú, ü).
 const cleanText = (str?: string | null): string => {
   if (!str) return '';
   return str
     .replace(/ő/g, 'ö')
     .replace(/Ő/g, 'Ö')
     .replace(/ű/g, 'ü')
-    .replace(/Ű/g, 'Ü')
-    .replace(/á/g, 'a')
-    .replace(/Á/g, 'A')
-    .replace(/é/g, 'e')
-    .replace(/É/g, 'E')
-    .replace(/í/g, 'i')
-    .replace(/Í/g, 'I')
-    .replace(/ó/g, 'o')
-    .replace(/Ó/g, 'O')
-    .replace(/ö/g, 'o')
-    .replace(/Ö/g, 'O')
-    .replace(/ú/g, 'u')
-    .replace(/Ú/g, 'U')
-    .replace(/ü/g, 'u')
-    .replace(/Ü/g, 'U');
+    .replace(/Ű/g, 'Ü');
 };
 
 export const PdfReportsModal: React.FC<PdfReportsModalProps> = ({ onClose }) => {
@@ -66,21 +53,22 @@ export const PdfReportsModal: React.FC<PdfReportsModalProps> = ({ onClose }) => 
 
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // Fetch live cats & TNR records
+  // Fetch live cats, TNR records & finances
   const allCats = (useLiveQuery(() => db.cats.toArray(), []) || []) as Cat[];
   const allTnr = (useLiveQuery(() => db.tnr.toArray(), []) || []) as TnrRecord[];
+  const allFinances = (useLiveQuery(() => db.finances ? db.finances.toArray() : [], []) || []) as FinancialTransaction[];
 
   // Filter cats based on selected reportType
   const filteredCats = allCats.filter((cat) => {
     if (reportType === 'active') return cat.status !== 'gazdis' && cat.status !== 'elhunyt';
     if (reportType === 'adopted') return cat.status === 'gazdis';
-    if (reportType === 'financial') return true;
     return true; // 'all'
   });
 
   // Calculate stats
   const totalCatCount = filteredCats.length;
   const totalTnrCount = allTnr.length;
+  const totalFinanceCount = allFinances.length;
 
   const handleGeneratePdf = async () => {
     setIsGenerating(true);
@@ -170,8 +158,19 @@ export const PdfReportsModal: React.FC<PdfReportsModalProps> = ({ onClose }) => 
       let headCols: string[] = [];
       let bodyData: string[][] = [];
 
-      if (reportType === 'tnr') {
-        headCols = ['Azonosíto / Neve', 'Befogas Helyszine', 'Befogas Datuma', 'Befogo Szemely', 'Klinika / Orvos', 'Elengedve'];
+      if (reportType === 'financial') {
+        headCols = ['Dátum', 'Típus', 'Kategória', 'Megnevezés / Leírás', 'Partner / Adományozó', 'Számlaszám', 'Összeg (Ft)'];
+        bodyData = allFinances.map((fin) => [
+          fin.date || '-',
+          fin.type === 'bevetel' ? 'Bevétel' : 'Kiadás',
+          cleanText(fin.category || '-'),
+          cleanText(fin.title || '-'),
+          cleanText(fin.partnerName || '-'),
+          cleanText(fin.invoiceNumber || '-'),
+          `${fin.type === 'bevetel' ? '+' : '-'}${fin.amount?.toLocaleString('hu-HU') || '0'} Ft`,
+        ]);
+      } else if (reportType === 'tnr') {
+        headCols = ['Azonosító / Neve', 'Befogás Helyszíne', 'Befogás Dátuma', 'Befogó Személy', 'Klinika / Orvos', 'Elengedve'];
         bodyData = allTnr.map((t) => [
           cleanText(t.catNameOrTag || 'TNR Cica'),
           cleanText(t.locationTrapped || '-'),
@@ -578,7 +577,11 @@ export const PdfReportsModal: React.FC<PdfReportsModalProps> = ({ onClose }) => 
               <span>📊 Generálandó rekordok száma:</span>
             </span>
             <span className="text-sm font-black font-mono bg-pink-200 px-2.5 py-0.5 rounded-full">
-              {reportType === 'tnr' ? `${totalTnrCount} TNR rekord` : `${totalCatCount} cica rekord`}
+              {reportType === 'financial'
+                ? `${totalFinanceCount} pénzügyi tétel`
+                : reportType === 'tnr'
+                ? `${totalTnrCount} TNR rekord`
+                : `${totalCatCount} cica rekord`}
             </span>
           </div>
         </div>

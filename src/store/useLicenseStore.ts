@@ -20,18 +20,30 @@ interface LicenseStore extends LicenseState {
   acceptTerms: () => void;
 }
 
-export const useLicenseStore = create<LicenseStore>((set) => ({
-  ...getLicenseStatus(),
-  termsAccepted: isLicenseAccepted(),
-  termsAcceptedAt: getLicenseAcceptedAt(),
-
-  refreshStatus: () => {
-    set({
-      ...getLicenseStatus(),
-      termsAccepted: isLicenseAccepted(),
-      termsAcceptedAt: getLicenseAcceptedAt()
+export const useLicenseStore = create<LicenseStore>((set) => {
+  // Listen for global custom events to reactively refresh Zustand store state across components
+  if (typeof window !== 'undefined') {
+    window.addEventListener('cica-license-status-change', () => {
+      set({
+        ...getLicenseStatus(),
+        termsAccepted: isLicenseAccepted(),
+        termsAcceptedAt: getLicenseAcceptedAt()
+      });
     });
-  },
+  }
+
+  return {
+    ...getLicenseStatus(),
+    termsAccepted: isLicenseAccepted(),
+    termsAcceptedAt: getLicenseAcceptedAt(),
+
+    refreshStatus: () => {
+      set({
+        ...getLicenseStatus(),
+        termsAccepted: isLicenseAccepted(),
+        termsAcceptedAt: getLicenseAcceptedAt()
+      });
+    },
 
   saveKey: async (key: string) => {
     const success = await validateLicenseLocally(key);
@@ -70,4 +82,5 @@ export const useLicenseStore = create<LicenseStore>((set) => ({
       termsAcceptedAt: getLicenseAcceptedAt()
     });
   }
-}));
+  };
+});

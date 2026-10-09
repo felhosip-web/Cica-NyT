@@ -15,8 +15,15 @@ import {
   PAYMENT_METHOD_LABELS,
 } from './FinanceFormModal';
 import { CustomSelect } from './CustomSelect';
+import { useAppStore } from '../store/useAppStore';
 
 export const FinanceView: React.FC = () => {
+  const { orgName, getCurrentUser, hasPermission } = useAppStore();
+  const currentUser = getCurrentUser();
+
+  const canCreateFinance = hasPermission('finance.create');
+  const canUpdateFinance = hasPermission('finance.update');
+  const canDeleteFinance = hasPermission('finance.delete');
   // Database Live Queries
   const transactions = (useLiveQuery(() => db.finances ? db.finances.toArray() : [], []) || []) as FinancialTransaction[];
   const cats = (useLiveQuery(() => db.cats.toArray(), []) || []) as Cat[];
@@ -343,18 +350,22 @@ export const FinanceView: React.FC = () => {
 
         {/* Action buttons */}
         <div className="flex items-center gap-2 flex-wrap w-full md:w-auto">
-          <button
-            onClick={() => handleOpenNewModal('bevetel')}
-            className="flex-1 md:flex-none px-4 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs shadow-md transition cursor-pointer flex items-center justify-center gap-1.5"
-          >
-            <span>➕ Új Bevétel</span>
-          </button>
-          <button
-            onClick={() => handleOpenNewModal('kiadas')}
-            className="flex-1 md:flex-none px-4 py-2.5 rounded-2xl bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-extrabold text-xs shadow-md transition cursor-pointer flex items-center justify-center gap-1.5"
-          >
-            <span>➕ Új Kiadás</span>
-          </button>
+          {canCreateFinance && (
+            <button
+              onClick={() => handleOpenNewModal('bevetel')}
+              className="flex-1 md:flex-none px-4 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs shadow-md transition cursor-pointer flex items-center justify-center gap-1.5"
+            >
+              <span>➕ Új Bevétel</span>
+            </button>
+          )}
+          {canCreateFinance && (
+            <button
+              onClick={() => handleOpenNewModal('kiadas')}
+              className="flex-1 md:flex-none px-4 py-2.5 rounded-2xl bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-extrabold text-xs shadow-md transition cursor-pointer flex items-center justify-center gap-1.5"
+            >
+              <span>➕ Új Kiadás</span>
+            </button>
+          )}
           <button
             onClick={handleExportCSV}
             className="px-3.5 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-extrabold text-xs border border-slate-700/80 transition cursor-pointer flex items-center gap-1"
@@ -684,8 +695,8 @@ export const FinanceView: React.FC = () => {
 
       {/* Printable Report View Modal */}
       {showPrintReport && (
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 text-slate-100 space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 text-slate-100 space-y-4 print:bg-white print:text-slate-900 print:border-none print:p-0 print:shadow-none">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-800 print:hidden">
             <h2 className="text-lg font-black flex items-center gap-2">
               <span>📑 Nyomtatható Pénzügyi Összesítő Kimutatás</span>
             </h2>
@@ -705,19 +716,22 @@ export const FinanceView: React.FC = () => {
             </div>
           </div>
 
-          <div className="p-6 bg-white text-slate-900 rounded-2xl shadow-inner font-sans text-xs space-y-4 print:p-0">
+          <div className="p-6 bg-white text-slate-900 rounded-2xl shadow-inner font-sans text-xs space-y-4 print:p-0 print:shadow-none print:rounded-none">
             <div className="flex justify-between items-start border-b border-slate-300 pb-4">
               <div>
                 <h1 className="text-xl font-black uppercase tracking-tight text-slate-900">
-                  CatRescue Manager — Pénzügyi Kimutatás
+                  {orgName || 'Cica-NyT Macskamenhely Egyesület'}
                 </h1>
                 <p className="text-xs text-slate-600 font-bold mt-0.5">
-                  Civil Állatmentő Egyesület / Nyilvántartás
+                  Belső Pénzügyi Főkönyv & Tranzakciós Kimutatás
                 </p>
               </div>
-              <div className="text-right text-xs text-slate-600">
+              <div className="text-right text-xs text-slate-600 space-y-0.5">
                 <p>
-                  <strong>Készült:</strong> {new Date().toLocaleDateString('hu-HU')}
+                  <strong>Készült:</strong> {new Date().toLocaleString('hu-HU')}
+                </p>
+                <p>
+                  <strong>Nyomtatta:</strong> {currentUser?.name || 'Munkatárs'}
                 </p>
                 <p>
                   <strong>Időszak:</strong>{' '}
@@ -727,6 +741,8 @@ export const FinanceView: React.FC = () => {
                     ? 'Előző hónap'
                     : periodFilter === 'this_year'
                     ? 'Idei év'
+                    : periodFilter === 'custom'
+                    ? `Egyéni (${customStartDate || 'kezdete'} - ${customEndDate || 'mái nap'})`
                     : 'Teljes időszak'}
                 </p>
               </div>
@@ -763,12 +779,13 @@ export const FinanceView: React.FC = () => {
                   <th className="p-2 border border-slate-300">Kategória</th>
                   <th className="p-2 border border-slate-300">Megnevezés</th>
                   <th className="p-2 border border-slate-300">Partner / Adományozó</th>
+                  <th className="p-2 border border-slate-300">Számlaszám</th>
                   <th className="p-2 border border-slate-300 text-right">Összeg</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredTransactions.map((t) => (
-                  <tr key={t.id} className="border-b border-slate-200">
+                  <tr key={t.id} className={`border-b border-slate-200 ${t.status === 'storno' ? 'bg-slate-100 line-through text-slate-400' : ''}`}>
                     <td className="p-2 border border-slate-200 whitespace-nowrap">{t.date}</td>
                     <td className="p-2 border border-slate-200 font-bold">
                       {t.type === 'bevetel' ? 'Bevétel' : 'Kiadás'}
@@ -778,9 +795,14 @@ export const FinanceView: React.FC = () => {
                     </td>
                     <td className="p-2 border border-slate-200">{t.title}</td>
                     <td className="p-2 border border-slate-200">{t.partnerName || '-'}</td>
+                    <td className="p-2 border border-slate-200 font-mono text-[10px]">{t.invoiceNumber || '-'}</td>
                     <td
                       className={`p-2 border border-slate-200 font-black text-right whitespace-nowrap ${
-                        t.type === 'bevetel' ? 'text-emerald-700' : 'text-rose-700'
+                        t.status === 'storno'
+                          ? 'text-slate-400'
+                          : t.type === 'bevetel'
+                          ? 'text-emerald-700'
+                          : 'text-rose-700'
                       }`}
                     >
                       {t.type === 'bevetel' ? '+' : '-'}
@@ -790,6 +812,12 @@ export const FinanceView: React.FC = () => {
                 ))}
               </tbody>
             </table>
+
+            {/* Print Footer Disclaimer */}
+            <div className="pt-4 border-t border-slate-300 text-[10px] text-slate-500 flex justify-between items-center italic">
+              <span>Belső egyesületi pénzügyi kimutatás — nem minősül hivatalos számlának / NAV B2B dokumentumnak.</span>
+              <span>Generálva: Cica-NyT PWA</span>
+            </div>
           </div>
         </div>
       )}
@@ -949,20 +977,24 @@ export const FinanceView: React.FC = () => {
                         {/* Actions */}
                         <td className="py-3.5 px-4 text-center whitespace-nowrap">
                           <div className="flex items-center justify-center gap-1.5">
-                            <button
-                              onClick={() => handleEditTransaction(t)}
-                              className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer"
-                              title="Módosítás"
-                            >
-                              ✏️
-                            </button>
-                            <button
-                              onClick={() => handleDeleteTransaction(t.id)}
-                              className="p-1.5 rounded-xl bg-slate-800 hover:bg-rose-900/60 text-slate-300 hover:text-rose-300 transition cursor-pointer"
-                              title="Törlés"
-                            >
-                              🗑️
-                            </button>
+                            {canUpdateFinance && (
+                              <button
+                                onClick={() => handleEditTransaction(t)}
+                                className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer"
+                                title="Módosítás"
+                              >
+                                ✏️
+                              </button>
+                            )}
+                            {canDeleteFinance && (
+                              <button
+                                onClick={() => handleDeleteTransaction(t.id)}
+                                className="p-1.5 rounded-xl bg-slate-800 hover:bg-rose-900/60 text-slate-300 hover:text-rose-300 transition cursor-pointer"
+                                title="Törlés"
+                              >
+                                🗑️
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>

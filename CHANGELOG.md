@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.28.0] - 2026-10-08
+
+### Fixed / Javítva
+- **💳 Pénzügyi Modul & Hivatalos Nyomtatási/PDF Rendszer Átfogó Audit (`docs/FINANCE_AUDIT.md`)**:
+  - Valódi `db.finances` főkönyv PDF exportálása a `PdfReportsModal`-ban cica adatok helyett.
+  - Magyar ékezetes karakterek megőrzése (`á, é, í, ó, ö, ú, ü`) a PDF generálóban.
+  - Nyomtatási nézet frissítése dinamikus szervezetnévvel (`orgName`), felhasználói névvel, timestamp-el és kötelező jogi disclaimerrel.
+  - Granuláris pénzügyi jogosultságok (`finance.read`, `finance.create`, `finance.update`, `finance.delete`) érvényesítése a felületen.
+
+## [2.27.0] - 2026-10-08
+
+### Fixed / Javítva
+- **📜 Licenckezelési Rendszer & Soft-Lock Architektúra Átfogó Audit (`docs/LICENSE_AUDIT.md`)**:
+  - `useLicenseStore` állapotfrissítés feliratkoztatása a globális `cica-license-status-change` eseményre a reaktív felületi visszajelzéshez.
+  - Soft-lock írásvédelem (Dexie hooks), First-launch licencelfogadás és Root bypass biztonságos működésének ellenőrzése és megerősítése.
+
+## [2.26.0] - 2026-10-08
+
+### Fixed / Javítva
+- **🛡️ RBAC, Szerepkör és SQL RLS Átfogó Audit & Hibajavítások (`docs/RBAC_AUDIT.md`)**:
+  - Supabase SQL RLS role ID-k kisbetűsítése (`'root'`, `'owner'`, `'staff'`, `'foster'`, `'volunteer'`, `'guest'`) és mind a 6 gyári szerepkör beszúrása az adatbázis seed-be.
+  - Hiánytalan RLS házirendek (SELECT/INSERT/UPDATE/DELETE) hozzáadása mind az 16 adatbázis táblához (`foster_supplies`, `foster_expenses`, `cat_weights`, `donation_campaign_items`, `event_templates`, `auto_backups`, `settings`, `app_roles`).
+  - Pénzügyi modul táblanév elnevezésének szinkronizálása: `expenses` javítása `finances` névre az RBAC Mátrix és Drag-and-Drop Canvas felületeken.
+  - Új felhasználó felvételekor az alapértelmezett szerepkör javítása `caregiver`-ről `staff`-ra.
+
 ## [2.24.0] - 2026-10-06
 
 ### Added
