@@ -6,6 +6,7 @@ import { CatCard, Cat } from './CatCard';
 import { useAppStore, QuickFilterCardConfig, getCardStyles } from '../store/useAppStore';
 import { getTagStyle, getTagIcon } from '../utils/tagUtils';
 import { CustomSelect } from './CustomSelect';
+import { AnimalReportModal } from './AnimalReportModal';
 
 interface CatListProps {
   onOpenDetail: (catId: string) => void;
@@ -23,6 +24,7 @@ export const CatList: React.FC<CatListProps> = ({ onOpenDetail, onEditCat, onAdd
   const [genderFilter, setGenderFilter] = useState<'all' | 'bak' | 'nosteny'>('all');
   const [intakeFilter, setIntakeFilter] = useState<'all' | 'sajat' | 'befogott' | 'leadott' | 'elkobzott'>('all');
   const [tagFilter, setTagFilter] = useState<string>('all');
+  const [isAnimalReportOpen, setIsAnimalReportOpen] = useState<boolean>(false);
   const viewMode = catListViewMode;
 
   const allCats = useLiveQuery(() => db.cats.toArray(), []) || [];
@@ -69,11 +71,9 @@ export const CatList: React.FC<CatListProps> = ({ onOpenDetail, onEditCat, onAdd
 
   // Filter cats based on search, quick filter card, gender
   const filteredCats = allCats.filter((cat) => {
-    // Hide deceased by default unless explicitly filtering for deceased
     const isElhunytCardSelected = selectedCardId !== 'all' && activeCards.find((c) => c.id === selectedCardId)?.filterType === 'elhunyt';
     if (cat.status === 'elhunyt' && !isElhunytCardSelected && selectedCardId !== 'all') return false;
 
-    // Search query
     if (search) {
       const q = search.toLowerCase();
       const matchName = String(cat.nev || '').toLowerCase().includes(q);
@@ -85,15 +85,12 @@ export const CatList: React.FC<CatListProps> = ({ onOpenDetail, onEditCat, onAdd
       if (!matchName && !matchSorszam && !matchChip && !matchSzin && !matchIntake && !matchTag) return false;
     }
 
-    // Gender filter
     if (genderFilter !== 'all' && cat.ivar !== genderFilter) return false;
 
-    // Tag filter
     if (tagFilter !== 'all') {
       if (!Array.isArray(cat.tags) || !cat.tags.includes(tagFilter)) return false;
     }
 
-    // Intake filter
     if (intakeFilter !== 'all') {
       if (intakeFilter === 'sajat') {
         if (cat.intakeType && cat.intakeType !== 'sajat') return false;
@@ -102,7 +99,6 @@ export const CatList: React.FC<CatListProps> = ({ onOpenDetail, onEditCat, onAdd
       }
     }
 
-    // Quick filter card selection
     if (selectedCardId !== 'all') {
       const activeCard = activeCards.find((c) => c.id === selectedCardId);
       if (activeCard) {
@@ -186,8 +182,17 @@ export const CatList: React.FC<CatListProps> = ({ onOpenDetail, onEditCat, onAdd
           )}
         </div>
 
-        {/* Filter Controls (Gender & Intake) */}
+        {/* Filter Controls & Dedicated Animal Report Button */}
         <div className="grid grid-cols-1 sm:flex sm:items-center gap-2 w-full sm:w-auto">
+          <button
+            type="button"
+            onClick={() => setIsAnimalReportOpen(true)}
+            className="px-3.5 py-2 bg-purple-100 hover:bg-purple-200 text-purple-900 font-extrabold text-xs rounded-xl border border-purple-300 transition cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
+            title="Részletes Állatkimutatás Beállítások (PDF / ODS / ODT)"
+          >
+            <span>📋 Állatkimutatás</span>
+          </button>
+
           {/* Tag Filter Dropdown */}
           <div className="w-full sm:min-w-[140px] sm:w-auto">
             <CustomSelect
@@ -377,6 +382,11 @@ export const CatList: React.FC<CatListProps> = ({ onOpenDetail, onEditCat, onAdd
             </table>
           </div>
         </div>
+      )}
+
+      {/* Animal Report Settings Modal */}
+      {isAnimalReportOpen && (
+        <AnimalReportModal onClose={() => setIsAnimalReportOpen(false)} />
       )}
     </div>
   );

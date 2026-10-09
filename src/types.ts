@@ -579,6 +579,7 @@ export interface FinancialTransaction extends AuditInfo {
   fosterId?: string; // Kapcsolódó ideiglenes befogadó ID
   sourceModule?: FinanceSourceModule; // Honnan származik (kézi, orvosi esemény, készletvétel, befogadói költség, örökbefogadás)
   sourceReferenceId?: string | number; // Kapcsolódó forrásrekord ID-ja
+  stornoReason?: string; // Stornózás indoka (audit trail)
   notes?: string;
   syncStatus?: 'pending' | 'synced';
   createdAt?: string;

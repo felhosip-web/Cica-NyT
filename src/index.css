@@ -67,3 +67,28 @@
   --color-pink-900: #4c1d95;
   --color-pink-950: #2e1065;
 }
+
+@media print {
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  header, footer, nav, button, .no-print, [role="navigation"] {
+    display: none !important;
+  }
+
+  .print\:bg-white {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  table {
+    page-break-inside: auto;
+  }
+
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+}
