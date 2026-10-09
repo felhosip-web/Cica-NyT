@@ -1,5 +1,16 @@
 [
   {
+    "version": "2.29.0",
+    "date": "2026-10-08",
+    "changes": [
+      "📊 Bővített PDF & ODF (OpenDocument Format) Export Modul (`docs/EXPORT_GUIDE.md`)",
+      "📊 ODS (.ods - OpenDocument Spreadsheet) letöltés LibreOffice Calc / Microsoft Excel környezethez 'Tételek' és 'Összesítő' munkalapokkal",
+      "📄 ODT (.odt - OpenDocument Text) letöltés LibreOffice Writer környezethez szerkeszthető hivatalos igazolásokhoz",
+      "⚙️ Átfogó export beállítási panel: Hitelesség, Tájolás (Fekvő/Álló), Időszak szűrő, Stornó tételek kezelése, egyedi oszlopválasztó és hivatalos aláírási rovat",
+      "💳 Pénzügyek nézet közvetlen '📊 ODS Export' gombbal kiegészítve"
+    ]
+  },
+  {
     "version": "2.28.0",
     "date": "2026-10-08",
     "changes": [
@@ -131,7 +142,7 @@
     "date": "2026-08-14",
     "changes": [
       "🔔 Értesítések, Push Preferenciák & Riasztási Küszöbök (Új!): Átfogó értesítéskezelő és küszöbérték-beállító almenü rendszer a Beállítások felületen",
-      "📱 Böngésző Web Push & In-App Riasztási Csatornák: Böngésző push engedély kezelése, közvetlen zárolt képernyős push, alkalmazáson belüli figyelmeztető sávok, egyéni hangjelzés és haptikus rezgésvezérlés",
+      "📱 Böngésző Web Push & In-App Riasztási Csatornák: Böngésző push engedély kezelése, közvetlen zárolt képernyős push, alkalmazáson belüli figyelmeztető sávok, egyedi hangjelzés és haptikus rezgésvezérlés",
       "⏰ Időzítés, Napi Összefoglaló & Csendes Időszak: Testreszabható napi ellenőrzési időpont (pl. 08:00), riasztási frekvencia módok (Azonnali + Napi összefoglaló, Csak azonnali, Csak napi digest), valamint éjszakai 'Ne zavarjanak' (Quiet Hours) némítás",
       "💉 Oltási és Orvosi Határidő Küszöbök: Általános előzetes figyelmeztetési napok (lead days), sürgős határidők (urgent days), lejárt oltások figyelése, és külön protokoll-időzítők (Kölyök cica protokoll, Veszettség elleni kötelező oltás, Éves ismétlő oltások)",
       "📅 Eseménytípusonkénti Finomhangolás: Oltások, orvosi kezelések, műtétek/ivartalanítások, tesztek és egyedi feladatok egyenkénti ki/bekapcsolása, előzetes napjai és push/in-app csatornái gyorsválasztó gombokkal",

@@ -1,37 +1,43 @@
 import React, { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { db } from '../lib/db';
 import { useAppStore } from '../store/useAppStore';
 import { Cat, TnrRecord, FinancialTransaction } from '../types';
 import { CustomSelect } from './CustomSelect';
+import {
+  ExportOptions,
+  ReportType,
+  PeriodFilter,
+  Orientation,
+  DEFAULT_FINANCIAL_COLUMNS,
+  DEFAULT_ANIMAL_COLUMNS,
+  filterFinancesByOptions,
+  filterCatsByOptions,
+  getFinancialSummaryMetrics,
+  buildSafeFilename,
+} from '../utils/exportShared';
+import { generatePdfReport } from '../utils/pdfReportExport';
+import { generateOdsReport, generateOdtReport } from '../utils/odfExport';
 
 interface PdfReportsModalProps {
   onClose: () => void;
 }
 
-// Convert Hungarian double-acute characters (ő, ű) to closest standard accents (ö, ü)
-// for standard jsPDF Helvetica font compatibility while preserving standard Hungarian accented vowels (á, é, í, ó, ö, ú, ü).
-const cleanText = (str?: string | null): string => {
-  if (!str) return '';
-  return str
-    .replace(/ő/g, 'ö')
-    .replace(/Ő/g, 'Ö')
-    .replace(/ű/g, 'ü')
-    .replace(/Ű/g, 'Ü');
-};
-
 export const PdfReportsModal: React.FC<PdfReportsModalProps> = ({ onClose }) => {
   const { orgName, orgTaxNumber, orgRegistrationNo, addDebugLog } = useAppStore();
 
-  // Mode: Hiteles (Certified) vs Nem hiteles (Unofficial / Working draft)
+  // Mode & Orientation
   const [isOfficial, setIsOfficial] = useState<boolean>(true);
+  const [orientation, setOrientation] = useState<Orientation>('landscape');
 
-  // Report Category
-  const [reportType, setReportType] = useState<'all' | 'active' | 'adopted' | 'tnr' | 'financial'>('all');
+  // Scope & Filters
+  const [reportType, setReportType] = useState<ReportType>('financial');
+  const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('this_month');
+  const [customStartDate, setCustomStartDate] = useState<string>('');
+  const [customEndDate, setCustomEndDate] = useState<string>('');
+  const [includeStorno, setIncludeStorno] = useState<boolean>(false);
 
-  // Custom Editable Fields
+  // Identity & Headers
   const [customTitle, setCustomTitle] = useState<string>('');
   const [organizationName, setOrganizationName] = useState<string>(orgName || 'Macskamenhely & Gondozó Nyilvántartó');
   const [taxNumber, setTaxNumber] = useState<string>(orgTaxNumber || '');
@@ -39,17 +45,15 @@ export const PdfReportsModal: React.FC<PdfReportsModalProps> = ({ onClose }) => 
   const [targetAuthority, setTargetAuthority] = useState<string>('Illetékes Hatóság / Könyvelés');
   const [signatoryName, setSignatoryName] = useState<string>('Elnök / Hivatalos Képviselő');
   const [registryFileNo, setRegistryFileNo] = useState<string>(`IKT-${new Date().getFullYear()}/${Math.floor(1000 + Math.random() * 9000)}`);
-  const [customNotes, setCustomNotes] = useState<string>('Hivatalos állatjóléti és egyed-nyilvántartási igazolás.');
+  const [customNotes, setCustomNotes] = useState<string>('Hivatalos állatjóléti és belső nyilvántartási igazolás.');
 
-  // Field selector toggles
-  const [incSorszam, setIncSorszam] = useState(true);
-  const [incName, setIncName] = useState(true);
-  const [incGenderColor, setIncGenderColor] = useState(true);
-  const [incChip, setIncChip] = useState(true);
-  const [incIntake, setIncIntake] = useState(true);
-  const [incSpayed, setIncSpayed] = useState(true);
-  const [incPassbook, setIncPassbook] = useState(true);
-  const [incAdopter, setIncAdopter] = useState(true);
+  // Toggles
+  const [showSignatureBlock, setShowSignatureBlock] = useState<boolean>(true);
+  const [showDisclaimer, setShowDisclaimer] = useState<boolean>(true);
+
+  // Column Selections
+  const [finCols, setFinCols] = useState(DEFAULT_FINANCIAL_COLUMNS);
+  const [animalCols, setAnimalCols] = useState(DEFAULT_ANIMAL_COLUMNS);
 
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -58,246 +62,101 @@ export const PdfReportsModal: React.FC<PdfReportsModalProps> = ({ onClose }) => 
   const allTnr = (useLiveQuery(() => db.tnr.toArray(), []) || []) as TnrRecord[];
   const allFinances = (useLiveQuery(() => db.finances ? db.finances.toArray() : [], []) || []) as FinancialTransaction[];
 
-  // Filter cats based on selected reportType
-  const filteredCats = allCats.filter((cat) => {
-    if (reportType === 'active') return cat.status !== 'gazdis' && cat.status !== 'elhunyt';
-    if (reportType === 'adopted') return cat.status === 'gazdis';
-    return true; // 'all'
+  // Build options object
+  const getExportOptions = (): ExportOptions => ({
+    isOfficial,
+    orientation,
+    pageSize: 'a4',
+    reportType,
+    periodFilter,
+    customStartDate,
+    customEndDate,
+    includeStorno,
+    customTitle,
+    organizationName,
+    taxNumber,
+    registrationNo,
+    targetAuthority,
+    registryFileNo,
+    signatoryName,
+    customNotes,
+    showSignatureBlock,
+    showDisclaimer,
+    financialColumns: finCols,
+    animalColumns: animalCols,
   });
 
-  // Calculate stats
-  const totalCatCount = filteredCats.length;
-  const totalTnrCount = allTnr.length;
-  const totalFinanceCount = allFinances.length;
+  const getCombinedData = () => ({
+    cats: allCats,
+    tnr: allTnr,
+    finances: allFinances,
+  });
+
+  // Calculate live preview metrics
+  const filteredFinances = filterFinancesByOptions(allFinances, {
+    periodFilter,
+    customStartDate,
+    customEndDate,
+    includeStorno,
+  });
+  const financeMetrics = getFinancialSummaryMetrics(filteredFinances);
+  const filteredCats = filterCatsByOptions(allCats, reportType);
+
+  const handleDownloadBlob = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   const handleGeneratePdf = async () => {
     setIsGenerating(true);
     try {
-      const doc = new jsPDF('l', 'mm', 'a4'); // Landscape for rich tables
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const pageHeight = doc.internal.pageSize.getHeight();
-      const now = new Date();
-      const dateStr = now.toISOString().split('T')[0].replace(/-/g, '.');
-
-      const defaultTitle =
-        reportType === 'tnr'
-          ? 'HATÓSÁGI TNR (BEFOGÁS-IVARTALANÍTÁS) JEGYZŐKÖNYV'
-          : reportType === 'financial'
-          ? 'PÉNZÜGYI BELSŐ FŐKÖNYVI KIMUTATÁS'
-          : reportType === 'active'
-          ? 'GONDOZÁSBAN LÉVŐ ÁLLATOK HIVATALOS JEGYZÉKE'
-          : reportType === 'adopted'
-          ? 'ÖRÖKBEFOGADOTT (GAZDIS) ÁLLATOK KIMUTATÁSA'
-          : 'TELJES ÁLLATNYILVÁNTARTÁSI REGISZTER';
-
-      const finalTitle = cleanText(customTitle.trim() || defaultTitle);
-
-      // --- HEADER SECTION ---
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(15);
-      doc.text(finalTitle, 14, 16);
-
-      // Status Badge: Hiteles vs Nem Hiteles
-      if (isOfficial) {
-        doc.setFillColor(220, 252, 231); // Green bg
-        doc.setDrawColor(34, 197, 94);
-        doc.rect(pageWidth - 65, 10, 51, 10, 'FD');
-        doc.setFontSize(8);
-        doc.setTextColor(22, 101, 52);
-        doc.text('HITELES IGAZOLAS', pageWidth - 40, 16, { align: 'center' });
-      } else {
-        doc.setFillColor(254, 242, 242); // Red bg
-        doc.setDrawColor(239, 68, 68);
-        doc.rect(pageWidth - 75, 10, 61, 10, 'FD');
-        doc.setFontSize(8);
-        doc.setTextColor(153, 27, 27);
-        doc.text('NEM HITELES - MUNKAPELDANY', pageWidth - 44, 16, { align: 'center' });
-      }
-
-      doc.setTextColor(40, 40, 40);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9);
-
-      // Organization info
-      let orgLine = `Szervezet: ${cleanText(organizationName)}`;
-      if (isOfficial) {
-        if (taxNumber) orgLine += `  |  Adószám: ${cleanText(taxNumber)}`;
-        if (registrationNo) orgLine += `  |  ${cleanText(registrationNo)}`;
-      }
-      doc.text(orgLine, 14, 23);
-
-      if (isOfficial) {
-        doc.text(`Célhatóság / Címzett: ${cleanText(targetAuthority)}  |  Iktatószám: ${cleanText(registryFileNo)}`, 14, 28);
-      } else {
-        doc.text(`Besorolás: Belső Használatú Tájékoztató  |  Készült: ${dateStr}`, 14, 28);
-      }
-
-      let startY = 33;
-
-      // Header summary box
-      doc.setFillColor(245, 247, 250);
-      doc.setDrawColor(220, 225, 230);
-      doc.roundedRect(14, startY, pageWidth - 28, 12, 2, 2, 'FD');
-
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'bold');
-      if (reportType === 'financial') {
-        const validFinances = allFinances.filter((f) => f.status !== 'storno');
-        const totalIncome = validFinances.filter((f) => f.type === 'bevetel').reduce((sum, f) => sum + (f.amount || 0), 0);
-        const totalExpense = validFinances.filter((f) => f.type === 'kiadas').reduce((sum, f) => sum + (f.amount || 0), 0);
-        const netBalance = totalIncome - totalExpense;
-        doc.text(
-          `Összes Bevétel: ${totalIncome.toLocaleString('hu-HU')} Ft   |   Összes Kiadás: ${totalExpense.toLocaleString('hu-HU')} Ft   |   Nettó Egyenleg: ${netBalance.toLocaleString('hu-HU')} Ft   |   Tételek: ${validFinances.length} db`,
-          18,
-          startY + 7.5
-        );
-      } else if (reportType === 'tnr') {
-        doc.text(`Összes TNR rekord: ${totalTnrCount} db   |   Kiállítás dátuma: ${dateStr}`, 18, startY + 7.5);
-      } else {
-        const activeCount = filteredCats.filter((c) => c.status !== 'gazdis' && c.status !== 'elhunyt').length;
-        const adoptedCount = filteredCats.filter((c) => c.status === 'gazdis').length;
-        doc.text(
-          `Listázott állatok száma: ${totalCatCount} db   |   Aktív gondozásban: ${activeCount} db   |   Gazdisodott: ${adoptedCount} db   |   Kelt: ${dateStr}`,
-          18,
-          startY + 7.5
-        );
-      }
-
-      startY += 17;
-
-      // --- TABLE GENERATION ---
-      let headCols: string[] = [];
-      let bodyData: string[][] = [];
-
-      if (reportType === 'financial') {
-        headCols = ['Dátum', 'Típus', 'Kategória', 'Megnevezés / Leírás', 'Partner / Adományozó', 'Számlaszám', 'Összeg Ft', 'Státusz'];
-        bodyData = allFinances.map((fin) => [
-          fin.date || '-',
-          fin.type === 'bevetel' ? 'Bevétel' : 'Kiadás',
-          cleanText(fin.category || '-'),
-          cleanText(fin.title || '-'),
-          cleanText(fin.partnerName || '-'),
-          cleanText(fin.invoiceNumber || '-'),
-          `${fin.type === 'bevetel' ? '+' : '-'}${fin.amount?.toLocaleString('hu-HU') || '0'} Ft`,
-          fin.status === 'teljesult' ? 'Teljesült' : fin.status === 'fuggoben' ? 'Függőben' : 'Stornó',
-        ]);
-      } else if (reportType === 'tnr') {
-        headCols = ['Azonosító / Neve', 'Befogás Helyszíne', 'Befogás Dátuma', 'Befogó Személy', 'Klinika / Orvos', 'Elengedve'];
-        bodyData = allTnr.map((t) => [
-          cleanText(t.catNameOrTag || 'TNR Cica'),
-          cleanText(t.locationTrapped || '-'),
-          t.dateTrapped || '-',
-          cleanText(t.trappedBy || '-'),
-          cleanText(`${t.clinicLocation || ''} ${t.surgeonName ? '(' + t.surgeonName + ')' : ''}`.trim() || '-'),
-          cleanText(t.locationReleased ? `${t.locationReleased} (${t.dateReleased || ''})` : t.status),
-        ]);
-      } else {
-        // Build dynamic columns based on checkboxes
-        if (incSorszam) headCols.push('Sorszam');
-        if (incName) headCols.push('Nev');
-        if (incGenderColor) {
-          headCols.push('Ivar');
-          headCols.push('Szin');
-        }
-        if (incChip) headCols.push('Chip szam');
-        if (incIntake) headCols.push('Bekerules');
-        if (incSpayed) headCols.push('Ivartalanitva');
-        if (incPassbook) headCols.push('Kiskonyv');
-        if (incAdopter) headCols.push('Statusz / Gazdi');
-
-        bodyData = filteredCats.map((cat) => {
-          const row: string[] = [];
-          if (incSorszam) row.push(`#${cat.sorszam || cat.id.slice(0, 4)}`);
-          if (incName) row.push(cleanText(cat.nev || 'Névtelen'));
-          if (incGenderColor) {
-            row.push(cat.ivar === 'bak' ? 'Bak (Kandur)' : 'Nosteny');
-            row.push(cleanText(cat.szin || '-'));
-          }
-          if (incChip) row.push(cat.chipNumber ? cleanText(cat.chipNumber) : 'Nincs');
-          if (incIntake) {
-            const typeStr =
-              cat.intakeType === 'befogott'
-                ? 'Befogott'
-                : cat.intakeType === 'leadott'
-                ? 'Leadott'
-                : cat.intakeType === 'elkobzott'
-                ? 'Elkobzott'
-                : 'Sajat';
-            const dateVal = cat.befogottMikor || cat.behozottMikor || (cat.created ? cat.created.split('T')[0] : '');
-            row.push(cleanText(`${typeStr} ${dateVal}`));
-          }
-          if (incSpayed) row.push(cat.isSpayed ? 'Igen' : 'Nem');
-          if (incPassbook) row.push(cat.hasKiskonyv ? cleanText(`Van (${cat.kiskonyvSzam || '-'})`) : 'Nincs');
-          if (incAdopter) {
-            if (cat.status === 'gazdis') {
-              row.push(cleanText(`Gazdis: ${cat.gazdisPerson || '-'} (${cat.gazdisDate || ''})`));
-            } else {
-              row.push(cleanText(cat.status || 'Gondozasban'));
-            }
-          }
-          return row;
-        });
-      }
-
-      const tableOptions = {
-        startY: startY,
-        head: [headCols],
-        body: bodyData,
-        theme: 'grid' as const,
-        headStyles: {
-          fillColor: isOfficial ? [219, 39, 119] : [100, 116, 139], // Pink for official, Slate for unofficial
-          textColor: [255, 255, 255],
-          fontSize: 8,
-          fontStyle: 'bold' as const,
-        },
-        styles: {
-          fontSize: 7.5,
-          cellPadding: 2,
-        },
-        margin: { top: 15, left: 14, right: 14 },
-        didDrawPage: (data: any) => {
-          // Footer on every page
-          doc.setFontSize(7);
-          doc.setTextColor(120, 120, 120);
-          const disclaimerText = 'Ez a kimutatás a Cica-NyT belső nyilvántartásából készült. Nem minősül számlának, számviteli bizonylatnak vagy NAV által kibocsátott dokumentumnak.';
-          doc.text(disclaimerText, 14, pageHeight - 10);
-          const footerStr = `Készült: ${now.toLocaleString('hu-HU')} | ${cleanText(organizationName)} | Oldal ${data.pageNumber}`;
-          doc.text(footerStr, 14, pageHeight - 6);
-
-          // Official verification signature box on last page
-          if (isOfficial && data.pageNumber === doc.internal.getNumberOfPages()) {
-            const sigY = pageHeight - 26;
-            doc.setFontSize(7.5);
-            doc.setTextColor(40, 40, 40);
-            doc.text('Kiadta és igazolta:', pageWidth - 80, sigY);
-            doc.line(pageWidth - 80, sigY + 8, pageWidth - 14, sigY + 8);
-            doc.setFont('helvetica', 'bold');
-            doc.text(cleanText(signatoryName), pageWidth - 80, sigY + 12);
-            doc.setFont('helvetica', 'normal');
-            doc.text('P.H. / Hivatalos aláírás', pageWidth - 80, sigY + 16);
-
-            if (customNotes.trim()) {
-              doc.text(`Megjegyzés: ${cleanText(customNotes)}`, 14, pageHeight - 18);
-            }
-          }
-        },
-      };
-
-      try {
-        autoTable(doc, tableOptions);
-      } catch (err) {
-        console.error('autoTable fallback call:', err);
-      }
-
-      const safeFilename = reportType === 'financial'
-        ? `CicaNyT_Penzugy_${isOfficial ? 'HITELES' : 'MUNKAPELDANY'}_${dateStr}.pdf`
-        : `CicaNyT_Riport_${isOfficial ? 'HITELES' : 'MUNKAPELDANY'}_${dateStr}.pdf`;
-      doc.save(safeFilename);
-      addDebugLog(`[PDF Export] ${safeFilename} sikeresen letöltve.`);
+      const opts = getExportOptions();
+      generatePdfReport(opts, getCombinedData());
+      addDebugLog(`[Export] PDF (${opts.reportType}) generálva.`);
       onClose();
-    } catch (error: any) {
-      console.error('PDF Generálási hiba:', error);
-      alert('Hiba történt a PDF generálásakor: ' + (error?.message || 'Ismeretlen hiba'));
+    } catch (err: any) {
+      console.error('PDF Export hiba:', err);
+      alert('Hiba történt a PDF generálásakor: ' + (err?.message || 'Ismeretlen hiba'));
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleGenerateOds = async () => {
+    setIsGenerating(true);
+    try {
+      const opts = getExportOptions();
+      const blob = generateOdsReport(opts, getCombinedData());
+      const filename = buildSafeFilename(opts, 'ods');
+      handleDownloadBlob(blob, filename);
+      addDebugLog(`[Export] ODS (${filename}) letöltve.`);
+      onClose();
+    } catch (err: any) {
+      console.error('ODS Export hiba:', err);
+      alert('Hiba történt az ODS exportálásakor: ' + (err?.message || 'Ismeretlen hiba'));
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleGenerateOdt = async () => {
+    setIsGenerating(true);
+    try {
+      const opts = getExportOptions();
+      const blob = generateOdtReport(opts, getCombinedData());
+      const filename = buildSafeFilename(opts, 'odt');
+      handleDownloadBlob(blob, filename);
+      addDebugLog(`[Export] ODT (${filename}) letöltve.`);
+      onClose();
+    } catch (err: any) {
+      console.error('ODT Export hiba:', err);
+      alert('Hiba történt az ODT exportálásakor: ' + (err?.message || 'Ismeretlen hiba'));
     } finally {
       setIsGenerating(false);
     }
@@ -305,17 +164,17 @@ export const PdfReportsModal: React.FC<PdfReportsModalProps> = ({ onClose }) => 
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-white rounded-3xl shadow-2xl border border-gray-200 w-full max-w-3xl overflow-hidden animate-in fade-in zoom-in-95 my-auto">
+      <div className="bg-white rounded-3xl shadow-2xl border border-gray-200 w-full max-w-4xl overflow-hidden animate-in fade-in zoom-in-95 my-auto">
         {/* Header */}
         <div className="bg-gradient-to-r from-pink-600 via-rose-600 to-purple-700 text-white p-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-2xl font-black">
-              📄
+              📊
             </div>
             <div>
-              <h2 className="text-lg font-black tracking-tight leading-tight">PDF Riport Generáló & Export</h2>
+              <h2 className="text-lg font-black tracking-tight leading-tight">Export Beállítások & Kimutatások</h2>
               <p className="text-xs text-pink-100/90 font-medium mt-0.5">
-                Testreszabható hatósági vagy belső használatú kimutatás generálása
+                PDF, ODS (LibreOffice Calc / Excel) és ODT (Writer) dokumentumok generálása
               </p>
             </div>
           </div>
@@ -327,107 +186,178 @@ export const PdfReportsModal: React.FC<PdfReportsModalProps> = ({ onClose }) => 
           </button>
         </div>
 
-        <div className="p-5 space-y-5 max-h-[80vh] overflow-y-auto text-xs">
-          {/* STEP 1: Select Mode (Hiteles vs Nem Hiteles) */}
+        <div className="p-5 space-y-5 max-h-[78vh] overflow-y-auto text-xs">
+          {/* STEP 1: Document Mode & Orientation */}
           <div className="space-y-2">
             <label className="font-extrabold text-gray-800 uppercase tracking-wider text-[11px] block">
-              1. Dokumentum Típusa & Hitelessége
+              1. Dokumentum Típusa, Hitelessége & Tájolása
             </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <button
                 type="button"
                 onClick={() => setIsOfficial(true)}
-                className={`p-3.5 rounded-2xl border-2 text-left transition cursor-pointer flex items-start gap-3 ${
+                className={`p-3 rounded-2xl border-2 text-left transition cursor-pointer flex items-center gap-3 ${
                   isOfficial
                     ? 'border-emerald-500 bg-emerald-50/70 text-emerald-950 shadow-xs'
                     : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300'
                 }`}
               >
                 <span className="text-2xl">🛡️</span>
-                <div className="space-y-0.5">
-                  <div className="font-extrabold text-xs flex items-center gap-1.5">
-                    <span>HITELES Kiadvány</span>
-                    <span className="text-[9px] bg-emerald-200 text-emerald-900 font-black px-1.5 py-0.2 rounded-full">
-                      Hivatalos
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-gray-600 font-normal leading-relaxed">
-                    Hatóságok (NÉBIH, Önkormányzat, Könyvelés) részére. Tartalmazza a szervezet adószámát, iktatószámát és aláírási rovatát.
-                  </p>
+                <div>
+                  <div className="font-extrabold text-xs">HITELES Kiadvány</div>
+                  <p className="text-[10px] text-gray-500 leading-tight">Adószámmal, iktatószámmal, aláírással</p>
                 </div>
               </button>
 
               <button
                 type="button"
                 onClick={() => setIsOfficial(false)}
-                className={`p-3.5 rounded-2xl border-2 text-left transition cursor-pointer flex items-start gap-3 ${
+                className={`p-3 rounded-2xl border-2 text-left transition cursor-pointer flex items-center gap-3 ${
                   !isOfficial
                     ? 'border-rose-400 bg-rose-50/70 text-rose-950 shadow-xs'
                     : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300'
                 }`}
               >
                 <span className="text-2xl">📝</span>
-                <div className="space-y-0.5">
-                  <div className="font-extrabold text-xs flex items-center gap-1.5">
-                    <span>NEM HITELES Munkapéldány</span>
-                    <span className="text-[9px] bg-rose-200 text-rose-900 font-black px-1.5 py-0.2 rounded-full">
-                      Belső
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-gray-600 font-normal leading-relaxed">
-                    Gyors belső áttekintésre, gondozók vagy önkéntesek részére. Kötöttségek nélkül, rugalmas adatmező választással.
-                  </p>
+                <div>
+                  <div className="font-extrabold text-xs">NEM HITELES Munkapéldány</div>
+                  <p className="text-[10px] text-gray-500 leading-tight">Belső áttekintő tájékoztató</p>
                 </div>
               </button>
+
+              <div className="p-3 rounded-2xl border border-gray-200 bg-gray-50 space-y-1">
+                <label className="font-bold text-gray-700 block text-[10px]">Tájolás (PDF)</label>
+                <div className="flex gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setOrientation('landscape')}
+                    className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                      orientation === 'landscape' ? 'bg-pink-600 text-white shadow-xs' : 'bg-gray-200 text-gray-700'
+                    }`}
+                  >
+                    ↔️ Fekvő
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setOrientation('portrait')}
+                    className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                      orientation === 'portrait' ? 'bg-pink-600 text-white shadow-xs' : 'bg-gray-200 text-gray-700'
+                    }`}
+                  >
+                    ↕️ Álló
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* STEP 2: Select Category */}
-          <div className="space-y-2">
+          {/* STEP 2: Scope & Filters */}
+          <div className="space-y-3 p-4 bg-gray-50 border border-gray-200 rounded-2xl">
             <label className="font-extrabold text-gray-800 uppercase tracking-wider text-[11px] block">
-              2. Kimutatás Témaköre
+              2. Kimutatás Témaköre & Szűrési Időszak
             </label>
-            <CustomSelect
-              value={reportType}
-              onChange={(val) => setReportType(val as any)}
-              options={[
-                { value: 'all', label: 'Teljes Állatállomány Jegyzék (Összes cica)', icon: '🐾' },
-                { value: 'active', label: 'Gondozásban Lévő (Aktív) Állatok', icon: '🏡' },
-                { value: 'adopted', label: 'Gazdisodott (Örökbefogadott) Állatok', icon: '🏠' },
-                { value: 'tnr', label: 'TNR Program & Kóbor Cica Akciók', icon: '✂️' },
-                { value: 'financial', label: 'Pénzügyi & Egészségügyi Kimutatás', icon: '💰' },
-              ]}
-              title="Kimutatás Témakörének Kiválasztása"
-              colorScheme="pink"
-              buttonClassName="w-full bg-gray-50 border border-gray-300 rounded-xl p-2.5 font-bold text-xs text-gray-800"
-            />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-[10px] font-extrabold text-gray-500 uppercase block mb-1">Témakör</label>
+                <CustomSelect
+                  value={reportType}
+                  onChange={(val) => setReportType(val as any)}
+                  options={[
+                    { value: 'financial', label: 'Pénzügyi Belső Főkönyvi Kimutatás', icon: '💰' },
+                    { value: 'all', label: 'Teljes Állatállomány Regiszter', icon: '🐾' },
+                    { value: 'active', label: 'Gondozásban Lévő (Aktív) Állatok', icon: '🏡' },
+                    { value: 'adopted', label: 'Gazdisodott (Örökbefogadott) Állatok', icon: '🏠' },
+                    { value: 'tnr', label: 'TNR Program & Kóbor Cica Akciók', icon: '✂️' },
+                  ]}
+                  title="Témakör Kiválasztása"
+                  colorScheme="pink"
+                  buttonClassName="w-full bg-white border border-gray-300 rounded-xl p-2 font-bold text-xs text-gray-800"
+                />
+              </div>
+
+              {reportType === 'financial' && (
+                <div>
+                  <label className="text-[10px] font-extrabold text-gray-500 uppercase block mb-1">Időszak Szűrő</label>
+                  <CustomSelect
+                    value={periodFilter}
+                    onChange={(val) => setPeriodFilter(val as any)}
+                    options={[
+                      { value: 'this_month', label: 'Ez a hónap', icon: '📅' },
+                      { value: 'last_month', label: 'Előző hónap', icon: '📅' },
+                      { value: 'this_year', label: `Idei év (${new Date().getFullYear()})`, icon: '📆' },
+                      { value: 'all', label: 'Összes időszak', icon: '♾️' },
+                      { value: 'custom', label: 'Egyéni időintervallum', icon: '🎯' },
+                    ]}
+                    title="Időszak Szűrése"
+                    colorScheme="pink"
+                    buttonClassName="w-full bg-white border border-gray-300 rounded-xl p-2 font-bold text-xs text-gray-800"
+                  />
+                </div>
+              )}
+            </div>
+
+            {reportType === 'financial' && periodFilter === 'custom' && (
+              <div className="flex items-center gap-3 pt-1">
+                <div className="flex-1">
+                  <label className="text-[10px] font-bold text-gray-500">Kezdő dátum</label>
+                  <input
+                    type="date"
+                    value={customStartDate}
+                    onChange={(e) => setCustomStartDate(e.target.value)}
+                    className="w-full bg-white border border-gray-300 rounded-xl px-2.5 py-1 font-semibold text-xs text-gray-900"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="text-[10px] font-bold text-gray-500">Záró dátum</label>
+                  <input
+                    type="date"
+                    value={customEndDate}
+                    onChange={(e) => setCustomEndDate(e.target.value)}
+                    className="w-full bg-white border border-gray-300 rounded-xl px-2.5 py-1 font-semibold text-xs text-gray-900"
+                  />
+                </div>
+              </div>
+            )}
+
+            {reportType === 'financial' && (
+              <label className="flex items-center gap-2 cursor-pointer font-bold text-gray-700 pt-1">
+                <input
+                  type="checkbox"
+                  checked={includeStorno}
+                  onChange={(e) => setIncludeStorno(e.target.checked)}
+                  className="rounded text-pink-600 focus:ring-pink-500"
+                />
+                <span>Stornózott (érvénytelenített) tételek megjelenítése a listában</span>
+              </label>
+            )}
           </div>
 
-          {/* STEP 3: Document Details */}
+          {/* STEP 3: Header / Identity */}
           <div className="p-4 bg-gray-50 border border-gray-200 rounded-2xl space-y-3">
             <h4 className="font-extrabold text-gray-800 text-xs flex items-center gap-1.5">
-              <span>⚙️ Fejléc és Szervezeti Adatok Szerkesztése</span>
+              <span>⚙️ Fejléc és Szervezeti Adatok</span>
             </h4>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-[10px] font-extrabold text-gray-500 uppercase">Egyedi Dokumentum Cím</label>
+                <label className="text-[10px] font-extrabold text-gray-500 uppercase">Egyedi Cím</label>
                 <input
                   type="text"
                   value={customTitle}
                   onChange={(e) => setCustomTitle(e.target.value)}
                   placeholder="pl. HIVATALOS ÁLLATNYILVÁNTARTÁSI KIMUTATÁS"
-                  className="w-full mt-1 bg-white border border-gray-300 rounded-xl px-2.5 py-1.5 font-semibold text-xs text-gray-900"
+                  className="w-full mt-0.5 bg-white border border-gray-300 rounded-xl px-2.5 py-1.5 font-semibold text-xs text-gray-900"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-extrabold text-gray-500 uppercase">Szervezet / Menhely Neve</label>
+                <label className="text-[10px] font-extrabold text-gray-500 uppercase">Szervezet Neve</label>
                 <input
                   type="text"
                   value={organizationName}
                   onChange={(e) => setOrganizationName(e.target.value)}
-                  className="w-full mt-1 bg-white border border-gray-300 rounded-xl px-2.5 py-1.5 font-semibold text-xs text-gray-900"
+                  className="w-full mt-0.5 bg-white border border-gray-300 rounded-xl px-2.5 py-1.5 font-semibold text-xs text-gray-900"
                 />
               </div>
 
@@ -439,7 +369,7 @@ export const PdfReportsModal: React.FC<PdfReportsModalProps> = ({ onClose }) => 
                       type="text"
                       value={taxNumber}
                       onChange={(e) => setTaxNumber(e.target.value)}
-                      className="w-full mt-1 bg-white border border-gray-300 rounded-xl px-2.5 py-1.5 font-mono text-xs text-gray-900"
+                      className="w-full mt-0.5 bg-white border border-gray-300 rounded-xl px-2.5 py-1.5 font-mono text-xs text-gray-900"
                     />
                   </div>
 
@@ -449,17 +379,7 @@ export const PdfReportsModal: React.FC<PdfReportsModalProps> = ({ onClose }) => 
                       type="text"
                       value={registrationNo}
                       onChange={(e) => setRegistrationNo(e.target.value)}
-                      className="w-full mt-1 bg-white border border-gray-300 rounded-xl px-2.5 py-1.5 font-mono text-xs text-gray-900"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-[10px] font-extrabold text-gray-500 uppercase">Célhatóság / Címzett</label>
-                    <input
-                      type="text"
-                      value={targetAuthority}
-                      onChange={(e) => setTargetAuthority(e.target.value)}
-                      className="w-full mt-1 bg-white border border-gray-300 rounded-xl px-2.5 py-1.5 font-semibold text-xs text-gray-900"
+                      className="w-full mt-0.5 bg-white border border-gray-300 rounded-xl px-2.5 py-1.5 font-mono text-xs text-gray-900"
                     />
                   </div>
 
@@ -469,156 +389,165 @@ export const PdfReportsModal: React.FC<PdfReportsModalProps> = ({ onClose }) => 
                       type="text"
                       value={registryFileNo}
                       onChange={(e) => setRegistryFileNo(e.target.value)}
-                      className="w-full mt-1 bg-white border border-gray-300 rounded-xl px-2.5 py-1.5 font-mono text-xs text-gray-900"
+                      className="w-full mt-0.5 bg-white border border-gray-300 rounded-xl px-2.5 py-1.5 font-mono text-xs text-gray-900"
                     />
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-extrabold text-gray-500 uppercase">Aláíró Képviselő Neve</label>
+                    <label className="text-[10px] font-extrabold text-gray-500 uppercase">Aláíró Neve</label>
                     <input
                       type="text"
                       value={signatoryName}
                       onChange={(e) => setSignatoryName(e.target.value)}
-                      className="w-full mt-1 bg-white border border-gray-300 rounded-xl px-2.5 py-1.5 font-semibold text-xs text-gray-900"
+                      className="w-full mt-0.5 bg-white border border-gray-300 rounded-xl px-2.5 py-1.5 font-semibold text-xs text-gray-900"
                     />
                   </div>
                 </>
               )}
             </div>
 
-            <div>
-              <label className="text-[10px] font-extrabold text-gray-500 uppercase">Lábjegyzet / Megjegyzés</label>
-              <input
-                type="text"
-                value={customNotes}
-                onChange={(e) => setCustomNotes(e.target.value)}
-                className="w-full mt-1 bg-white border border-gray-300 rounded-xl px-2.5 py-1.5 font-medium text-xs text-gray-900"
-              />
+            <div className="flex items-center gap-4 pt-1">
+              <label className="flex items-center gap-2 cursor-pointer font-bold text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={showDisclaimer}
+                  onChange={(e) => setShowDisclaimer(e.target.checked)}
+                  className="rounded text-pink-600 focus:ring-pink-500"
+                />
+                <span>Jogi felelősségi nyilatkozat megjelenítése</span>
+              </label>
+
+              {isOfficial && (
+                <label className="flex items-center gap-2 cursor-pointer font-bold text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={showSignatureBlock}
+                    onChange={(e) => setShowSignatureBlock(e.target.checked)}
+                    className="rounded text-pink-600 focus:ring-pink-500"
+                  />
+                  <span>Hivatalos aláírási rovat</span>
+                </label>
+              )}
             </div>
           </div>
 
-          {/* STEP 4: Column / Data Toggles (Only for Cat lists) */}
-          {reportType !== 'tnr' && (
+          {/* STEP 4: Columns Toggle */}
+          {reportType === 'financial' ? (
             <div className="space-y-2">
               <label className="font-extrabold text-gray-800 uppercase tracking-wider text-[11px] block">
-                3. Megjelenítendő Adatmezők / Oszlopok
+                3. Pénzügyi Oszlopok Kiválasztása
               </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-gray-50 p-3 rounded-2xl border border-gray-200">
-                <label className="flex items-center gap-2 cursor-pointer font-bold text-gray-700">
-                  <input
-                    type="checkbox"
-                    checked={incSorszam}
-                    onChange={(e) => setIncSorszam(e.target.checked)}
-                    className="rounded text-pink-600 focus:ring-pink-500"
-                  />
-                  <span># Sorszám</span>
-                </label>
-
-                <label className="flex items-center gap-2 cursor-pointer font-bold text-gray-700">
-                  <input
-                    type="checkbox"
-                    checked={incName}
-                    onChange={(e) => setIncName(e.target.checked)}
-                    className="rounded text-pink-600 focus:ring-pink-500"
-                  />
-                  <span>🐱 Cica Neve</span>
-                </label>
-
-                <label className="flex items-center gap-2 cursor-pointer font-bold text-gray-700">
-                  <input
-                    type="checkbox"
-                    checked={incGenderColor}
-                    onChange={(e) => setIncGenderColor(e.target.checked)}
-                    className="rounded text-pink-600 focus:ring-pink-500"
-                  />
-                  <span>♂️♀️ Ivar & Szín</span>
-                </label>
-
-                <label className="flex items-center gap-2 cursor-pointer font-bold text-gray-700">
-                  <input
-                    type="checkbox"
-                    checked={incChip}
-                    onChange={(e) => setIncChip(e.target.checked)}
-                    className="rounded text-pink-600 focus:ring-pink-500"
-                  />
-                  <span>🏷️ Chip Szám</span>
-                </label>
-
-                <label className="flex items-center gap-2 cursor-pointer font-bold text-gray-700">
-                  <input
-                    type="checkbox"
-                    checked={incIntake}
-                    onChange={(e) => setIncIntake(e.target.checked)}
-                    className="rounded text-pink-600 focus:ring-pink-500"
-                  />
-                  <span>📥 Bekerülés</span>
-                </label>
-
-                <label className="flex items-center gap-2 cursor-pointer font-bold text-gray-700">
-                  <input
-                    type="checkbox"
-                    checked={incSpayed}
-                    onChange={(e) => setIncSpayed(e.target.checked)}
-                    className="rounded text-pink-600 focus:ring-pink-500"
-                  />
-                  <span>✂️ Ivartalanítva</span>
-                </label>
-
-                <label className="flex items-center gap-2 cursor-pointer font-bold text-gray-700">
-                  <input
-                    type="checkbox"
-                    checked={incPassbook}
-                    onChange={(e) => setIncPassbook(e.target.checked)}
-                    className="rounded text-pink-600 focus:ring-pink-500"
-                  />
-                  <span>📘 Kiskönyv</span>
-                </label>
-
-                <label className="flex items-center gap-2 cursor-pointer font-bold text-gray-700">
-                  <input
-                    type="checkbox"
-                    checked={incAdopter}
-                    onChange={(e) => setIncAdopter(e.target.checked)}
-                    className="rounded text-pink-600 focus:ring-pink-500"
-                  />
-                  <span>🏠 Státusz / Gazdi</span>
-                </label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-gray-50 p-3 rounded-2xl border border-gray-200 font-bold text-gray-700">
+                {Object.entries({
+                  date: 'Dátum',
+                  type: 'Típus',
+                  category: 'Kategória',
+                  title: 'Megnevezés',
+                  partnerName: 'Partner',
+                  invoiceNumber: 'Számlaszám',
+                  amount: 'Összeg Ft',
+                  status: 'Státusz',
+                  paymentMethod: 'Fizetési mód',
+                  taxYear: 'Adóév (1%)',
+                  navReference: 'NAV iktatószám',
+                  sourceModule: 'Forrás modul',
+                  notes: 'Megjegyzés',
+                }).map(([key, label]) => (
+                  <label key={key} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={(finCols as any)[key]}
+                      onChange={(e) => setFinCols({ ...finCols, [key]: e.target.checked })}
+                      className="rounded text-pink-600 focus:ring-pink-500"
+                    />
+                    <span>{label}</span>
+                  </label>
+                ))}
               </div>
             </div>
-          )}
+          ) : reportType !== 'tnr' ? (
+            <div className="space-y-2">
+              <label className="font-extrabold text-gray-800 uppercase tracking-wider text-[11px] block">
+                3. Állatnyilvántartási Oszlopok Kiválasztása
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-gray-50 p-3 rounded-2xl border border-gray-200 font-bold text-gray-700">
+                {Object.entries({
+                  incSorszam: '# Sorszám',
+                  incName: '🐱 Cica neve',
+                  incGenderColor: '♂️♀️ Ivar & Szín',
+                  incChip: '🏷️ Chip szám',
+                  incIntake: '📥 Bekerülés',
+                  incSpayed: '✂️ Ivartalanítva',
+                  incPassbook: '📘 Kiskönyv',
+                  incAdopter: '🏠 Státusz / Gazdi',
+                }).map(([key, label]) => (
+                  <label key={key} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={(animalCols as any)[key]}
+                      onChange={(e) => setAnimalCols({ ...animalCols, [key]: e.target.checked })}
+                      className="rounded text-pink-600 focus:ring-pink-500"
+                    />
+                    <span>{label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          ) : null}
 
-          {/* Record Count Preview */}
-          <div className="p-3 bg-pink-50 border border-pink-200 rounded-2xl flex items-center justify-between font-bold text-pink-900">
-            <span className="flex items-center gap-1.5">
-              <span>📊 Generálandó rekordok száma:</span>
-            </span>
-            <span className="text-sm font-black font-mono bg-pink-200 px-2.5 py-0.5 rounded-full">
-              {reportType === 'financial'
-                ? `${totalFinanceCount} pénzügyi tétel`
-                : reportType === 'tnr'
-                ? `${totalTnrCount} TNR rekord`
-                : `${totalCatCount} cica rekord`}
-            </span>
+          {/* Live Preview Summary Box */}
+          <div className="p-3 bg-pink-50 border border-pink-200 rounded-2xl flex flex-wrap items-center justify-between font-bold text-pink-900 text-xs">
+            <span>📊 Generálandó tételek:</span>
+            {reportType === 'financial' ? (
+              <span>
+                {financeMetrics.validCount} db érvényes tétel | Bevétel: {financeMetrics.totalIncome.toLocaleString('hu-HU')} Ft | Kiadás: {financeMetrics.totalExpense.toLocaleString('hu-HU')} Ft | Egyenleg: {financeMetrics.netBalance.toLocaleString('hu-HU')} Ft
+              </span>
+            ) : reportType === 'tnr' ? (
+              <span>{allTnr.length} db TNR rekord</span>
+            ) : (
+              <span>{filteredCats.length} db cica rekord</span>
+            )}
           </div>
         </div>
 
         {/* Footer Actions */}
-        <div className="bg-gray-50 border-t border-gray-200 p-4 flex items-center justify-end gap-3">
+        <div className="bg-gray-50 border-t border-gray-200 p-4 flex flex-wrap items-center justify-between gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 font-extrabold text-xs rounded-xl transition cursor-pointer"
+            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-extrabold text-xs rounded-xl transition cursor-pointer"
           >
             Mégse
           </button>
-          <button
-            type="button"
-            onClick={handleGeneratePdf}
-            disabled={isGenerating}
-            className="px-5 py-2.5 bg-gradient-to-r from-pink-600 to-purple-700 hover:from-pink-700 hover:to-purple-800 text-white font-extrabold text-xs rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
-          >
-            <span>{isGenerating ? '⏳ Generálás...' : '📥 PDF Riport Generálása & Letöltése'}</span>
-          </button>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={handleGenerateOds}
+              disabled={isGenerating}
+              className="px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            >
+              <span>📊 Letöltés .ODS (Spreadsheet)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleGenerateOdt}
+              disabled={isGenerating}
+              className="px-4 py-2.5 bg-indigo-700 hover:bg-indigo-800 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            >
+              <span>📄 Letöltés .ODT (Writer)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleGeneratePdf}
+              disabled={isGenerating}
+              className="px-5 py-2.5 bg-gradient-to-r from-pink-600 to-purple-700 hover:from-pink-700 hover:to-purple-800 text-white font-extrabold text-xs rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            >
+              <span>{isGenerating ? '⏳ Generálás...' : '📥 Letöltés .PDF'}</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
