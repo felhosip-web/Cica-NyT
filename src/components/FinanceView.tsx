@@ -18,7 +18,7 @@ import { CustomSelect } from './CustomSelect';
 import { useAppStore } from '../store/useAppStore';
 
 export const FinanceView: React.FC = () => {
-  const { orgName, getCurrentUser, hasPermission } = useAppStore();
+  const { orgName, orgTaxNumber, orgRegistrationNo, getCurrentUser, hasPermission } = useAppStore();
   const currentUser = getCurrentUser();
 
   const canCreateFinance = hasPermission('finance.create');
@@ -75,10 +75,10 @@ export const FinanceView: React.FC = () => {
       if (statusFilter !== 'all' && t.status !== statusFilter) return false;
 
       // Period Filter
-      if (t.date) {
-        const tDate = new Date(t.date);
-        const tYear = tDate.getFullYear();
-        const tMonth = tDate.getMonth();
+      if (t.date && /^\d{4}-\d{2}-\d{2}/.test(t.date)) {
+        const [yearStr, monthStr] = t.date.split('-');
+        const tYear = parseInt(yearStr, 10);
+        const tMonth = parseInt(monthStr, 10) - 1; // 0-indexed
 
         if (periodFilter === 'this_month') {
           if (tYear !== currentYear || tMonth !== currentMonth) return false;
@@ -125,7 +125,7 @@ export const FinanceView: React.FC = () => {
     fosterMap,
   ]);
 
-  // Adó 1% KPI calculations
+  // Adó 1% KPI calculations - Prefer taxYear when set, else fallback to date year
   const tax1KPIs = useMemo(() => {
     const currentYear = new Date().getFullYear();
     let currentYearTotal = 0;
@@ -135,10 +135,10 @@ export const FinanceView: React.FC = () => {
     transactions.forEach((t) => {
       if (t.category === 'szazalek1' && t.status !== 'storno') {
         totalCount++;
-        const tYear = t.date ? new Date(t.date).getFullYear() : (t.taxYear ? t.taxYear + 1 : currentYear);
-        if (tYear === currentYear) {
+        const effYear = t.taxYear ? t.taxYear : (t.date ? parseInt(t.date.slice(0, 4), 10) : currentYear);
+        if (effYear === currentYear) {
           currentYearTotal += t.amount || 0;
-        } else if (tYear === currentYear - 1) {
+        } else if (effYear === currentYear - 1) {
           previousYearTotal += t.amount || 0;
         }
       }
@@ -261,19 +261,46 @@ export const FinanceView: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDeleteTransaction = async (id?: number | string) => {
-    if (!id) return;
-    if (window.confirm('Biztosan törölni szeretnéd ezt a pénzügyi tételt?')) {
-      try {
-        await db.finances.delete(id);
-      } catch (err) {
-        console.error('Error deleting finance item:', err);
-        alert('Hiba történt a törlés során!');
+  const handleDeleteTransaction = async (t: FinancialTransaction) => {
+    if (!t.id) return;
+
+    if (t.status === 'teljesult') {
+      const wantStorno = window.confirm(
+        'FIGYELEM: A teljesült pénzügyi tételeket a formalitás és a számviteli átláthatóság érdekében nem ajánlott törölni.\n\nSzeretnéd a tételt STORNOZNI (érvényteleníteni) a végleges törlés helyett?'
+      );
+      if (wantStorno) {
+        const reason = window.prompt('Add meg a stornózás indokát (opcionális):', 'Helyesbítés / Stornó');
+        try {
+          await db.finances.update(t.id, {
+            status: 'storno',
+            stornoReason: reason || 'Munkatárs általi stornózás',
+            updatedAt: new Date().toISOString(),
+            syncStatus: 'pending',
+          });
+        } catch (err) {
+          console.error('Error stornoing finance item:', err);
+          alert('Hiba történt a stornózás során!');
+        }
+        return;
       }
+
+      const hardConfirm = window.confirm(
+        'BIZTOSAN TÖRÖLNI AKAROD? Ez véglegesen eltávolítja a teljesült bejegyzést az adatbázisból!'
+      );
+      if (!hardConfirm) return;
+    } else {
+      if (!window.confirm('Biztosan törölni szeretnéd ezt a pénzügyi tételt?')) return;
+    }
+
+    try {
+      await db.finances.delete(t.id);
+    } catch (err) {
+      console.error('Error deleting finance item:', err);
+      alert('Hiba történt a törlés során!');
     }
   };
 
-  // CSV Export Handler
+  // CSV Export Handler with UTF-8 BOM, semicolon separator & comprehensive Hungarian headers
   const handleExportCSV = () => {
     if (filteredTransactions.length === 0) {
       alert('Nincs exportálható pénzügyi tétel a jelenlegi szűrés szerint!');
@@ -295,8 +322,17 @@ export const FinanceView: React.FC = () => {
       'Státusz',
       'Kapcsolódó Cica',
       'Kapcsolódó Befogadó',
+      'Forrás Modul',
       'Megjegyzések',
     ];
+
+    const SOURCE_MODULE_LABELS: Record<string, string> = {
+      manual: 'Kézi rögzítés',
+      medical_event: 'Orvosi esemény',
+      inventory_purchase: 'Készletvétel',
+      foster_expense: 'Befogadói kiadás',
+      adoption: 'Örökbefogadás',
+    };
 
     const rows = filteredTransactions.map((t) => [
       t.id || '',
@@ -313,6 +349,7 @@ export const FinanceView: React.FC = () => {
       t.status === 'teljesult' ? 'Teljesült' : t.status === 'fuggoben' ? 'Függőben' : 'Stornó',
       t.catId ? `"${(catMap.get(t.catId)?.nev || '').replace(/"/g, '""')}"` : '',
       t.fosterId ? `"${(fosterMap.get(t.fosterId)?.name || '').replace(/"/g, '""')}"` : '',
+      `"${SOURCE_MODULE_LABELS[t.sourceModule || 'manual'] || t.sourceModule || 'Kézi rögzítés'}"`,
       `"${(t.notes || '').replace(/"/g, '""')}"`,
     ]);
 
@@ -321,7 +358,8 @@ export const FinanceView: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `cica_nyt_penzugyi_kimutatas_${new Date().toISOString().slice(0, 10)}.csv`);
+    const periodSuffix = periodFilter === 'custom' && customStartDate ? `${customStartDate}_${customEndDate || 'ma'}` : new Date().toISOString().slice(0, 10);
+    link.setAttribute('download', `CicaNyT_Penzugy_${periodSuffix}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -698,7 +736,7 @@ export const FinanceView: React.FC = () => {
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 text-slate-100 space-y-4 print:bg-white print:text-slate-900 print:border-none print:p-0 print:shadow-none">
           <div className="flex items-center justify-between pb-3 border-b border-slate-800 print:hidden">
             <h2 className="text-lg font-black flex items-center gap-2">
-              <span>📑 Nyomtatható Pénzügyi Összesítő Kimutatás</span>
+              <span>📑 Nyomtatható Pénzügyi Kimutatás</span>
             </h2>
             <div className="flex items-center gap-2">
               <button
@@ -720,11 +758,18 @@ export const FinanceView: React.FC = () => {
             <div className="flex justify-between items-start border-b border-slate-300 pb-4">
               <div>
                 <h1 className="text-xl font-black uppercase tracking-tight text-slate-900">
-                  {orgName || 'Cica-NyT Macskamenhely Egyesület'}
+                  {orgName || 'Macskamenhely & Gondozó Nyilvántartó'}
                 </h1>
                 <p className="text-xs text-slate-600 font-bold mt-0.5">
-                  Belső Pénzügyi Főkönyv & Tranzakciós Kimutatás
+                  Pénzügyi kimutatás — Bevétel–Kiadás Összesítő
                 </p>
+                {(orgTaxNumber || orgRegistrationNo) && (
+                  <p className="text-[11px] text-slate-500 font-medium mt-1">
+                    {orgTaxNumber ? `Adószám: ${orgTaxNumber}` : ''}
+                    {orgTaxNumber && orgRegistrationNo ? ' | ' : ''}
+                    {orgRegistrationNo ? `Nyilvántartási szám: ${orgRegistrationNo}` : ''}
+                  </p>
+                )}
               </div>
               <div className="text-right text-xs text-slate-600 space-y-0.5">
                 <p>
@@ -749,23 +794,29 @@ export const FinanceView: React.FC = () => {
             </div>
 
             {/* Print Summary Metrics */}
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+            <div className="grid grid-cols-4 gap-3 text-center">
+              <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl">
                 <div className="text-[10px] font-bold text-emerald-800 uppercase">Összes Bevétel</div>
-                <div className="text-base font-black text-emerald-900 mt-1">
+                <div className="text-base font-black text-emerald-900 mt-0.5">
                   {financialKPIs.totalIncome.toLocaleString('hu-HU')} Ft
                 </div>
               </div>
-              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl">
+              <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl">
                 <div className="text-[10px] font-bold text-rose-800 uppercase">Összes Kiadás</div>
-                <div className="text-base font-black text-rose-900 mt-1">
+                <div className="text-base font-black text-rose-900 mt-0.5">
                   {financialKPIs.totalExpense.toLocaleString('hu-HU')} Ft
                 </div>
               </div>
-              <div className="p-3 bg-slate-100 border border-slate-300 rounded-xl">
+              <div className="p-2.5 bg-slate-100 border border-slate-300 rounded-xl">
                 <div className="text-[10px] font-bold text-slate-700 uppercase">Nettó Egyenleg</div>
-                <div className="text-base font-black text-slate-900 mt-1">
+                <div className="text-base font-black text-slate-900 mt-0.5">
                   {financialKPIs.netBalance.toLocaleString('hu-HU')} Ft
+                </div>
+              </div>
+              <div className="p-2.5 bg-slate-100 border border-slate-300 rounded-xl">
+                <div className="text-[10px] font-bold text-slate-700 uppercase">Érvényes Tételek</div>
+                <div className="text-base font-black text-slate-900 mt-0.5">
+                  {financialKPIs.count} db
                 </div>
               </div>
             </div>
@@ -779,8 +830,9 @@ export const FinanceView: React.FC = () => {
                   <th className="p-2 border border-slate-300">Kategória</th>
                   <th className="p-2 border border-slate-300">Megnevezés</th>
                   <th className="p-2 border border-slate-300">Partner / Adományozó</th>
-                  <th className="p-2 border border-slate-300">Számlaszám</th>
-                  <th className="p-2 border border-slate-300 text-right">Összeg</th>
+                  <th className="p-2 border border-slate-300">Számla</th>
+                  <th className="p-2 border border-slate-300 text-right">Összeg Ft</th>
+                  <th className="p-2 border border-slate-300 text-center">Státusz</th>
                 </tr>
               </thead>
               <tbody>
@@ -808,15 +860,23 @@ export const FinanceView: React.FC = () => {
                       {t.type === 'bevetel' ? '+' : '-'}
                       {t.amount?.toLocaleString('hu-HU')} Ft
                     </td>
+                    <td className="p-2 border border-slate-200 text-center font-semibold text-[10px]">
+                      {t.status === 'teljesult' ? 'Teljesült' : t.status === 'fuggoben' ? 'Függőben' : 'Stornó'}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
 
             {/* Print Footer Disclaimer */}
-            <div className="pt-4 border-t border-slate-300 text-[10px] text-slate-500 flex justify-between items-center italic">
-              <span>Belső egyesületi pénzügyi kimutatás — nem minősül hivatalos számlának / NAV B2B dokumentumnak.</span>
-              <span>Generálva: Cica-NyT PWA</span>
+            <div className="pt-4 border-t border-slate-300 text-[10px] text-slate-600 space-y-1">
+              <p className="font-semibold italic text-slate-700">
+                Ez a kimutatás a Cica-NyT belső nyilvántartásából készült. Nem minősül számlának, számviteli bizonylatnak vagy NAV által kibocsátott dokumentumnak.
+              </p>
+              <div className="flex justify-between items-center text-slate-500 text-[9px] pt-1 border-t border-slate-200">
+                <span>Generálva: Cica-NyT PWA</span>
+                <span>Rendszer: Belső nyilvántartó</span>
+              </div>
             </div>
           </div>
         </div>
@@ -988,9 +1048,9 @@ export const FinanceView: React.FC = () => {
                             )}
                             {canDeleteFinance && (
                               <button
-                                onClick={() => handleDeleteTransaction(t.id)}
+                                onClick={() => handleDeleteTransaction(t)}
                                 className="p-1.5 rounded-xl bg-slate-800 hover:bg-rose-900/60 text-slate-300 hover:text-rose-300 transition cursor-pointer"
-                                title="Törlés"
+                                title="Törlés / Stornó"
                               >
                                 🗑️
                               </button>

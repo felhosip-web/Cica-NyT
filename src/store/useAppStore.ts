@@ -390,6 +390,10 @@ interface AppState {
   setOrgName: (name: string) => void;
   orgRole: string;
   setOrgRole: (role: string) => void;
+  orgTaxNumber: string;
+  setOrgTaxNumber: (taxNo: string) => void;
+  orgRegistrationNo: string;
+  setOrgRegistrationNo: (regNo: string) => void;
 
   // Root Mode & Debug
   isRootMode: boolean;
@@ -483,6 +487,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   theme: (typeof localStorage !== 'undefined' && localStorage.getItem('cica_theme')) || 'original',
   orgName: (typeof localStorage !== 'undefined' && localStorage.getItem('org_name')) || 'Macskamenhely & Gondozó Nyilvántartó',
   orgRole: (typeof localStorage !== 'undefined' && localStorage.getItem('org_role')) || 'shelter_admin',
+  orgTaxNumber: (typeof localStorage !== 'undefined' && localStorage.getItem('org_tax_number')) || '',
+  orgRegistrationNo: (typeof localStorage !== 'undefined' && localStorage.getItem('org_registration_no')) || '',
   isRootMode: typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('cica_root_mode') === 'true' : false,
   rootSessionUntil: typeof sessionStorage !== 'undefined' && sessionStorage.getItem('cica_root_session_until')
     ? parseInt(sessionStorage.getItem('cica_root_session_until')!, 10)
@@ -699,6 +705,20 @@ export const useAppStore = create<AppState>((set, get) => ({
       localStorage.setItem('org_role', role);
     }
     set({ orgRole: role });
+  },
+
+  setOrgTaxNumber: (taxNo) => {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('org_tax_number', taxNo);
+    }
+    set({ orgTaxNumber: taxNo });
+  },
+
+  setOrgRegistrationNo: (regNo) => {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('org_registration_no', regNo);
+    }
+    set({ orgRegistrationNo: regNo });
   },
 
   setIsRootMode: (active, durationMinutes) => {

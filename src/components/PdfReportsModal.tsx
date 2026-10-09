@@ -23,7 +23,7 @@ const cleanText = (str?: string | null): string => {
 };
 
 export const PdfReportsModal: React.FC<PdfReportsModalProps> = ({ onClose }) => {
-  const { orgName, addDebugLog } = useAppStore();
+  const { orgName, orgTaxNumber, orgRegistrationNo, addDebugLog } = useAppStore();
 
   // Mode: Hiteles (Certified) vs Nem hiteles (Unofficial / Working draft)
   const [isOfficial, setIsOfficial] = useState<boolean>(true);
@@ -33,9 +33,9 @@ export const PdfReportsModal: React.FC<PdfReportsModalProps> = ({ onClose }) => 
 
   // Custom Editable Fields
   const [customTitle, setCustomTitle] = useState<string>('');
-  const [organizationName, setOrganizationName] = useState<string>(orgName || 'Cica-NyT Macskamenhely Egyesület');
-  const [taxNumber, setTaxNumber] = useState<string>('19283746-1-42');
-  const [registrationNo, setRegistrationNo] = useState<string>('Ny.sz.: 01-02-0012345');
+  const [organizationName, setOrganizationName] = useState<string>(orgName || 'Macskamenhely & Gondozó Nyilvántartó');
+  const [taxNumber, setTaxNumber] = useState<string>(orgTaxNumber || '');
+  const [registrationNo, setRegistrationNo] = useState<string>(orgRegistrationNo || '');
   const [targetAuthority, setTargetAuthority] = useState<string>('Illetékes Hatóság / Könyvelés');
   const [signatoryName, setSignatoryName] = useState<string>('Elnök / Hivatalos Képviselő');
   const [registryFileNo, setRegistryFileNo] = useState<string>(`IKT-${new Date().getFullYear()}/${Math.floor(1000 + Math.random() * 9000)}`);
@@ -83,7 +83,7 @@ export const PdfReportsModal: React.FC<PdfReportsModalProps> = ({ onClose }) => 
         reportType === 'tnr'
           ? 'HATÓSÁGI TNR (BEFOGÁS-IVARTALANÍTÁS) JEGYZŐKÖNYV'
           : reportType === 'financial'
-          ? 'PÉNZÜGYI ÉS EGÉSZSÉGÜGYI ÁLLATNYILVÁNTARTÁSI KIMUTATÁS'
+          ? 'PÉNZÜGYI BELSŐ FŐKÖNYVI KIMUTATÁS'
           : reportType === 'active'
           ? 'GONDOZÁSBAN LÉVŐ ÁLLATOK HIVATALOS JEGYZÉKE'
           : reportType === 'adopted'
@@ -121,14 +121,15 @@ export const PdfReportsModal: React.FC<PdfReportsModalProps> = ({ onClose }) => 
       // Organization info
       let orgLine = `Szervezet: ${cleanText(organizationName)}`;
       if (isOfficial) {
-        orgLine += `  |  Adoszam: ${cleanText(taxNumber)}  |  ${cleanText(registrationNo)}`;
+        if (taxNumber) orgLine += `  |  Adószám: ${cleanText(taxNumber)}`;
+        if (registrationNo) orgLine += `  |  ${cleanText(registrationNo)}`;
       }
       doc.text(orgLine, 14, 23);
 
       if (isOfficial) {
-        doc.text(`Celhatosag / Cimzett: ${cleanText(targetAuthority)}  |  Iktatoszam: ${cleanText(registryFileNo)}`, 14, 28);
+        doc.text(`Célhatóság / Címzett: ${cleanText(targetAuthority)}  |  Iktatószám: ${cleanText(registryFileNo)}`, 14, 28);
       } else {
-        doc.text(`Besorolas: Belso Hasznalatu Tajekoztato  |  Keszult: ${dateStr}`, 14, 28);
+        doc.text(`Besorolás: Belső Használatú Tájékoztató  |  Készült: ${dateStr}`, 14, 28);
       }
 
       let startY = 33;
@@ -140,13 +141,23 @@ export const PdfReportsModal: React.FC<PdfReportsModalProps> = ({ onClose }) => 
 
       doc.setFontSize(8);
       doc.setFont('helvetica', 'bold');
-      if (reportType === 'tnr') {
-        doc.text(`Osszes TNR rekord: ${totalTnrCount} db   |   Kiállítás dátuma: ${dateStr}`, 18, startY + 7.5);
+      if (reportType === 'financial') {
+        const validFinances = allFinances.filter((f) => f.status !== 'storno');
+        const totalIncome = validFinances.filter((f) => f.type === 'bevetel').reduce((sum, f) => sum + (f.amount || 0), 0);
+        const totalExpense = validFinances.filter((f) => f.type === 'kiadas').reduce((sum, f) => sum + (f.amount || 0), 0);
+        const netBalance = totalIncome - totalExpense;
+        doc.text(
+          `Összes Bevétel: ${totalIncome.toLocaleString('hu-HU')} Ft   |   Összes Kiadás: ${totalExpense.toLocaleString('hu-HU')} Ft   |   Nettó Egyenleg: ${netBalance.toLocaleString('hu-HU')} Ft   |   Tételek: ${validFinances.length} db`,
+          18,
+          startY + 7.5
+        );
+      } else if (reportType === 'tnr') {
+        doc.text(`Összes TNR rekord: ${totalTnrCount} db   |   Kiállítás dátuma: ${dateStr}`, 18, startY + 7.5);
       } else {
         const activeCount = filteredCats.filter((c) => c.status !== 'gazdis' && c.status !== 'elhunyt').length;
         const adoptedCount = filteredCats.filter((c) => c.status === 'gazdis').length;
         doc.text(
-          `Listazott allatok szama: ${totalCatCount} db   |   Aktiv gondozasban: ${activeCount} db   |   Gazdisodott: ${adoptedCount} db   |   Kelt: ${dateStr}`,
+          `Listázott állatok száma: ${totalCatCount} db   |   Aktív gondozásban: ${activeCount} db   |   Gazdisodott: ${adoptedCount} db   |   Kelt: ${dateStr}`,
           18,
           startY + 7.5
         );
@@ -159,7 +170,7 @@ export const PdfReportsModal: React.FC<PdfReportsModalProps> = ({ onClose }) => 
       let bodyData: string[][] = [];
 
       if (reportType === 'financial') {
-        headCols = ['Dátum', 'Típus', 'Kategória', 'Megnevezés / Leírás', 'Partner / Adományozó', 'Számlaszám', 'Összeg (Ft)'];
+        headCols = ['Dátum', 'Típus', 'Kategória', 'Megnevezés / Leírás', 'Partner / Adományozó', 'Számlaszám', 'Összeg Ft', 'Státusz'];
         bodyData = allFinances.map((fin) => [
           fin.date || '-',
           fin.type === 'bevetel' ? 'Bevétel' : 'Kiadás',
@@ -168,6 +179,7 @@ export const PdfReportsModal: React.FC<PdfReportsModalProps> = ({ onClose }) => 
           cleanText(fin.partnerName || '-'),
           cleanText(fin.invoiceNumber || '-'),
           `${fin.type === 'bevetel' ? '+' : '-'}${fin.amount?.toLocaleString('hu-HU') || '0'} Ft`,
+          fin.status === 'teljesult' ? 'Teljesült' : fin.status === 'fuggoben' ? 'Függőben' : 'Stornó',
         ]);
       } else if (reportType === 'tnr') {
         headCols = ['Azonosító / Neve', 'Befogás Helyszíne', 'Befogás Dátuma', 'Befogó Személy', 'Klinika / Orvos', 'Elengedve'];
@@ -245,25 +257,27 @@ export const PdfReportsModal: React.FC<PdfReportsModalProps> = ({ onClose }) => 
         margin: { top: 15, left: 14, right: 14 },
         didDrawPage: (data: any) => {
           // Footer on every page
-          doc.setFontSize(7.5);
+          doc.setFontSize(7);
           doc.setTextColor(120, 120, 120);
-          const footerStr = `Keszult: ${now.toLocaleString()} | ${cleanText(organizationName)} | Oldal ${data.pageNumber}`;
-          doc.text(footerStr, 14, pageHeight - 8);
+          const disclaimerText = 'Ez a kimutatás a Cica-NyT belső nyilvántartásából készült. Nem minősül számlának, számviteli bizonylatnak vagy NAV által kibocsátott dokumentumnak.';
+          doc.text(disclaimerText, 14, pageHeight - 10);
+          const footerStr = `Készült: ${now.toLocaleString('hu-HU')} | ${cleanText(organizationName)} | Oldal ${data.pageNumber}`;
+          doc.text(footerStr, 14, pageHeight - 6);
 
           // Official verification signature box on last page
           if (isOfficial && data.pageNumber === doc.internal.getNumberOfPages()) {
-            const sigY = pageHeight - 24;
+            const sigY = pageHeight - 26;
             doc.setFontSize(7.5);
             doc.setTextColor(40, 40, 40);
-            doc.text('Kiadta es igazolta:', pageWidth - 80, sigY);
-            doc.line(pageWidth - 80, sigY + 10, pageWidth - 14, sigY + 10);
+            doc.text('Kiadta és igazolta:', pageWidth - 80, sigY);
+            doc.line(pageWidth - 80, sigY + 8, pageWidth - 14, sigY + 8);
             doc.setFont('helvetica', 'bold');
-            doc.text(cleanText(signatoryName), pageWidth - 80, sigY + 14);
+            doc.text(cleanText(signatoryName), pageWidth - 80, sigY + 12);
             doc.setFont('helvetica', 'normal');
-            doc.text('P.H. / Hivatalos alairas', pageWidth - 80, sigY + 18);
+            doc.text('P.H. / Hivatalos aláírás', pageWidth - 80, sigY + 16);
 
             if (customNotes.trim()) {
-              doc.text(`Megjegyzés: ${cleanText(customNotes)}`, 14, pageHeight - 15);
+              doc.text(`Megjegyzés: ${cleanText(customNotes)}`, 14, pageHeight - 18);
             }
           }
         },
@@ -275,7 +289,9 @@ export const PdfReportsModal: React.FC<PdfReportsModalProps> = ({ onClose }) => 
         console.error('autoTable fallback call:', err);
       }
 
-      const safeFilename = `CicaNyT_Riport_${isOfficial ? 'HITELES' : 'MUNKAPELDANY'}_${dateStr}.pdf`;
+      const safeFilename = reportType === 'financial'
+        ? `CicaNyT_Penzugy_${isOfficial ? 'HITELES' : 'MUNKAPELDANY'}_${dateStr}.pdf`
+        : `CicaNyT_Riport_${isOfficial ? 'HITELES' : 'MUNKAPELDANY'}_${dateStr}.pdf`;
       doc.save(safeFilename);
       addDebugLog(`[PDF Export] ${safeFilename} sikeresen letöltve.`);
       onClose();

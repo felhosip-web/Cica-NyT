@@ -144,13 +144,40 @@ export const FinanceFormModal: React.FC<FinanceFormModalProps> = ({
 
     const parsedAmount = parseFloat(amount);
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
-      setError('Kérjük, adj meg egy érvényes, pozitív összeget!');
+      setError('Kérjük, adj meg egy érvényes, pozitív összeget (egész Ft-ban)!');
+      return;
+    }
+
+    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      setError('Kérjük, adj meg egy érvényes dátumot (ÉÉÉÉ-MM-NN formátumban)!');
+      return;
+    }
+
+    if (!type) {
+      setError('Kérjük, válaszd ki a tranzakció típusát (bevétel vagy kiadás)!');
+      return;
+    }
+
+    if (!category) {
+      setError('Kérjük, válaszd ki a pénzügyi kategóriát!');
+      return;
+    }
+
+    if (!paymentMethod) {
+      setError('Kérjük, válaszd ki a fizetési módot!');
       return;
     }
 
     if (!title.trim()) {
       setError('Kérjük, add meg a megnevezést / leírást!');
       return;
+    }
+
+    if (category === 'szazalek1') {
+      if (!taxYear || isNaN(taxYear) || taxYear < 2000 || taxYear > 2100) {
+        setError('Adó 1% felajánlás esetén kérjük, adj meg egy érvényes adóévet (pl. 2024, 2025)!');
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -166,8 +193,13 @@ export const FinanceFormModal: React.FC<FinanceFormModalProps> = ({
         paymentMethod,
         status,
         invoiceNumber: invoiceNumber.trim() || undefined,
+        taxYear: category === 'szazalek1' ? taxYear : (transactionToEdit?.taxYear || undefined),
+        navReference: navReference.trim() || undefined,
         catId: catId || undefined,
         fosterId: fosterId || undefined,
+        sourceModule: transactionToEdit?.sourceModule || 'manual',
+        sourceReferenceId: transactionToEdit?.sourceReferenceId,
+        stornoReason: transactionToEdit?.stornoReason,
         notes: notes.trim() || undefined,
         syncStatus: 'pending',
         createdAt: transactionToEdit?.createdAt || new Date().toISOString(),

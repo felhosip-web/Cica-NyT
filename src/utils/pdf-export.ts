@@ -28,22 +28,15 @@ function hexToRgb(hex) {
     return [r, g, b];
 }
 
-// Convert Hungarian specific characters to closest ASCII match to avoid jsPDF font issues
-// or we can use replace logic for just standard text.
+// Convert Hungarian double-acute characters (ő, ű) to closest standard accents (ö, ü)
+// for standard jsPDF Helvetica font compatibility while preserving standard Hungarian accented vowels (á, é, í, ó, ö, ú, ü).
 function stripAccents(str) {
     if (!str) return '';
     return str
         .replace(/ő/g, 'ö')
         .replace(/Ő/g, 'Ö')
         .replace(/ű/g, 'ü')
-        .replace(/Ű/g, 'Ü')
-        .replace(/á/g, 'a').replace(/Á/g, 'A')
-        .replace(/é/g, 'e').replace(/É/g, 'E')
-        .replace(/í/g, 'i').replace(/Í/g, 'I')
-        .replace(/ó/g, 'o').replace(/Ó/g, 'O')
-        .replace(/ö/g, 'o').replace(/Ö/g, 'O')
-        .replace(/ú/g, 'u').replace(/Ú/g, 'U')
-        .replace(/ü/g, 'u').replace(/Ü/g, 'U');
+        .replace(/Ű/g, 'Ü');
 }
 
 export class PdfExporter {
