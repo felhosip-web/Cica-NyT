@@ -40,6 +40,8 @@ export function generatePdfReport(
       ? 'GONDOZÁSBAN LÉVŐ ÁLLATOK HIVATALOS JEGYZÉKE'
       : options.reportType === 'adopted'
       ? 'ÖRÖKBEFOGADOTT (GAZDIS) ÁLLATOK KIMUTATÁSA'
+      : options.reportType === 'deceased'
+      ? 'ELHUNYT ÁLLATOK NYILVÁNTARTÁSA'
       : 'TELJES ÁLLATNYILVÁNTARTÁSI REGISZTER';
 
   const finalTitle = cleanPdfText(options.customTitle.trim() || defaultTitle);
@@ -104,7 +106,7 @@ export function generatePdfReport(
   } else if (options.reportType === 'tnr') {
     doc.text(`Összes TNR rekord: ${data.tnr.length} db   |   Kiállítás dátuma: ${dateStr}`, 18, startY + 7.5);
   } else {
-    const filteredCats = filterCatsByOptions(data.cats, options.reportType);
+    const filteredCats = filterCatsByOptions(data.cats, options.reportType, options.animalFilters);
     const activeCount = filteredCats.filter((c) => c.status !== 'gazdis' && c.status !== 'elhunyt').length;
     const adoptedCount = filteredCats.filter((c) => c.status === 'gazdis').length;
     doc.text(
@@ -160,44 +162,57 @@ export function generatePdfReport(
       cleanPdfText(t.locationReleased ? `${t.locationReleased} (${t.dateReleased || ''})` : t.status),
     ]);
   } else {
-    const filteredCats = filterCatsByOptions(data.cats, options.reportType);
+    const filteredCats = filterCatsByOptions(data.cats, options.reportType, options.animalFilters);
     const ac = options.animalColumns;
 
     if (ac.incSorszam) headCols.push('Sorszám');
     if (ac.incName) headCols.push('Név');
-    if (ac.incGenderColor) {
-      headCols.push('Ivar');
-      headCols.push('Szín');
-    }
     if (ac.incChip) headCols.push('Chip szám');
-    if (ac.incIntake) headCols.push('Bekerülés');
-    if (ac.incSpayed) headCols.push('Ivartalanítva');
+    if (ac.incGender) headCols.push('Ivar');
+    if (ac.incColor) headCols.push('Szín');
+    if (ac.incAge) headCols.push('Kor');
+    if (ac.incStatus) headCols.push('Státusz');
+    if (ac.incLocation) headCols.push('Tartási hely');
+    if (ac.incNotes) headCols.push('Megjegyzés');
+    if (ac.incIntakeType) headCols.push('Bekerülés');
+    if (ac.incIntakeDate) headCols.push('Dátum');
+    if (ac.incSpayed) headCols.push('Ivartalan');
+    if (ac.incVaccines) headCols.push('Oltás');
     if (ac.incPassbook) headCols.push('Kiskönyv');
-    if (ac.incAdopter) headCols.push('Státusz / Gazdi');
+    if (ac.incAdopterName) headCols.push('Gazdi');
+    if (ac.incAdoptedDate) headCols.push('Örökbeadás');
 
     bodyData = filteredCats.map((cat) => {
       const row: string[] = [];
       if (ac.incSorszam) row.push(`#${cat.sorszam || cat.id.slice(0, 4)}`);
       if (ac.incName) row.push(cleanPdfText(cat.nev || 'Névtelen'));
-      if (ac.incGenderColor) {
-        row.push(cat.ivar === 'bak' ? 'Bak (Kandúr)' : 'Nőstény');
-        row.push(cleanPdfText(cat.szin || '-'));
-      }
       if (ac.incChip) row.push(cat.chipNumber ? cleanPdfText(cat.chipNumber) : 'Nincs');
-      if (ac.incIntake) {
+      if (ac.incGender) row.push(cat.ivar === 'bak' ? 'Bak' : 'Nőstény');
+      if (ac.incColor) row.push(cleanPdfText(cat.szin || '-'));
+      if (ac.incAge) row.push(cleanPdfText(cat.kor || cat.szuletett || '-'));
+      if (ac.incStatus) row.push(cleanPdfText(cat.status || 'Gondozásban'));
+      if (ac.incLocation) row.push(cleanPdfText(cat.tartasiHely || '-'));
+      if (ac.incNotes) row.push(cleanPdfText(cat.megjegyzes || '-'));
+      if (ac.incIntakeType) {
         const typeStr = cat.intakeType === 'befogott' ? 'Befogott' : cat.intakeType === 'leadott' ? 'Leadott' : cat.intakeType === 'elkobzott' ? 'Elkobzott' : 'Saját';
+        row.push(cleanPdfText(typeStr));
+      }
+      if (ac.incIntakeDate) {
         const dateVal = cat.befogottMikor || cat.behozottMikor || (cat.created ? cat.created.split('T')[0] : '');
-        row.push(cleanPdfText(`${typeStr} ${dateVal}`));
+        row.push(cleanPdfText(dateVal || '-'));
       }
       if (ac.incSpayed) row.push(cat.isSpayed ? 'Igen' : 'Nem');
-      if (ac.incPassbook) row.push(cat.hasKiskonyv ? cleanPdfText(`Van (${cat.kiskonyvSzam || '-'})`) : 'Nincs');
-      if (ac.incAdopter) {
-        if (cat.status === 'gazdis') {
-          row.push(cleanPdfText(`Gazdis: ${cat.gazdisPerson || '-'} (${cat.gazdisDate || ''})`));
-        } else {
-          row.push(cleanPdfText(cat.status || 'Gondozásban'));
-        }
+      if (ac.incVaccines) {
+        const vStr = [
+          cat.oltasKombinalt ? 'Komb' : '',
+          cat.oltasVeszettseg ? 'Vesz' : '',
+          cat.oltasLeukosis ? 'Leuk' : '',
+        ].filter(Boolean).join(',') || 'Nincs';
+        row.push(cleanPdfText(vStr));
       }
+      if (ac.incPassbook) row.push(cat.hasKiskonyv ? cleanPdfText(`Van (${cat.kiskonyvSzam || '-'})`) : 'Nincs');
+      if (ac.incAdopterName) row.push(cleanPdfText(cat.gazdisPerson || '-'));
+      if (ac.incAdoptedDate) row.push(cleanPdfText(cat.gazdisDate || '-'));
       return row;
     });
   }

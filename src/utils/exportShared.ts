@@ -1,7 +1,7 @@
 import { Cat, TnrRecord, FinancialTransaction, FinanceCategory } from '../types';
 import { CATEGORY_LABELS } from '../components/FinanceFormModal';
 
-export type ReportType = 'all' | 'active' | 'adopted' | 'tnr' | 'financial';
+export type ReportType = 'all' | 'active' | 'adopted' | 'deceased' | 'tnr' | 'financial';
 export type PeriodFilter = 'this_month' | 'last_month' | 'this_year' | 'custom' | 'all';
 export type Orientation = 'landscape' | 'portrait';
 
@@ -24,14 +24,48 @@ export interface FinancialColumnSelection {
 }
 
 export interface AnimalColumnSelection {
+  // Azonosítás
   incSorszam: boolean;
   incName: boolean;
-  incGenderColor: boolean;
   incChip: boolean;
-  incIntake: boolean;
+  incGender: boolean;
+  incColor: boolean;
+  incAge: boolean;
+
+  // Státusz & Elhelyezés
+  incStatus: boolean;
+  incLocation: boolean;
+  incNotes: boolean;
+
+  // Bekerülés
+  incIntakeType: boolean;
+  incIntakeDate: boolean;
+  incIntakeBy: boolean;
+  incIntakeLocation: boolean;
+
+  // Egészség
   incSpayed: boolean;
+  incVaccines: boolean;
   incPassbook: boolean;
-  incAdopter: boolean;
+  incMedicalNotes: boolean;
+
+  // Örökbefogadás
+  incAdopterName: boolean;
+  incAdoptedDate: boolean;
+  incAdopterContact: boolean;
+
+  // Egyéb
+  incHasPhoto: boolean;
+  incAuditDates: boolean;
+}
+
+export interface AnimalFilterOptions {
+  reportType: ReportType; // 'all' | 'active' | 'adopted' | 'deceased'
+  genderFilter: 'all' | 'bak' | 'nosteny';
+  intakeTypeFilter: 'all' | 'sajat' | 'befogott' | 'leadott' | 'elkobzott';
+  startDate?: string;
+  endDate?: string;
+  includeDeceasedInAll?: boolean;
 }
 
 export interface ExportOptions {
@@ -46,6 +80,9 @@ export interface ExportOptions {
   customStartDate?: string;
   customEndDate?: string;
   includeStorno: boolean;
+
+  // Animal specific filters
+  animalFilters?: AnimalFilterOptions;
 
   // Header & Identity
   customTitle: string;
@@ -90,12 +127,26 @@ export const DEFAULT_FINANCIAL_COLUMNS: FinancialColumnSelection = {
 export const DEFAULT_ANIMAL_COLUMNS: AnimalColumnSelection = {
   incSorszam: true,
   incName: true,
-  incGenderColor: true,
   incChip: true,
-  incIntake: true,
+  incGender: true,
+  incColor: true,
+  incAge: true,
+  incStatus: true,
+  incLocation: true,
+  incNotes: false,
+  incIntakeType: true,
+  incIntakeDate: true,
+  incIntakeBy: false,
+  incIntakeLocation: false,
   incSpayed: true,
+  incVaccines: true,
   incPassbook: true,
-  incAdopter: true,
+  incMedicalNotes: false,
+  incAdopterName: true,
+  incAdoptedDate: true,
+  incAdopterContact: false,
+  incHasPhoto: true,
+  incAuditDates: false,
 };
 
 export function filterFinancesByOptions(
@@ -107,7 +158,6 @@ export function filterFinancesByOptions(
   const currentMonth = now.getMonth();
 
   return finances.filter((t) => {
-    // Exclude storno unless explicitly requested
     if (!options.includeStorno && t.status === 'storno') {
       return false;
     }
@@ -137,10 +187,37 @@ export function filterFinancesByOptions(
   }).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 }
 
-export function filterCatsByOptions(cats: Cat[], reportType: ReportType): Cat[] {
+export function filterCatsByOptions(cats: Cat[], reportType: ReportType, filters?: AnimalFilterOptions): Cat[] {
   return cats.filter((cat) => {
-    if (reportType === 'active') return cat.status !== 'gazdis' && cat.status !== 'elhunyt';
-    if (reportType === 'adopted') return cat.status === 'gazdis';
+    // Report Type Scope
+    if (reportType === 'active') {
+      if (cat.status === 'gazdis' || cat.status === 'elhunyt') return false;
+    } else if (reportType === 'adopted') {
+      if (cat.status !== 'gazdis') return false;
+    } else if (reportType === 'deceased') {
+      if (cat.status !== 'elhunyt') return false;
+    } else if (reportType === 'all') {
+      if (!filters?.includeDeceasedInAll && cat.status === 'elhunyt') return false;
+    }
+
+    if (filters) {
+      if (filters.genderFilter && filters.genderFilter !== 'all' && cat.ivar !== filters.genderFilter) {
+        return false;
+      }
+
+      if (filters.intakeTypeFilter && filters.intakeTypeFilter !== 'all') {
+        if (filters.intakeTypeFilter === 'sajat') {
+          if (cat.intakeType && cat.intakeType !== 'sajat') return false;
+        } else {
+          if (cat.intakeType !== filters.intakeTypeFilter) return false;
+        }
+      }
+
+      const catDate = cat.befogottMikor || cat.behozottMikor || (cat.created ? cat.created.split('T')[0] : '');
+      if (filters.startDate && catDate && catDate < filters.startDate) return false;
+      if (filters.endDate && catDate && catDate > filters.endDate) return false;
+    }
+
     return true;
   });
 }
@@ -180,6 +257,8 @@ export function buildSafeFilename(options: ExportOptions, extension: 'pdf' | 'od
       ? 'Aktiv_Allatok'
       : options.reportType === 'adopted'
       ? 'Gazdis_Allatok'
+      : options.reportType === 'deceased'
+      ? 'Elhunyt_Allatok'
       : 'Allatregiszter';
 
   const modeTag = options.isOfficial ? 'HITELES' : 'MUNKAPELDANY';

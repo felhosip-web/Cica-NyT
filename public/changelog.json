@@ -1,5 +1,16 @@
 [
   {
+    "version": "2.30.0",
+    "date": "2026-10-08",
+    "changes": [
+      "📋 Dedikált Állatkimutatás Modul (`AnimalReportModal.tsx`) részletes mező-checkboxokkal (Azonosítás, Státusz, Bekerülés, Egészség, Örökbefogadás, Egyéb)",
+      "🎯 Állatállomány hatóköri szűrés (Összes / Gondozásban lévő / Gazdisodott / Elhunyt), ivar, bekerülés típusa és dátumintervallum szerint",
+      "📊 ODS (.ods) munkalap generálás 'Állatok' adatlappal és 'Összesítő' kimutatással (státusz, ivar, ivartalanítás, chip megoszlás)",
+      "📄 ODT (.odt) és PDF (.pdf) letöltési opciók Hiteles vagy Munkapéldány módban",
+      "🐾 Közvetlen '📋 Állatkimutatás' gomb a Gondozásban lévő állatok nézet eszköztárán"
+    ]
+  },
+  {
     "version": "2.29.0",
     "date": "2026-10-08",
     "changes": [

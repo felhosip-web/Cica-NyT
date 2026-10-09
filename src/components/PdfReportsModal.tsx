@@ -4,6 +4,7 @@ import { db } from '../lib/db';
 import { useAppStore } from '../store/useAppStore';
 import { Cat, TnrRecord, FinancialTransaction } from '../types';
 import { CustomSelect } from './CustomSelect';
+import { AnimalReportModal } from './AnimalReportModal';
 import {
   ExportOptions,
   ReportType,
@@ -56,6 +57,7 @@ export const PdfReportsModal: React.FC<PdfReportsModalProps> = ({ onClose }) => 
   const [animalCols, setAnimalCols] = useState(DEFAULT_ANIMAL_COLUMNS);
 
   const [isGenerating, setIsGenerating] = useState(false);
+  const [openDedicatedAnimalModal, setOpenDedicatedAnimalModal] = useState(false);
 
   // Fetch live cats, TNR records & finances
   const allCats = (useLiveQuery(() => db.cats.toArray(), []) || []) as Cat[];
@@ -162,6 +164,10 @@ export const PdfReportsModal: React.FC<PdfReportsModalProps> = ({ onClose }) => 
     }
   };
 
+  if (openDedicatedAnimalModal) {
+    return <AnimalReportModal onClose={() => setOpenDedicatedAnimalModal(false)} />;
+  }
+
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
       <div className="bg-white rounded-3xl shadow-2xl border border-gray-200 w-full max-w-4xl overflow-hidden animate-in fade-in zoom-in-95 my-auto">
@@ -253,9 +259,21 @@ export const PdfReportsModal: React.FC<PdfReportsModalProps> = ({ onClose }) => 
 
           {/* STEP 2: Scope & Filters */}
           <div className="space-y-3 p-4 bg-gray-50 border border-gray-200 rounded-2xl">
-            <label className="font-extrabold text-gray-800 uppercase tracking-wider text-[11px] block">
-              2. Kimutatás Témaköre & Szűrési Időszak
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="font-extrabold text-gray-800 uppercase tracking-wider text-[11px] block">
+                2. Kimutatás Témaköre & Szűrési Időszak
+              </label>
+
+              {(reportType === 'all' || reportType === 'active' || reportType === 'adopted' || reportType === 'deceased') && (
+                <button
+                  type="button"
+                  onClick={() => setOpenDedicatedAnimalModal(true)}
+                  className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-[11px] rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1"
+                >
+                  <span>📋 Megnyitás a Részletes Állatkimutatás Modulban ➔</span>
+                </button>
+              )}
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
@@ -268,6 +286,7 @@ export const PdfReportsModal: React.FC<PdfReportsModalProps> = ({ onClose }) => 
                     { value: 'all', label: 'Teljes Állatállomány Regiszter', icon: '🐾' },
                     { value: 'active', label: 'Gondozásban Lévő (Aktív) Állatok', icon: '🏡' },
                     { value: 'adopted', label: 'Gazdisodott (Örökbefogadott) Állatok', icon: '🏠' },
+                    { value: 'deceased', label: 'Elhunyt Állatok Nyilvántartása', icon: '🕊️' },
                     { value: 'tnr', label: 'TNR Program & Kóbor Cica Akciók', icon: '✂️' },
                   ]}
                   title="Témakör Kiválasztása"
@@ -430,70 +449,6 @@ export const PdfReportsModal: React.FC<PdfReportsModalProps> = ({ onClose }) => 
               )}
             </div>
           </div>
-
-          {/* STEP 4: Columns Toggle */}
-          {reportType === 'financial' ? (
-            <div className="space-y-2">
-              <label className="font-extrabold text-gray-800 uppercase tracking-wider text-[11px] block">
-                3. Pénzügyi Oszlopok Kiválasztása
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-gray-50 p-3 rounded-2xl border border-gray-200 font-bold text-gray-700">
-                {Object.entries({
-                  date: 'Dátum',
-                  type: 'Típus',
-                  category: 'Kategória',
-                  title: 'Megnevezés',
-                  partnerName: 'Partner',
-                  invoiceNumber: 'Számlaszám',
-                  amount: 'Összeg Ft',
-                  status: 'Státusz',
-                  paymentMethod: 'Fizetési mód',
-                  taxYear: 'Adóév (1%)',
-                  navReference: 'NAV iktatószám',
-                  sourceModule: 'Forrás modul',
-                  notes: 'Megjegyzés',
-                }).map(([key, label]) => (
-                  <label key={key} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={(finCols as any)[key]}
-                      onChange={(e) => setFinCols({ ...finCols, [key]: e.target.checked })}
-                      className="rounded text-pink-600 focus:ring-pink-500"
-                    />
-                    <span>{label}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          ) : reportType !== 'tnr' ? (
-            <div className="space-y-2">
-              <label className="font-extrabold text-gray-800 uppercase tracking-wider text-[11px] block">
-                3. Állatnyilvántartási Oszlopok Kiválasztása
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-gray-50 p-3 rounded-2xl border border-gray-200 font-bold text-gray-700">
-                {Object.entries({
-                  incSorszam: '# Sorszám',
-                  incName: '🐱 Cica neve',
-                  incGenderColor: '♂️♀️ Ivar & Szín',
-                  incChip: '🏷️ Chip szám',
-                  incIntake: '📥 Bekerülés',
-                  incSpayed: '✂️ Ivartalanítva',
-                  incPassbook: '📘 Kiskönyv',
-                  incAdopter: '🏠 Státusz / Gazdi',
-                }).map(([key, label]) => (
-                  <label key={key} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={(animalCols as any)[key]}
-                      onChange={(e) => setAnimalCols({ ...animalCols, [key]: e.target.checked })}
-                      className="rounded text-pink-600 focus:ring-pink-500"
-                    />
-                    <span>{label}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          ) : null}
 
           {/* Live Preview Summary Box */}
           <div className="p-3 bg-pink-50 border border-pink-200 rounded-2xl flex flex-wrap items-center justify-between font-bold text-pink-900 text-xs">

@@ -73,8 +73,6 @@ export function generateOdsReport(
 
     // Sheet 1: Tételek
     contentXml += `<table:table table:name="Tételek">`;
-
-    // Header Row
     const headers: string[] = [];
     const cols = options.financialColumns;
     if (cols.date) headers.push('Dátum');
@@ -97,30 +95,15 @@ export function generateOdsReport(
     });
     contentXml += `</table:table-row>`;
 
-    // Data Rows
     filteredFinances.forEach((f) => {
       contentXml += `<table:table-row>`;
-      if (cols.date) {
-        contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(f.date || '')}</text:p></table:table-cell>`;
-      }
-      if (cols.type) {
-        contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(f.type === 'bevetel' ? 'Bevétel' : 'Kiadás')}</text:p></table:table-cell>`;
-      }
-      if (cols.category) {
-        contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(getHungarianCategoryName(f.category))}</text:p></table:table-cell>`;
-      }
-      if (cols.title) {
-        contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(f.title || '')}</text:p></table:table-cell>`;
-      }
-      if (cols.partnerName) {
-        contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(f.partnerName || '-')}</text:p></table:table-cell>`;
-      }
-      if (cols.invoiceNumber) {
-        contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(f.invoiceNumber || '-')}</text:p></table:table-cell>`;
-      }
-      if (cols.amount) {
-        contentXml += `<table:table-cell office:value-type="float" office:value="${f.amount || 0}"><text:p>${f.amount || 0}</text:p></table:table-cell>`;
-      }
+      if (cols.date) contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(f.date || '')}</text:p></table:table-cell>`;
+      if (cols.type) contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(f.type === 'bevetel' ? 'Bevétel' : 'Kiadás')}</text:p></table:table-cell>`;
+      if (cols.category) contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(getHungarianCategoryName(f.category))}</text:p></table:table-cell>`;
+      if (cols.title) contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(f.title || '')}</text:p></table:table-cell>`;
+      if (cols.partnerName) contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(f.partnerName || '-')}</text:p></table:table-cell>`;
+      if (cols.invoiceNumber) contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(f.invoiceNumber || '-')}</text:p></table:table-cell>`;
+      if (cols.amount) contentXml += `<table:table-cell office:value-type="float" office:value="${f.amount || 0}"><text:p>${f.amount || 0}</text:p></table:table-cell>`;
       if (cols.status) {
         const stLabel = f.status === 'teljesult' ? 'Teljesült' : f.status === 'fuggoben' ? 'Függőben' : 'Stornó';
         contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(stLabel)}</text:p></table:table-cell>`;
@@ -129,21 +112,12 @@ export function generateOdsReport(
         const pmLabel = PAYMENT_METHOD_LABELS[f.paymentMethod]?.name || f.paymentMethod;
         contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(pmLabel)}</text:p></table:table-cell>`;
       }
-      if (cols.taxYear) {
-        contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(f.taxYear || '-')}</text:p></table:table-cell>`;
-      }
-      if (cols.navReference) {
-        contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(f.navReference || '-')}</text:p></table:table-cell>`;
-      }
-      if (cols.sourceModule) {
-        contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(f.sourceModule || 'manual')}</text:p></table:table-cell>`;
-      }
-      if (cols.notes) {
-        contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(f.notes || '')}</text:p></table:table-cell>`;
-      }
+      if (cols.taxYear) contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(f.taxYear || '-')}</text:p></table:table-cell>`;
+      if (cols.navReference) contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(f.navReference || '-')}</text:p></table:table-cell>`;
+      if (cols.sourceModule) contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(f.sourceModule || 'manual')}</text:p></table:table-cell>`;
+      if (cols.notes) contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(f.notes || '')}</text:p></table:table-cell>`;
       contentXml += `</table:table-row>`;
     });
-
     contentXml += `</table:table>`;
 
     // Sheet 2: Összesítő
@@ -191,47 +165,112 @@ export function generateOdsReport(
 
     contentXml += `</table:table>`;
   } else {
-    // Cats list
-    const filteredCats = filterCatsByOptions(data.cats, options.reportType);
-    contentXml += `<table:table table:name="Macska Regiszter">`;
-    contentXml += `<table:table-row>`;
+    // Cats list (Detailed Animal Export)
+    const filteredCats = filterCatsByOptions(data.cats, options.reportType, options.animalFilters);
     const ac = options.animalColumns;
+
+    contentXml += `<table:table table:name="Állatok">`;
+    contentXml += `<table:table-row>`;
     if (ac.incSorszam) contentXml += `<table:table-cell office:value-type="string"><text:p>Sorszám</text:p></table:table-cell>`;
     if (ac.incName) contentXml += `<table:table-cell office:value-type="string"><text:p>Cica neve</text:p></table:table-cell>`;
-    if (ac.incGenderColor) {
-      contentXml += `<table:table-cell office:value-type="string"><text:p>Ivar</text:p></table:table-cell>`;
-      contentXml += `<table:table-cell office:value-type="string"><text:p>Szín</text:p></table:table-cell>`;
-    }
     if (ac.incChip) contentXml += `<table:table-cell office:value-type="string"><text:p>Chip szám</text:p></table:table-cell>`;
-    if (ac.incIntake) contentXml += `<table:table-cell office:value-type="string"><text:p>Bekerülés</text:p></table:table-cell>`;
+    if (ac.incGender) contentXml += `<table:table-cell office:value-type="string"><text:p>Ivar</text:p></table:table-cell>`;
+    if (ac.incColor) contentXml += `<table:table-cell office:value-type="string"><text:p>Szín / Mintázat</text:p></table:table-cell>`;
+    if (ac.incAge) contentXml += `<table:table-cell office:value-type="string"><text:p>Kor / Született</text:p></table:table-cell>`;
+    if (ac.incStatus) contentXml += `<table:table-cell office:value-type="string"><text:p>Státusz</text:p></table:table-cell>`;
+    if (ac.incLocation) contentXml += `<table:table-cell office:value-type="string"><text:p>Tartási hely</text:p></table:table-cell>`;
+    if (ac.incNotes) contentXml += `<table:table-cell office:value-type="string"><text:p>Megjegyzés</text:p></table:table-cell>`;
+    if (ac.incIntakeType) contentXml += `<table:table-cell office:value-type="string"><text:p>Bekerülés Típusa</text:p></table:table-cell>`;
+    if (ac.incIntakeDate) contentXml += `<table:table-cell office:value-type="string"><text:p>Bekerülés Dátuma</text:p></table:table-cell>`;
+    if (ac.incIntakeBy) contentXml += `<table:table-cell office:value-type="string"><text:p>Ki Hozta / Befogó</text:p></table:table-cell>`;
+    if (ac.incIntakeLocation) contentXml += `<table:table-cell office:value-type="string"><text:p>Befogás Helyszíne</text:p></table:table-cell>`;
     if (ac.incSpayed) contentXml += `<table:table-cell office:value-type="string"><text:p>Ivartalanítva</text:p></table:table-cell>`;
+    if (ac.incVaccines) contentXml += `<table:table-cell office:value-type="string"><text:p>Oltások</text:p></table:table-cell>`;
     if (ac.incPassbook) contentXml += `<table:table-cell office:value-type="string"><text:p>Kiskönyv</text:p></table:table-cell>`;
-    if (ac.incAdopter) contentXml += `<table:table-cell office:value-type="string"><text:p>Státusz / Gazdi</text:p></table:table-cell>`;
+    if (ac.incMedicalNotes) contentXml += `<table:table-cell office:value-type="string"><text:p>Orvosi Megjegyzés</text:p></table:table-cell>`;
+    if (ac.incAdopterName) contentXml += `<table:table-cell office:value-type="string"><text:p>Örökbefogadó Neve</text:p></table:table-cell>`;
+    if (ac.incAdoptedDate) contentXml += `<table:table-cell office:value-type="string"><text:p>Örökbeadás Dátuma</text:p></table:table-cell>`;
+    if (ac.incAdopterContact) contentXml += `<table:table-cell office:value-type="string"><text:p>Gazdi Elérhetősége</text:p></table:table-cell>`;
+    if (ac.incHasPhoto) contentXml += `<table:table-cell office:value-type="string"><text:p>Fotó</text:p></table:table-cell>`;
+    if (ac.incAuditDates) contentXml += `<table:table-cell office:value-type="string"><text:p>Rögzítve / Módosítva</text:p></table:table-cell>`;
     contentXml += `</table:table-row>`;
 
     filteredCats.forEach((cat) => {
       contentXml += `<table:table-row>`;
       if (ac.incSorszam) contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(`#${cat.sorszam || cat.id.slice(0, 4)}`)}</text:p></table:table-cell>`;
       if (ac.incName) contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(cat.nev || 'Névtelen')}</text:p></table:table-cell>`;
-      if (ac.incGenderColor) {
-        contentXml += `<table:table-cell office:value-type="string"><text:p>${cat.ivar === 'bak' ? 'Bak (Kandúr)' : 'Nőstény'}</text:p></table:table-cell>`;
-        contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(cat.szin || '-')}</text:p></table:table-cell>`;
-      }
       if (ac.incChip) contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(cat.chipNumber || 'Nincs')}</text:p></table:table-cell>`;
-      if (ac.incIntake) {
+      if (ac.incGender) contentXml += `<table:table-cell office:value-type="string"><text:p>${cat.ivar === 'bak' ? 'Bak (Kandúr)' : 'Nőstény'}</text:p></table:table-cell>`;
+      if (ac.incColor) contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(cat.szin || '-')}</text:p></table:table-cell>`;
+      if (ac.incAge) contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(cat.kor || cat.szuletett || '-')}</text:p></table:table-cell>`;
+      if (ac.incStatus) contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(cat.status || 'Gondozásban')}</text:p></table:table-cell>`;
+      if (ac.incLocation) contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(cat.tartasiHely || '-')}</text:p></table:table-cell>`;
+      if (ac.incNotes) contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(cat.megjegyzes || '-')}</text:p></table:table-cell>`;
+      if (ac.incIntakeType) {
         const typeStr = cat.intakeType === 'befogott' ? 'Befogott' : cat.intakeType === 'leadott' ? 'Leadott' : cat.intakeType === 'elkobzott' ? 'Elkobzott' : 'Saját';
+        contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(typeStr)}</text:p></table:table-cell>`;
+      }
+      if (ac.incIntakeDate) {
         const dateVal = cat.befogottMikor || cat.behozottMikor || (cat.created ? cat.created.split('T')[0] : '');
-        contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(`${typeStr} ${dateVal}`)}</text:p></table:table-cell>`;
+        contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(dateVal || '-')}</text:p></table:table-cell>`;
       }
+      if (ac.incIntakeBy) contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(cat.befogtaKi || cat.behoztaKi || '-')}</text:p></table:table-cell>`;
+      if (ac.incIntakeLocation) contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(cat.befogottHol || '-')}</text:p></table:table-cell>`;
       if (ac.incSpayed) contentXml += `<table:table-cell office:value-type="string"><text:p>${cat.isSpayed ? 'Igen' : 'Nem'}</text:p></table:table-cell>`;
-      if (ac.incPassbook) contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(cat.hasKiskonyv ? `Van (${cat.kiskonyvSzam || '-'})` : 'Nincs')}</text:p></table:table-cell>`;
-      if (ac.incAdopter) {
-        const adStr = cat.status === 'gazdis' ? `Gazdis: ${cat.gazdisPerson || '-'} (${cat.gazdisDate || ''})` : (cat.status || 'Gondozásban');
-        contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(adStr)}</text:p></table:table-cell>`;
+      if (ac.incVaccines) {
+        const vStr = [
+          cat.oltasKombinalt ? 'Kombinált' : '',
+          cat.oltasVeszettseg ? 'Veszettség' : '',
+          cat.oltasLeukosis ? 'Leukosis' : '',
+        ].filter(Boolean).join(', ') || 'Nincs rögzítve';
+        contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(vStr)}</text:p></table:table-cell>`;
       }
+      if (ac.incPassbook) contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(cat.hasKiskonyv ? `Van (${cat.kiskonyvSzam || '-'})` : 'Nincs')}</text:p></table:table-cell>`;
+      if (ac.incMedicalNotes) contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(cat.orvosiMegjegyzes || '-')}</text:p></table:table-cell>`;
+      if (ac.incAdopterName) contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(cat.gazdisPerson || '-')}</text:p></table:table-cell>`;
+      if (ac.incAdoptedDate) contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(cat.gazdisDate || '-')}</text:p></table:table-cell>`;
+      if (ac.incAdopterContact) contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(cat.gazdisPhone || '-')}</text:p></table:table-cell>`;
+      if (ac.incHasPhoto) contentXml += `<table:table-cell office:value-type="string"><text:p>${cat.fotoUrl ? 'Van fotó' : 'Nincs'}</text:p></table:table-cell>`;
+      if (ac.incAuditDates) contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(cat.created ? cat.created.split('T')[0] : '-')}</text:p></table:table-cell>`;
       contentXml += `</table:table-row>`;
     });
 
+    contentXml += `</table:table>`;
+
+    // Sheet 2: Összesítő (Summary Sheet)
+    contentXml += `<table:table table:name="Összesítő">`;
+    const totalCount = filteredCats.length;
+    const activeCount = filteredCats.filter((c) => c.status !== 'gazdis' && c.status !== 'elhunyt').length;
+    const adoptedCount = filteredCats.filter((c) => c.status === 'gazdis').length;
+    const deceasedCount = filteredCats.filter((c) => c.status === 'elhunyt').length;
+    const kandurCount = filteredCats.filter((c) => c.ivar === 'bak').length;
+    const nostenyCount = filteredCats.filter((c) => c.ivar === 'nosteny').length;
+    const spayedCount = filteredCats.filter((c) => c.isSpayed).length;
+    const chipCount = filteredCats.filter((c) => !!c.chipNumber).length;
+
+    const animalSummaryRows = [
+      ['Szervezet neve', options.organizationName],
+      ['Adószám', options.taxNumber || 'Nincs megadva'],
+      ['Nyilvántartási szám', options.registrationNo || 'Nincs megadva'],
+      ['Iktatószám', options.registryFileNo],
+      ['Kiállítás ideje', new Date().toLocaleString('hu-HU')],
+      ['Listázott állatok száma', `${totalCount} db`],
+      ['Gondozásban (Aktív)', `${activeCount} db`],
+      ['Gazdisodott (Örökbefogadott)', `${adoptedCount} db`],
+      ['Elhunyt', `${deceasedCount} db`],
+      ['Bak (Kandúr) száma', `${kandurCount} db`],
+      ['Nőstény száma', `${nostenyCount} db`],
+      ['Ivartalanított állatok', `${spayedCount} db`],
+      ['Mikrochippel ellátott', `${chipCount} db`],
+      ['Felelősségi nyilatkozat', OFFICIAL_DISCLAIMER_TEXT],
+    ];
+
+    animalSummaryRows.forEach(([label, val]) => {
+      contentXml += `<table:table-row>`;
+      contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(label)}</text:p></table:table-cell>`;
+      contentXml += `<table:table-cell office:value-type="string"><text:p>${escapeXml(val)}</text:p></table:table-cell>`;
+      contentXml += `</table:table-row>`;
+    });
     contentXml += `</table:table>`;
   }
 
@@ -301,7 +340,10 @@ export function generateOdtReport(
     });
     contentXml += `</table:table>`;
   } else {
-    contentXml += `<text:p>Állatállomány kimutatás - Részletes táblázat az ODS fájlban érhető el.</text:p>`;
+    const filteredCats = filterCatsByOptions(data.cats, options.reportType, options.animalFilters);
+    contentXml += `<text:h text:outline-level="2">Állatállomány Összesítés</text:h>`;
+    contentXml += `<text:p>Kimutatásban szereplő állatok száma: ${filteredCats.length} db</text:p>`;
+    contentXml += `<text:p>Részletes táblázat az exportált ODS munkalapon érhető el.</text:p>`;
   }
 
   if (options.showDisclaimer) {
