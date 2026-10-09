@@ -1,4 +1,5 @@
 import { UserAccount, UserRole } from '../types';
+import { logEvent, AuditEventCategory } from '../utils/eventLog';
 
 export type AuthAuditEventType =
   | 'LOGIN_SUCCESS'
@@ -103,6 +104,27 @@ export const logAuthAuditEvent = (
   if (eventType === 'LOGIN_SUCCESS' || eventType === 'USER_SWITCH') {
     updateUserLastLoginTimestamp(user.id);
   }
+
+  // Forward event to central Dexie audit_events table
+  const isRbac = eventType.includes('ROLE') || eventType.includes('PERMISSION') || eventType.includes('USER_CREATED') || eventType.includes('USER_UPDATED') || eventType.includes('USER_DELETED');
+  const category: AuditEventCategory = isRbac ? 'rbac' : 'auth';
+  const level = options?.status === 'FAILED' ? 'error' : options?.status === 'WARNING' ? 'warn' : 'info';
+
+  logEvent({
+    category,
+    action: `auth.${eventType.toLowerCase()}`,
+    summary: details,
+    userId: user.id,
+    userName: user.name,
+    role: user.roleId,
+    level,
+    ok: options?.status !== 'FAILED',
+    details: {
+      targetUserId: options?.targetUserId,
+      targetUserName: options?.targetUserName,
+      ...(options?.metadata || {}),
+    },
+  }).catch(() => {});
 
   return newEntry;
 };

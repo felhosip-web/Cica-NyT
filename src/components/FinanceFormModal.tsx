@@ -12,6 +12,7 @@ import {
 } from '../types';
 import { useAppStore } from '../store/useAppStore';
 import { CustomSelect } from './CustomSelect';
+import { logEvent } from '../utils/eventLog';
 
 interface FinanceFormModalProps {
   isOpen: boolean;
@@ -209,8 +210,25 @@ export const FinanceFormModal: React.FC<FinanceFormModalProps> = ({
 
       if (transactionToEdit?.id) {
         await db.finances.update(transactionToEdit.id, payload);
+        const action = payload.status === 'storno' && transactionToEdit.status !== 'storno' ? 'finance.storno' : 'finance.update';
+        logEvent({
+          category: 'finance',
+          action,
+          entityType: 'finances',
+          entityId: transactionToEdit.id,
+          summary: action === 'finance.storno' ? `Pénzügyi tétel stornózva: ${payload.title}` : `Pénzügyi tétel frissítve: ${payload.title}`,
+          details: { amount: payload.amount, type: payload.type, category: payload.category, stornoReason: payload.stornoReason },
+        }).catch(() => {});
       } else {
-        await db.finances.add(payload);
+        const id = await db.finances.add(payload);
+        logEvent({
+          category: 'finance',
+          action: 'finance.create',
+          entityType: 'finances',
+          entityId: id,
+          summary: `Új pénzügyi tétel rögzítve (${payload.type === 'bevetel' ? 'Bevétel' : 'Kiadás'}): ${payload.title} (${payload.amount} Ft)`,
+          details: { amount: payload.amount, type: payload.type, category: payload.category },
+        }).catch(() => {});
       }
 
       onClose();

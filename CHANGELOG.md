@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.31.0] - 2026-10-08
+
+### Added / Hozzáadva
+- **📜 Strukturált Eseménynapló & Audit Rendszer (`docs/EVENT_LOG.md`)**:
+  - Helyi Dexie `audit_events` (Séma v18) és Supabase `public.audit_events` tábla a kritikus műveletek, biztonsági és rendszeresemények tartós naplózására.
+  - Központi `logEvent()`, `logError()` és `withErrorHandling()` segédfüggvények.
+  - Automatikus érzékeny adat redaktálás (jelszavak, PIN-ek, tokenek, titkos kulcsok, base64 képadatok maszkolása).
+  - Globális ablak hiba- és aszinkron Promise elutasítás-figyelők (`window.onerror`, `unhandledrejection`) intelligens hibafolyatási korlátozással.
+  - Instrumentált kritikus műveletek: Hitelesítés & Munkamenetek, RBAC jogosultság megtagadások (`rbac.denied`), Licencelfogadás & soft-lock események, Cica CRUD/örökbefogadás, Pénzügyi CRUD/stornó indoklással, Raktár, Adománygyűjtés, Exportálások, Felhő szinkronizáció és Rendszerindítás.
+  - Kizárólag ROOT szerepkörből elérhető "Eseménynapló" fül a Beállításokban, szűrési opciókkal (szint, kategória, dátumtartomány, keresés), kiterjeszthető JSON részletekkel, karbantartási (90 nap) funkcióval és CSV exportálási lehetőséggel.
+
 ## [2.30.0] - 2026-10-08
 
 ### Added / Hozzáadva

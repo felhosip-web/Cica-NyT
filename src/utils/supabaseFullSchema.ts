@@ -320,6 +320,25 @@ CREATE TABLE IF NOT EXISTS public.settings (
     updated_at TIMESTAMPTZ DEFAULT now()
 );
 
+-- 1.17. Eseménynapló & Audit rekordok (audit_events)
+CREATE TABLE IF NOT EXISTS public.audit_events (
+    id TEXT PRIMARY KEY,
+    ts TIMESTAMPTZ DEFAULT now() NOT NULL,
+    level TEXT NOT NULL DEFAULT 'info',
+    category TEXT NOT NULL,
+    action TEXT NOT NULL,
+    user_id TEXT,
+    user_name TEXT,
+    role TEXT,
+    entity_type TEXT,
+    entity_id TEXT,
+    summary TEXT NOT NULL,
+    details JSONB,
+    ok BOOLEAN DEFAULT true NOT NULL,
+    error_message TEXT,
+    app_version TEXT
+);
+
 -- ====================================================================
 -- 2. ALAPÉRTELMEZETT SEED ADATOK (ROLES & USERS)
 -- ====================================================================
@@ -358,6 +377,11 @@ CREATE INDEX IF NOT EXISTS idx_finances_foster_id ON public.finances(foster_id);
 CREATE INDEX IF NOT EXISTS idx_finances_tax_year ON public.finances(tax_year);
 CREATE INDEX IF NOT EXISTS idx_cat_weights_cat_id ON public.cat_weights(cat_id);
 CREATE INDEX IF NOT EXISTS idx_donation_items_campaign_id ON public.donation_campaign_items(campaign_id);
+CREATE INDEX IF NOT EXISTS idx_audit_events_ts ON public.audit_events(ts);
+CREATE INDEX IF NOT EXISTS idx_audit_events_level ON public.audit_events(level);
+CREATE INDEX IF NOT EXISTS idx_audit_events_category ON public.audit_events(category);
+CREATE INDEX IF NOT EXISTS idx_audit_events_user_id ON public.audit_events(user_id);
+CREATE INDEX IF NOT EXISTS idx_audit_events_action ON public.audit_events(action);
 
 -- ====================================================================
 -- 4. ROW LEVEL SECURITY (RLS) ENGEDÉLYEZÉSE
@@ -379,6 +403,7 @@ ALTER TABLE public.donation_campaign_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.event_templates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.auto_backups ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.audit_events ENABLE ROW LEVEL SECURITY;
 
 -- ====================================================================
 -- 5. RLS JOGOSULTSÁG ELLENŐRZŐ SEGÉDFÜGGVÉNY (PL/pgSQL HELPER)
@@ -631,6 +656,19 @@ CREATE POLICY "settings_update_policy" ON public.settings FOR UPDATE USING (publ
 
 DROP POLICY IF EXISTS "settings_delete_policy" ON public.settings;
 CREATE POLICY "settings_delete_policy" ON public.settings FOR DELETE USING (public.check_user_permission('users.delete'));
+
+-- AUDIT EVENTS (ESEMÉNYNAPLÓ)
+DROP POLICY IF EXISTS "audit_events_select_policy" ON public.audit_events;
+CREATE POLICY "audit_events_select_policy" ON public.audit_events FOR SELECT USING (public.check_user_permission('users.read'));
+
+DROP POLICY IF EXISTS "audit_events_insert_policy" ON public.audit_events;
+CREATE POLICY "audit_events_insert_policy" ON public.audit_events FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "audit_events_update_policy" ON public.audit_events;
+CREATE POLICY "audit_events_update_policy" ON public.audit_events FOR UPDATE USING (false);
+
+DROP POLICY IF EXISTS "audit_events_delete_policy" ON public.audit_events;
+CREATE POLICY "audit_events_delete_policy" ON public.audit_events FOR DELETE USING (public.check_user_permission('users.delete'));
 
 -- ====================================================================
 -- 7. JOGOSULTSÁGOK A SUPABASE API RÉSZÉRE (GRANTS)
