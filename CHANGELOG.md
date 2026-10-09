@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Globális ablak hiba- és aszinkron Promise elutasítás-figyelők (`window.onerror`, `unhandledrejection`) intelligens hibafolyatási korlátozással.
   - Instrumentált kritikus műveletek: Hitelesítés & Munkamenetek, RBAC jogosultság megtagadások (`rbac.denied`), Licencelfogadás & soft-lock események, Cica CRUD/örökbefogadás, Pénzügyi CRUD/stornó indoklással, Raktár, Adománygyűjtés, Exportálások, Felhő szinkronizáció és Rendszerindítás.
   - Kizárólag ROOT szerepkörből elérhető "Eseménynapló" fül a Beállításokban, szűrési opciókkal (szint, kategória, dátumtartomány, keresés), kiterjeszthető JSON részletekkel, karbantartási (90 nap) funkcióval és CSV exportálási lehetőséggel.
+- **💾 Helyi Lemezes Tükrözés / Local Disk Mirroring (`docs/LOCAL_MIRROR.md`)**:
+  - Közvetlen lemezes biztonsági másolat készítése a saját számítógép háttértárára (`Dokumentumok/Cica-NyT` mappa) a File System Access API segítségével.
+  - `localMirrorService.ts` és `LocalMirrorSection.tsx` komponens a Beállításokban.
+  - Automatikus napi indításkori mentési háttérfolyamat (`checkAndRunAutoMirror()`), aznapi friss `cica_nyt_latest_mirror.json` és dátumozott archivált másolatok elhelyezésével.
+  - Operációs rendszer alapú útmutatás (Windows / macOS / Linux) és egykattintásos tartalék letöltési opció iOS, Android és Safari böngészők számára.
 
 ## [2.30.0] - 2026-10-08
 

@@ -33,6 +33,7 @@ import { useLicenseStore } from './store/useLicenseStore';
 import { useAppStore } from './store/useAppStore';
 import { useUIStore } from './store/useUIStore';
 import { initAutoBackupScheduler } from './services/autoBackupEngine';
+import { checkAndRunAutoMirror } from './services/localMirrorService';
 import { logEvent } from './utils/eventLog';
 
 export default function App() {
@@ -41,6 +42,7 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('appVersion', APP_VERSION);
     initAutoBackupScheduler();
+    checkAndRunAutoMirror().catch(() => {});
     useLicenseStore.getState().backgroundCheck();
     logEvent({
       category: 'system',
