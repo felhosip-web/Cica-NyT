@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../lib/db';
 import { FosterParent } from '../types';
+import { useToastStore } from '../store/useToastStore';
+import { logEvent, logError } from '../utils/eventLog';
 import { CustomSelect } from './CustomSelect';
 
 interface FosterFormModalProps {
@@ -70,10 +72,25 @@ export const FosterFormModal: React.FC<FosterFormModalProps> = ({
       };
 
       await db.fosterParents.put(payload);
+      await logEvent({
+        category: 'rbac',
+        action: fosterToEdit ? 'foster.update' : 'foster.create',
+        summary: `Ideiglenes befogadó ${fosterToEdit ? 'módosítva' : 'létrehozva'}: ${name.trim()}`,
+        entityType: 'foster_parent',
+        entityId: payload.id,
+      });
+
+      useToastStore.getState().showSuccess(`Befogadó adatai ${fosterToEdit ? 'módosítva' : 'elmentve'}!`);
       onSaved();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Hiba az ideiglenes befogadó mentésekor:', err);
-      alert('Nem sikerült menteni a befogadó adatait!');
+      await logError(fosterToEdit ? 'foster.update' : 'foster.create', err, {
+        category: 'rbac',
+        summary: `Hiba az ideiglenes befogadó mentésekor: ${err?.message || err}`,
+      });
+      useToastStore.getState().showError('Nem sikerült menteni a befogadó adatait!', {
+        details: err?.message,
+      });
     } finally {
       setIsSaving(false);
     }

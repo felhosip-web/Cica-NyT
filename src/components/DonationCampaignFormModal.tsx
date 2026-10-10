@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { X, Gift, Calendar, MapPin, Users, FileText } from 'lucide-react';
 import { DonationCampaign, CampaignStatus } from '../types';
 import { db } from '../lib/db';
+import { useToastStore } from '../store/useToastStore';
+import { logEvent, logError } from '../utils/eventLog';
 import { CustomSelect } from './CustomSelect';
 
 interface DonationCampaignFormModalProps {
@@ -78,19 +80,35 @@ export const DonationCampaignFormModal: React.FC<DonationCampaignFormModalProps>
         updatedAt: new Date().toISOString()
       };
 
+      let savedId = campaignToEdit?.id;
       if (campaignToEdit?.id) {
         await db.table('donationCampaigns').update(campaignToEdit.id, campaignData);
       } else {
         campaignData.createdAt = new Date().toISOString();
         campaignData.inventoryConverted = false;
-        await db.table('donationCampaigns').add(campaignData);
+        savedId = await db.table('donationCampaigns').add(campaignData);
       }
 
+      await logEvent({
+        category: 'donation',
+        action: campaignToEdit?.id ? 'donation.campaign_update' : 'donation.campaign_create',
+        summary: `Adománygyűjtő akció ${campaignToEdit?.id ? 'módosítva' : 'létrehozva'}: ${name.trim()}`,
+        entityType: 'donation_campaign',
+        entityId: String(savedId),
+      });
+
+      useToastStore.getState().showSuccess(`Adománygyűjtő akció ${campaignToEdit?.id ? 'módosítva' : 'elmentve'}!`);
       onSaved();
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error saving donation campaign:', err);
-      alert('Hiba történt a mentés során: ' + (err as Error).message);
+      await logError(campaignToEdit?.id ? 'donation.campaign_update' : 'donation.campaign_create', err, {
+        category: 'donation',
+        summary: `Hiba az adománygyűjtő akció mentése során: ${err?.message || err}`,
+      });
+      useToastStore.getState().showError('Hiba történt az adománygyűjtő akció mentése során!', {
+        details: err?.message,
+      });
     } finally {
       setIsSubmitting(false);
     }

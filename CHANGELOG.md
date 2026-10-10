@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.33.0] - 2026-10-10
+
+### Added / Hozzáadva
+- **🛡️ Egységesített Hibakezelési Architektúra & React ErrorBoundary (`docs/ERROR_HANDLING.md`)**:
+  - React `ErrorBoundary` komponens a fő alkalmazáshéjban és minden navigációs modulban a felület összeomlása ellen, magyar nyelvű fallback nézettel és audit naplózással (`system.react_error`).
+  - Egységesített UI Toast értesítési rendszer (`useToastStore.ts` & `ToastContainer.tsx`), leváltva a nemkívánatos `window.alert()` felugró ablakokat.
+  - Soft hálózati sáv (`OfflineBanner.tsx`) offline működés érzékelésére és jelzésére.
+  - Átfogó felületi instrumentáció: Raktár, Adománygyűjtés, Ideiglenes Befogadás, Beállítások és PDF/ODS/ODT export műveletek hibakezelése és siker-visszajelzése.
+  - Root Eseménynapló bővítés: "Utolsó hibák" kompakt gyorsnézet és egykattintásos "Csak hibák" szűrő gomb.
+
 ## [2.32.0] - 2026-10-08
 
 ### Added / Hozzáadva

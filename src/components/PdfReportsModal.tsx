@@ -19,6 +19,8 @@ import {
 } from '../utils/exportShared';
 import { generatePdfReport } from '../utils/pdfReportExport';
 import { generateOdsReport, generateOdtReport } from '../utils/odfExport';
+import { useToastStore } from '../store/useToastStore';
+import { logEvent, logError } from '../utils/eventLog';
 
 interface PdfReportsModalProps {
   onClose: () => void;
@@ -120,11 +122,23 @@ export const PdfReportsModal: React.FC<PdfReportsModalProps> = ({ onClose }) => 
     try {
       const opts = getExportOptions();
       generatePdfReport(opts, getCombinedData());
+      await logEvent({
+        category: 'export',
+        action: 'export.pdf',
+        summary: `Jelentés PDF kiexportálva (${opts.reportType})`,
+      });
+      useToastStore.getState().showSuccess('PDF jelentés sikeresen generálva!');
       addDebugLog(`[Export] PDF (${opts.reportType}) generálva.`);
       onClose();
     } catch (err: any) {
       console.error('PDF Export hiba:', err);
-      alert('Hiba történt a PDF generálásakor: ' + (err?.message || 'Ismeretlen hiba'));
+      await logError('export.pdf', err, {
+        category: 'export',
+        summary: `Hiba a PDF jelentés generálásakor: ${err?.message || err}`,
+      });
+      useToastStore.getState().showError('Hiba történt a PDF generálásakor!', {
+        details: err?.message,
+      });
     } finally {
       setIsGenerating(false);
     }
@@ -137,11 +151,23 @@ export const PdfReportsModal: React.FC<PdfReportsModalProps> = ({ onClose }) => 
       const blob = generateOdsReport(opts, getCombinedData());
       const filename = buildSafeFilename(opts, 'ods');
       handleDownloadBlob(blob, filename);
+      await logEvent({
+        category: 'export',
+        action: 'export.ods',
+        summary: `Jelentés ODS kiexportálva (${filename})`,
+      });
+      useToastStore.getState().showSuccess('ODS táblázat sikeresen kiexportálva!');
       addDebugLog(`[Export] ODS (${filename}) letöltve.`);
       onClose();
     } catch (err: any) {
       console.error('ODS Export hiba:', err);
-      alert('Hiba történt az ODS exportálásakor: ' + (err?.message || 'Ismeretlen hiba'));
+      await logError('export.ods', err, {
+        category: 'export',
+        summary: `Hiba az ODS exportálásakor: ${err?.message || err}`,
+      });
+      useToastStore.getState().showError('Hiba történt az ODS exportálásakor!', {
+        details: err?.message,
+      });
     } finally {
       setIsGenerating(false);
     }
@@ -154,11 +180,23 @@ export const PdfReportsModal: React.FC<PdfReportsModalProps> = ({ onClose }) => 
       const blob = generateOdtReport(opts, getCombinedData());
       const filename = buildSafeFilename(opts, 'odt');
       handleDownloadBlob(blob, filename);
+      await logEvent({
+        category: 'export',
+        action: 'export.odt',
+        summary: `Jelentés ODT kiexportálva (${filename})`,
+      });
+      useToastStore.getState().showSuccess('ODT dokumentum sikeresen kiexportálva!');
       addDebugLog(`[Export] ODT (${filename}) letöltve.`);
       onClose();
     } catch (err: any) {
       console.error('ODT Export hiba:', err);
-      alert('Hiba történt az ODT exportálásakor: ' + (err?.message || 'Ismeretlen hiba'));
+      await logError('export.odt', err, {
+        category: 'export',
+        summary: `Hiba az ODT exportálásakor: ${err?.message || err}`,
+      });
+      useToastStore.getState().showError('Hiba történt az ODT exportálásakor!', {
+        details: err?.message,
+      });
     } finally {
       setIsGenerating(false);
     }

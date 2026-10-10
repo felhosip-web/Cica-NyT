@@ -12,6 +12,8 @@ import {
   saveLocalMirrorConfig,
 } from '../services/localMirrorService';
 import { formatAuditDate } from '../utils/audit';
+import { useToastStore } from '../store/useToastStore';
+import { logError } from '../utils/eventLog';
 
 export const LocalMirrorSection: React.FC = () => {
   const [status, setStatus] = useState<LocalMirrorStatus | null>(null);
@@ -53,9 +55,17 @@ export const LocalMirrorSection: React.FC = () => {
       }
       await writeMirrorToDirectory(handle);
       setActionFeedback('✅ Helyi lemezes tükör mentés sikeresen elkészült!');
+      useToastStore.getState().showSuccess('Helyi lemezes tükör sikeresen elmentve!');
       await refreshStatus();
     } catch (err: any) {
       setActionFeedback(`❌ Hiba a tükör mentése során: ${err.message}`);
+      await logError('local_mirror.save', err, {
+        category: 'export',
+        summary: `Hiba a helyi lemezes tükör mentése során: ${err?.message || err}`,
+      });
+      useToastStore.getState().showError('Hiba a helyi lemezes tükör mentése során!', {
+        details: err?.message,
+      });
       await refreshStatus();
     } finally {
       setLoading(false);
