@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { RefreshCw, Database, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { db } from '../lib/db';
-import { SyncService } from '../services/sync-service';
+import { syncService } from '../services/sync-service';
 
 interface TableSyncCount {
   tableName: string;
@@ -76,7 +76,7 @@ export const SyncStatusSection: React.FC = () => {
   const handleManualSync = async () => {
     setIsSyncing(true);
     try {
-      await SyncService.syncPendingChanges();
+      await syncService.syncPending();
       setLastSyncTime(new Date().toLocaleTimeString());
       await loadSyncCounts();
     } catch (err) {
