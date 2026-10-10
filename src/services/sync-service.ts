@@ -4,6 +4,7 @@ import { db } from '../lib/db';
 import { toSupabaseCat, fromSupabaseCat, toSupabaseFosterParent, fromSupabaseFosterParent, toSupabaseFosterSupply, toSupabaseFosterExpense, toSupabaseInventory, fromSupabaseInventory, toSupabaseFinance } from '../lib/mappers/supabase-mapper';
 import { getLicenseStatus, LICENSE_STATUS_CHANGE_EVENT } from './licenseService';
 import { logEvent } from '../utils/eventLog';
+import { useToastStore } from '../store/useToastStore';
 
 /**
  * Service for managing synchronization between local IndexedDB and Supabase cloud database

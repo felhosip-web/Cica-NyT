@@ -29,6 +29,9 @@ import { LicenseBanner } from './components/LicenseBanner';
 import { RootBanner } from './components/RootBanner';
 import { LicenseWarningToast } from './components/LicenseWarningToast';
 import { LicenseAcceptanceModal } from './components/LicenseAcceptanceModal';
+import { ToastContainer } from './components/ToastContainer';
+import { OfflineBanner } from './components/OfflineBanner';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { useLicenseStore } from './store/useLicenseStore';
 import { useAppStore } from './store/useAppStore';
 import { useUIStore } from './store/useUIStore';
@@ -131,6 +134,7 @@ export default function App() {
       />
 
       <main className="max-w-7xl mx-auto px-2 sm:px-4 py-3 sm:py-4 space-y-4 overflow-x-clip">
+        <OfflineBanner />
         <LicenseBanner />
         <RootBanner />
 
@@ -140,52 +144,78 @@ export default function App() {
 
         {/* Tab 1: Animals */}
         {activeTab === 'animals' && (
-          <CatList
-            onOpenDetail={(catId) => setSelectedCatId(catId)}
-            onEditCat={(cat) => setCatToEdit(cat)}
-            onAddCat={() => setCatToEdit('new')}
-          />
+          <ErrorBoundary fallbackTitle="Hiba a Macskák nézetben">
+            <CatList
+              onOpenDetail={(catId) => setSelectedCatId(catId)}
+              onEditCat={(cat) => setCatToEdit(cat)}
+              onAddCat={() => setCatToEdit('new')}
+            />
+          </ErrorBoundary>
         )}
 
         {/* Tab 2: Events List */}
         {activeTab === 'events' && (
-          <EventsListView
-            onOpenEventModal={(eventId) => openEventModal(eventId || 'new', 'general')}
-            onOpenCatDetail={(catId) => setSelectedCatId(catId)}
-          />
+          <ErrorBoundary fallbackTitle="Hiba az Események nézetben">
+            <EventsListView
+              onOpenEventModal={(eventId) => openEventModal(eventId || 'new', 'general')}
+              onOpenCatDetail={(catId) => setSelectedCatId(catId)}
+            />
+          </ErrorBoundary>
         )}
 
         {/* Tab 3: Calendar View */}
         {activeTab === 'calendar' && (
-          <CalendarView
-            onOpenEventModal={(eventId) => openEventModal(eventId || 'new', 'general')}
-            onOpenCatDetail={(catId) => setSelectedCatId(catId)}
-          />
+          <ErrorBoundary fallbackTitle="Hiba a Naptár nézetben">
+            <CalendarView
+              onOpenEventModal={(eventId) => openEventModal(eventId || 'new', 'general')}
+              onOpenCatDetail={(catId) => setSelectedCatId(catId)}
+            />
+          </ErrorBoundary>
         )}
 
         {/* Tab 4: TNR */}
-        {activeTab === 'tnr' && <TnrView />}
+        {activeTab === 'tnr' && (
+          <ErrorBoundary fallbackTitle="Hiba a TNR nézetben">
+            <TnrView />
+          </ErrorBoundary>
+        )}
 
         {/* Tab 5: Foster / Ideiglenes Befogadók */}
         {activeTab === 'foster' && (
-          <FosterView onOpenCatDetail={(catId) => setSelectedCatId(catId)} />
+          <ErrorBoundary fallbackTitle="Hiba a Befogadó nézetben">
+            <FosterView onOpenCatDetail={(catId) => setSelectedCatId(catId)} />
+          </ErrorBoundary>
         )}
 
         {/* Tab 6: Inventory / Alom és Táp Készlet */}
-        {activeTab === 'inventory' && <InventoryView />}
+        {activeTab === 'inventory' && (
+          <ErrorBoundary fallbackTitle="Hiba a Raktár nézetben">
+            <InventoryView />
+          </ErrorBoundary>
+        )}
 
         {/* Tab 7: Donation Campaigns / Adománygyűjtő Akciók */}
-        {activeTab === 'donation' && <DonationCampaignsView />}
+        {activeTab === 'donation' && (
+          <ErrorBoundary fallbackTitle="Hiba az Adománygyűjtő nézetben">
+            <DonationCampaignsView />
+          </ErrorBoundary>
+        )}
 
         {/* Tab 8: Finance / Pénzügyi Kezelés */}
-        {activeTab === 'finance' && <FinanceView />}
+        {activeTab === 'finance' && (
+          <ErrorBoundary fallbackTitle="Hiba a Pénzügyek nézetben">
+            <FinanceView />
+          </ErrorBoundary>
+        )}
 
         {/* Tab 8: Stats */}
         {activeTab === 'stats' && (
-          <StatsView
-            onOpenUiCustomization={() => setShowUiCustomization(true)}
-            onOpenPdfReports={() => setShowPdfReportsModal(true)}
-          />
+          <ErrorBoundary fallbackTitle="Hiba a Statisztika nézetben">
+            <StatsView
+              onOpenUiCustomization={() => setShowUiCustomization(true)}
+              onOpenPdfReports={() => setShowPdfReportsModal(true)}
+            />
+          </ErrorBoundary>
         )}
               </Suspense>
       </main>
@@ -276,6 +306,7 @@ export default function App() {
       </Suspense>
 
       <LicenseWarningToast />
+      <ToastContainer />
 
       {/* PDF Reports Modal (Hiteles / Nem Hiteles) */}
       <Suspense fallback={<div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div></div>}>
