@@ -144,7 +144,7 @@ export const LocalMirrorSection: React.FC = () => {
                 </span>
               </h4>
               <p className="text-[11px] text-blue-200/80">
-                Lozz létre egy közvetlen lemezes biztonsági másolatot a saját számítógéped Dokumentumok mappájában!
+                Hozz létre egy közvetlen lemezes biztonsági másolatot a saját számítógéped Dokumentumok mappájában!
               </p>
             </div>
           </div>
