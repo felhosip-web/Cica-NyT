@@ -12,6 +12,7 @@ import {
   CatValidationError,
   DuplicateCheckResult
 } from '../utils/catValidation';
+import { logEvent } from '../utils/eventLog';
 
 interface CatFormModalProps {
   catToEdit?: Cat | null;
@@ -123,6 +124,15 @@ export const CatFormModal: React.FC<CatFormModalProps> = ({
         await db.events.where('catId').equals(catToEdit.id).delete();
         await db.table('cat_weights').where('catId').equals(String(catToEdit.id)).delete();
       });
+
+      logEvent({
+        category: 'cat',
+        action: 'cat.delete',
+        entityType: 'cats',
+        entityId: catToEdit.id,
+        summary: `Cica profil törölve: ${catToEdit.nev}`,
+      }).catch(() => {});
+
       setShowDeleteConfirm(false);
       onSaved();
       onClose();
@@ -153,6 +163,16 @@ export const CatFormModal: React.FC<CatFormModalProps> = ({
           createdAt: new Date().toISOString()
         });
       }
+
+      const isAdoption = payload.status === 'gazdis' && (catToEdit as any).status !== 'gazdis';
+      logEvent({
+        category: 'cat',
+        action: isAdoption ? 'cat.adoption' : 'cat.update',
+        entityType: 'cats',
+        entityId: catToEdit.id,
+        summary: isAdoption ? `Gazdisodás rögzítve: ${payload.nev}` : `Cica adatlap frissítve: ${payload.nev}`,
+        details: { status: payload.status, chipNumber: payload.chipNumber },
+      }).catch(() => {});
     } else {
       const newId = 'cat_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
       const audit = createAuditStamp(currentUser);
@@ -175,6 +195,15 @@ export const CatFormModal: React.FC<CatFormModalProps> = ({
           createdAt: new Date().toISOString()
         });
       }
+
+      logEvent({
+        category: 'cat',
+        action: 'cat.create',
+        entityType: 'cats',
+        entityId: newId,
+        summary: `Új cica regisztrálva: ${payload.nev}`,
+        details: { status: payload.status, chipNumber: payload.chipNumber },
+      }).catch(() => {});
     }
 
     onSaved();

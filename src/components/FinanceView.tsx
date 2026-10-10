@@ -18,6 +18,7 @@ import { CustomSelect } from './CustomSelect';
 import { useAppStore } from '../store/useAppStore';
 import { generateOdsReport } from '../utils/odfExport';
 import { ExportOptions, buildSafeFilename } from '../utils/exportShared';
+import { logEvent } from '../utils/eventLog';
 
 export const FinanceView: React.FC = () => {
   const { orgName, orgTaxNumber, orgRegistrationNo, getCurrentUser, hasPermission } = useAppStore();
@@ -272,6 +273,14 @@ export const FinanceView: React.FC = () => {
             updatedAt: new Date().toISOString(),
             syncStatus: 'pending',
           });
+          logEvent({
+            category: 'finance',
+            action: 'finance.storno',
+            entityType: 'finances',
+            entityId: t.id,
+            summary: `Pénzügyi tétel stornózva: ${t.title}`,
+            details: { amount: t.amount, stornoReason: reason || 'Munkatárs általi stornózás' },
+          }).catch(() => {});
         } catch (err) {
           console.error('Error stornoing finance item:', err);
           alert('Hiba történt a stornózás során!');
@@ -289,6 +298,13 @@ export const FinanceView: React.FC = () => {
 
     try {
       await db.finances.delete(t.id);
+      logEvent({
+        category: 'finance',
+        action: 'finance.delete',
+        entityType: 'finances',
+        entityId: t.id,
+        summary: `Pénzügyi tétel törölve: ${t.title}`,
+      }).catch(() => {});
     } catch (err) {
       console.error('Error deleting finance item:', err);
       alert('Hiba történt a törlés során!');
@@ -358,6 +374,12 @@ export const FinanceView: React.FC = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+
+    logEvent({
+      category: 'export',
+      action: 'export.finance_csv',
+      summary: `Pénzügyi kimutatás exportálva CSV formátumban (${filteredTransactions.length} tétel)`,
+    }).catch(() => {});
   };
 
   // ODS Export Handler
@@ -430,6 +452,12 @@ export const FinanceView: React.FC = () => {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+
+    logEvent({
+      category: 'export',
+      action: 'export.finance_ods',
+      summary: `Pénzügyi kimutatás exportálva ODS formátumban (${filteredTransactions.length} tétel)`,
+    }).catch(() => {});
   };
 
   return (

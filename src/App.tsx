@@ -33,6 +33,8 @@ import { useLicenseStore } from './store/useLicenseStore';
 import { useAppStore } from './store/useAppStore';
 import { useUIStore } from './store/useUIStore';
 import { initAutoBackupScheduler } from './services/autoBackupEngine';
+import { checkAndRunAutoMirror } from './services/localMirrorService';
+import { logEvent } from './utils/eventLog';
 
 export default function App() {
   const { termsAccepted, acceptTerms } = useLicenseStore();
@@ -40,7 +42,13 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('appVersion', APP_VERSION);
     initAutoBackupScheduler();
+    checkAndRunAutoMirror().catch(() => {});
     useLicenseStore.getState().backgroundCheck();
+    logEvent({
+      category: 'system',
+      action: 'system.app_start',
+      summary: `Cica-NyT elindítva (v${APP_VERSION})`,
+    }).catch(() => {});
   }, []);
 
   // Root Mode State via Zustand Store

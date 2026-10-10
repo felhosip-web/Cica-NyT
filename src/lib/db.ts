@@ -121,6 +121,10 @@ try {
           donationCampaignItems: '++id, campaignId, category, createdAt'
         });
 
+        dbInstance.version(18).stores({
+          audit_events: 'id, ts, level, category, userId, action'
+        });
+
     }
 } catch (e) {
     console.warn("Failed to define versions because the database is already open/initialized:", e);

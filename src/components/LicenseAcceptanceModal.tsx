@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FIRST_LAUNCH_SUMMARY, FULL_LICENSE_TEXT } from '../data/licenseText';
 import { FullLicenseModal } from './FullLicenseModal';
+import { logEvent } from '../utils/eventLog';
 
 interface LicenseAcceptanceModalProps {
   isOpen: boolean;
@@ -99,7 +100,14 @@ export const LicenseAcceptanceModal: React.FC<LicenseAcceptanceModalProps> = ({ 
               <button
                 type="button"
                 disabled={!isChecked}
-                onClick={onAccept}
+                onClick={() => {
+                  logEvent({
+                    category: 'license',
+                    action: 'license.accept',
+                    summary: 'A felhasználó elfogadta a licencfeltételeket',
+                  }).catch(() => {});
+                  onAccept();
+                }}
                 className="w-full sm:w-auto py-2.5 px-6 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 disabled:from-slate-400 disabled:to-slate-400 dark:disabled:from-slate-700 dark:disabled:to-slate-700 text-white font-extrabold text-sm rounded-xl shadow-md transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Elfogadom ✨

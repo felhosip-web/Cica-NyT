@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { db } from '../lib/db';
 import { toSupabaseCat, fromSupabaseCat, toSupabaseFosterParent, fromSupabaseFosterParent, toSupabaseFosterSupply, toSupabaseFosterExpense, toSupabaseInventory, fromSupabaseInventory, toSupabaseFinance } from '../lib/mappers/supabase-mapper';
 import { getLicenseStatus, LICENSE_STATUS_CHANGE_EVENT } from './licenseService';
+import { logEvent } from '../utils/eventLog';
 
 /**
  * Service for managing synchronization between local IndexedDB and Supabase cloud database
@@ -297,6 +298,12 @@ export class SyncService {
         this.syncing = true;
         this.updateSyncUI();
 
+        logEvent({
+            category: 'sync',
+            action: 'sync.start',
+            summary: 'Supabase felhő szinkronizáció elindítva',
+        }).catch(() => {});
+
         try {
             // 1. Sync Pending Cats
             const pendingCats = await db.cats.where('syncStatus').equals('pending').toArray();
@@ -411,9 +418,23 @@ export class SyncService {
                 }
             }
 
-        } catch (e) {
+            logEvent({
+                category: 'sync',
+                action: 'sync.success',
+                summary: 'Supabase felhő szinkronizáció sikeresen befejeződött',
+            }).catch(() => {});
+
+        } catch (e: any) {
             if (!this.isLicenseLocked()) {
                 console.error("[SyncService] Sync process failed", e);
+                logEvent({
+                    category: 'sync',
+                    action: 'sync.fail',
+                    level: 'warn',
+                    ok: false,
+                    summary: `Supabase szinkronizációs hiba: ${e?.message || e}`,
+                    errorMessage: e?.message,
+                }).catch(() => {});
             }
         } finally {
             this.syncing = false;
