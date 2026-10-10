@@ -22,11 +22,14 @@ const PdfReportsModal = React.lazy(() => import('./components/PdfReportsModal').
 import { VersionWelcomeModal } from './components/VersionWelcomeModal';
 import { EventStartupToast } from './components/EventStartupToast';
 import { PwaToast } from './components/PwaToast';
+import { ToastContainer } from './components/ToastContainer';
+import { OfflineBanner } from './components/OfflineBanner';
 import { BotDetection } from './components/BotDetection';
 import { Footer } from './components/Footer';
 import { FAB } from './components/FAB';
 import { LicenseBanner } from './components/LicenseBanner';
 import { RootBanner } from './components/RootBanner';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { LicenseWarningToast } from './components/LicenseWarningToast';
 import { LicenseAcceptanceModal } from './components/LicenseAcceptanceModal';
 import { useLicenseStore } from './store/useLicenseStore';
@@ -103,6 +106,12 @@ export default function App() {
         onAccept={acceptTerms}
       />
 
+      {/* Universal Toast Container */}
+      <ToastContainer />
+
+      {/* Soft Offline Banner */}
+      <OfflineBanner />
+
       {/* Bot Detection Toast & Modal */}
       <BotDetection />
 
@@ -134,60 +143,62 @@ export default function App() {
         <LicenseBanner />
         <RootBanner />
 
-        <Suspense fallback={<div className="flex justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600"></div></div>}>
-        {/* Vaccination Alert Banner */}
-        <VaccinationAlertBanner onOpenEvents={() => setActiveTab('events')} />
+        <ErrorBoundary key={activeTab} sectionName={`Nézet (${activeTab})`} onReset={() => setActiveTab('animals')}>
+          <Suspense fallback={<div className="flex justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600"></div></div>}>
+            {/* Vaccination Alert Banner */}
+            <VaccinationAlertBanner onOpenEvents={() => setActiveTab('events')} />
 
-        {/* Tab 1: Animals */}
-        {activeTab === 'animals' && (
-          <CatList
-            onOpenDetail={(catId) => setSelectedCatId(catId)}
-            onEditCat={(cat) => setCatToEdit(cat)}
-            onAddCat={() => setCatToEdit('new')}
-          />
-        )}
+            {/* Tab 1: Animals */}
+            {activeTab === 'animals' && (
+              <CatList
+                onOpenDetail={(catId) => setSelectedCatId(catId)}
+                onEditCat={(cat) => setCatToEdit(cat)}
+                onAddCat={() => setCatToEdit('new')}
+              />
+            )}
 
-        {/* Tab 2: Events List */}
-        {activeTab === 'events' && (
-          <EventsListView
-            onOpenEventModal={(eventId) => openEventModal(eventId || 'new', 'general')}
-            onOpenCatDetail={(catId) => setSelectedCatId(catId)}
-          />
-        )}
+            {/* Tab 2: Events List */}
+            {activeTab === 'events' && (
+              <EventsListView
+                onOpenEventModal={(eventId) => openEventModal(eventId || 'new', 'general')}
+                onOpenCatDetail={(catId) => setSelectedCatId(catId)}
+              />
+            )}
 
-        {/* Tab 3: Calendar View */}
-        {activeTab === 'calendar' && (
-          <CalendarView
-            onOpenEventModal={(eventId) => openEventModal(eventId || 'new', 'general')}
-            onOpenCatDetail={(catId) => setSelectedCatId(catId)}
-          />
-        )}
+            {/* Tab 3: Calendar View */}
+            {activeTab === 'calendar' && (
+              <CalendarView
+                onOpenEventModal={(eventId) => openEventModal(eventId || 'new', 'general')}
+                onOpenCatDetail={(catId) => setSelectedCatId(catId)}
+              />
+            )}
 
-        {/* Tab 4: TNR */}
-        {activeTab === 'tnr' && <TnrView />}
+            {/* Tab 4: TNR */}
+            {activeTab === 'tnr' && <TnrView />}
 
-        {/* Tab 5: Foster / Ideiglenes Befogadók */}
-        {activeTab === 'foster' && (
-          <FosterView onOpenCatDetail={(catId) => setSelectedCatId(catId)} />
-        )}
+            {/* Tab 5: Foster / Ideiglenes Befogadók */}
+            {activeTab === 'foster' && (
+              <FosterView onOpenCatDetail={(catId) => setSelectedCatId(catId)} />
+            )}
 
-        {/* Tab 6: Inventory / Alom és Táp Készlet */}
-        {activeTab === 'inventory' && <InventoryView />}
+            {/* Tab 6: Inventory / Alom és Táp Készlet */}
+            {activeTab === 'inventory' && <InventoryView />}
 
-        {/* Tab 7: Donation Campaigns / Adománygyűjtő Akciók */}
-        {activeTab === 'donation' && <DonationCampaignsView />}
+            {/* Tab 7: Donation Campaigns / Adománygyűjtő Akciók */}
+            {activeTab === 'donation' && <DonationCampaignsView />}
 
-        {/* Tab 8: Finance / Pénzügyi Kezelés */}
-        {activeTab === 'finance' && <FinanceView />}
+            {/* Tab 8: Finance / Pénzügyi Kezelés */}
+            {activeTab === 'finance' && <FinanceView />}
 
-        {/* Tab 8: Stats */}
-        {activeTab === 'stats' && (
-          <StatsView
-            onOpenUiCustomization={() => setShowUiCustomization(true)}
-            onOpenPdfReports={() => setShowPdfReportsModal(true)}
-          />
-        )}
-              </Suspense>
+            {/* Tab 8: Stats */}
+            {activeTab === 'stats' && (
+              <StatsView
+                onOpenUiCustomization={() => setShowUiCustomization(true)}
+                onOpenPdfReports={() => setShowPdfReportsModal(true)}
+              />
+            )}
+          </Suspense>
+        </ErrorBoundary>
       </main>
 
       {/* Modern Footer Component */}
@@ -211,69 +222,71 @@ export default function App() {
         onOpenHelp={() => setShowHelp(true)}
       />
 
-      {/* Suspense wrapper for modals */}
-      <Suspense fallback={<div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div></div>}>
-      {/* Cat Detail Modal */}
-      {selectedCatId && (
-        <CatDetailModal
-          catId={selectedCatId}
-          onClose={() => setSelectedCatId(null)}
-          onEditCat={(cat) => {
-            setSelectedCatId(null);
-            setCatToEdit(cat);
-          }}
-          onOpenAddEventForCat={(catId) => openEventModal('new', catId)}
-        />
-      )}
+      {/* Suspense & ErrorBoundary wrapper for modals */}
+      <ErrorBoundary sectionName="Ablakok és Modálok">
+        <Suspense fallback={<div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div></div>}>
+        {/* Cat Detail Modal */}
+        {selectedCatId && (
+          <CatDetailModal
+            catId={selectedCatId}
+            onClose={() => setSelectedCatId(null)}
+            onEditCat={(cat) => {
+              setSelectedCatId(null);
+              setCatToEdit(cat);
+            }}
+            onOpenAddEventForCat={(catId) => openEventModal('new', catId)}
+          />
+        )}
 
-      {/* Cat Form Modal (Add/Edit) */}
-      {catToEdit && (
-        <CatFormModal
-          catToEdit={catToEdit === 'new' ? null : catToEdit}
-          onClose={() => setCatToEdit(null)}
-          onSaved={() => setCatToEdit(null)}
-        />
-      )}
+        {/* Cat Form Modal (Add/Edit) */}
+        {catToEdit && (
+          <CatFormModal
+            catToEdit={catToEdit === 'new' ? null : catToEdit}
+            onClose={() => setCatToEdit(null)}
+            onSaved={() => setCatToEdit(null)}
+          />
+        )}
 
-      {/* Event Form Modal (Add/Edit) */}
-      {eventToEditId && (
-        <EventFormModal
-          eventId={eventToEditId === 'new' ? null : eventToEditId}
-          initialCatId={eventInitialCatId}
-          onClose={() => setEventToEditId(null)}
-        />
-      )}
+        {/* Event Form Modal (Add/Edit) */}
+        {eventToEditId && (
+          <EventFormModal
+            eventId={eventToEditId === 'new' ? null : eventToEditId}
+            initialCatId={eventInitialCatId}
+            onClose={() => setEventToEditId(null)}
+          />
+        )}
 
-      {/* Settings & Debug Modal */}
-      {showSettings && (
-        <SettingsDebugModal
-          onClose={() => setShowSettings(false)}
-          isRootMode={isRootMode}
-          onOpenRootAuth={() => {
-            setShowSettings(false);
-            setShowRootAuth(true);
-          }}
-          onDeactivateRoot={handleDeactivateRoot}
-          onOpenUiCustomization={() => setShowUiCustomization(true)}
-        />
-      )}
+        {/* Settings & Debug Modal */}
+        {showSettings && (
+          <SettingsDebugModal
+            onClose={() => setShowSettings(false)}
+            isRootMode={isRootMode}
+            onOpenRootAuth={() => {
+              setShowSettings(false);
+              setShowRootAuth(true);
+            }}
+            onDeactivateRoot={handleDeactivateRoot}
+            onOpenUiCustomization={() => setShowUiCustomization(true)}
+          />
+        )}
 
-      {/* UI Elements Customization Modal */}
-      {showUiCustomization && (
-        <UiCustomizationModal onClose={() => setShowUiCustomization(false)} />
-      )}
+        {/* UI Elements Customization Modal */}
+        {showUiCustomization && (
+          <UiCustomizationModal onClose={() => setShowUiCustomization(false)} />
+        )}
 
-      {/* Root Password Auth Modal */}
-      {showRootAuth && (
-        <RootAuthModal
-          onClose={() => setShowRootAuth(false)}
-          onSuccess={handleActivateRoot}
-        />
-      )}
+        {/* Root Password Auth Modal */}
+        {showRootAuth && (
+          <RootAuthModal
+            onClose={() => setShowRootAuth(false)}
+            onSuccess={handleActivateRoot}
+          />
+        )}
 
-      {/* Help Modal */}
-      {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
-      </Suspense>
+        {/* Help Modal */}
+        {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
+        </Suspense>
+      </ErrorBoundary>
 
       <LicenseWarningToast />
 

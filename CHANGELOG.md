@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.33.0] - 2026-10-09
+
+### Added / Hozzáadva
+- **🚨 Egységesített Hibakezelési Réteg & Felületi Toast Rendszer (`docs/ERROR_HANDLING.md`)**:
+  - Zustand alapú univerzális Toast értesítési rendszer (`useToastStore`, `ToastContainer`) animált felugró visszajelzésekkel (`showError`, `showSuccess`, `showWarning`, `showInfo`), magyar hibaüzenetekkel és Root módban kinyitható hibarészletekkel.
+  - A `withErrorHandling` frissítése: felugró `alert()` ablakok felváltása nem tolakodó hiba toast-ra a reaktív felületen.
+- **🛡️ React Error Boundary Komponens (`ErrorBoundary.tsx`)**:
+  - React felületi összeomlás elleni védelem: elkapja a komponens szintű renderelési hibákat a nézetekben és modálokban.
+  - Rendszer szintű audit naplózás (`system.react_error`) a vágott `componentStack` adatokkal.
+  - Magyar nyelvű, felhasználóbarát fallback felület ("Váratlan hiba történt a felületen") "Újrapróbálás" és "Főoldal" gombokkal.
+- **🔎 Kiterjesztett Rendszer Instrumentáció**:
+  - Raktár (Inventory), Adománygyűjtések (Donation), Ideiglenes Befogadás (Foster), Beállítások (Settings), Helyi Lemezes Tükör (Local Mirror) és Dokumentum Exportok (PDF/ODS/ODT/CSV) sikeres akcióinak és hibáinak egységesített audit naplózása.
+- **🔌 Offline & Hálózati Kapcsolat UX (`OfflineBanner.tsx`)**:
+  - Automatikus `navigator.onLine` és `online`/`offline` eseményfigyelés lágy top bannerrel: *"Nincs hálózati kapcsolat — helyi adat továbbra is használható!"*.
+  - Felhő szinkronizáció (`sync-service.ts`) hibáinak toast jelzése és `sync.fail` eseménynaplózása.
+- **🔴 Root "Utolsó Hibák" Quick View az Eseménynaplóban**:
+  - "Csak hibák" gyors szűrő gomb és a legutóbbi 5 hibát kiemelő sáv (`recentErrors`) az Eseménynapló tetején.
+
 ## [2.32.0] - 2026-10-08
 
 ### Added / Hozzáadva

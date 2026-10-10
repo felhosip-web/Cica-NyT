@@ -20,6 +20,8 @@ import { generateFullSupabaseSchemaSql } from '../utils/supabaseFullSchema';
 import { SystemAuditPanel } from './SystemAuditPanel';
 import { EventLogSection } from './EventLogSection';
 import { LocalMirrorSection } from './LocalMirrorSection';
+import { logEvent, logError } from '../utils/eventLog';
+import { showError, showSuccess, showWarning } from '../store/useToastStore';
 
 interface SettingsDebugModalProps {
   onClose: () => void;
@@ -677,25 +679,48 @@ export const SettingsDebugModal: React.FC<SettingsDebugModalProps> = ({
   };
 
   const handleSaveSupabase = () => {
-    localStorage.setItem('supabase_url', supabaseUrl.trim());
-    localStorage.setItem('supabase_anon_key', supabaseKey.trim());
-    addDebugLog('Supabase beállítások frissítve');
-    alert('Beállítások elmentve!');
+    try {
+      localStorage.setItem('supabase_url', supabaseUrl.trim());
+      localStorage.setItem('supabase_anon_key', supabaseKey.trim());
+      logEvent({
+        category: 'system',
+        action: 'settings.supabase_update',
+        summary: 'Supabase felhő beállítások frissítve',
+      }).catch(() => {});
+      addDebugLog('Supabase beállítások frissítve');
+      showSuccess('Supabase felhő beállítások elmentve!');
+    } catch (err: any) {
+      showError('Hiba a Supabase beállítások mentésekor!', { details: err?.message });
+    }
   };
 
   const handleExportJson = async () => {
-    const cats = await db.cats.toArray();
-    const events = await db.events.toArray();
+    try {
+      const cats = await db.cats.toArray();
+      const events = await db.events.toArray();
 
-    const data = { cats, events, exportDate: new Date().toISOString(), version: APP_VERSION };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `cica_nyt_root_backup_${new Date().toISOString().split('T')[0]}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    addDebugLog('JSON mentés kiexportálva');
+      const data = { cats, events, exportDate: new Date().toISOString(), version: APP_VERSION };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `cica_nyt_root_backup_${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      logEvent({
+        category: 'export',
+        action: 'export.json_backup',
+        summary: `JSON mentés kiexportálva (${cats.length} cica, ${events.length} esemény)`,
+      }).catch(() => {});
+      addDebugLog('JSON mentés kiexportálva');
+      showSuccess('Biztonsági mentés (JSON) kiexportálva.');
+    } catch (err: any) {
+      logError('export.json_backup', err, {
+        category: 'export',
+        summary: 'Hiba a JSON mentés exportálásakor',
+      }).catch(() => {});
+      showError('Hiba a JSON mentés exportálásakor!', { details: err?.message });
+    }
   };
 
   const handleImportJson = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -745,13 +770,28 @@ export const SettingsDebugModal: React.FC<SettingsDebugModalProps> = ({
   };
 
   const confirmClearAll = async () => {
-    await db.cats.clear();
-    await db.events.clear();
-    addDebugLog('Adatbázis teljesen kiürítve');
-    await loadCounts();
-    if (isRootMode) loadRawRecords(inspectorTable);
-    setShowClearAllConfirm(false);
-    onClose();
+    try {
+      await db.cats.clear();
+      await db.events.clear();
+      logEvent({
+        category: 'system',
+        action: 'system.clear_db',
+        level: 'warn',
+        summary: 'Helyi adatbázis teljesen kiürítve (Root művelet)',
+      }).catch(() => {});
+      addDebugLog('Adatbázis teljesen kiürítve');
+      showWarning('Helyi adatbázis kiürítve.');
+      await loadCounts();
+      if (isRootMode) loadRawRecords(inspectorTable);
+      setShowClearAllConfirm(false);
+      onClose();
+    } catch (err: any) {
+      logError('system.clear_db', err, {
+        category: 'system',
+        summary: 'Hiba az adatbázis törlésekor',
+      }).catch(() => {});
+      showError('Hiba az adatbázis törlésekor!', { details: err?.message });
+    }
   };
 
   const filteredRawRecords = rawRecords.filter((rec) =>

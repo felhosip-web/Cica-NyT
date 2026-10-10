@@ -68,6 +68,14 @@ export const EventLogSection: React.FC = () => {
     );
   }
 
+  // Compute 5 Most Recent Errors for Quick Strip
+  const recentErrors = useMemo(() => {
+    return rawEvents
+      .filter((ev) => ev.level === 'error')
+      .sort((a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime())
+      .slice(0, 5);
+  }, [rawEvents]);
+
   // Filter Logic
   const filteredEvents = useMemo(() => {
     return rawEvents
@@ -185,6 +193,17 @@ export const EventLogSection: React.FC = () => {
 
           <div className="flex items-center gap-2 flex-wrap">
             <button
+              onClick={() => setLevelFilter(levelFilter === 'error' ? 'ALL' : 'error')}
+              className={`px-3 py-1.5 font-extrabold text-[11px] rounded-xl transition shadow-xs cursor-pointer flex items-center gap-1 ${
+                levelFilter === 'error'
+                  ? 'bg-rose-600 text-white'
+                  : 'bg-rose-950/80 text-rose-200 border border-rose-700 hover:bg-rose-900'
+              }`}
+            >
+              <span>🔴</span>
+              <span>Csak hibák ({rawEvents.filter((e) => e.level === 'error').length})</span>
+            </button>
+            <button
               onClick={handleExportCSV}
               className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white font-extrabold text-[11px] rounded-xl transition shadow-xs cursor-pointer flex items-center gap-1"
             >
@@ -277,6 +296,40 @@ export const EventLogSection: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Recent Errors Compact Strip (Root Quick View) */}
+      {recentErrors.length > 0 && (
+        <div className="p-3 bg-gradient-to-r from-rose-950 via-slate-900 to-rose-950 text-rose-100 rounded-2xl border border-rose-800/80 shadow-md space-y-2">
+          <div className="flex items-center justify-between border-b border-rose-800/60 pb-1.5">
+            <span className="font-extrabold text-xs text-rose-200 flex items-center gap-1.5">
+              <span>🚨 Utolsó Hibák (Quick View — Legutóbbi {recentErrors.length} hiba)</span>
+            </span>
+            <button
+              onClick={() => setLevelFilter('error')}
+              className="text-[10px] text-rose-300 hover:text-white font-bold underline cursor-pointer"
+            >
+              Összes hiba szűrése ➔
+            </button>
+          </div>
+
+          <div className="space-y-1.5">
+            {recentErrors.map((err) => (
+              <div
+                key={err.id}
+                className="p-2 bg-black/40 rounded-xl border border-rose-900/60 flex items-center justify-between gap-2 text-[11px]"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="font-mono text-rose-400 font-bold shrink-0">{err.action}</span>
+                  <span className="truncate text-rose-100">{err.summary}</span>
+                </div>
+                <span className="text-[10px] font-mono text-rose-300 shrink-0 font-medium">
+                  {formatAuditDate(err.ts)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Log Entries List */}
       <div className="p-4 bg-white rounded-2xl border border-gray-200 shadow-xs space-y-3">

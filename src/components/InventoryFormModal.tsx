@@ -12,6 +12,8 @@ import { db } from '../lib/db';
 import { syncService } from '../services/sync-service';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useAppStore } from '../store/useAppStore';
+import { logEvent, logError } from '../utils/eventLog';
+import { showError, showSuccess } from '../store/useToastStore';
 import { CustomSelect } from './CustomSelect';
 
 interface InventoryFormModalProps {
@@ -214,10 +216,23 @@ export const InventoryFormModal: React.FC<InventoryFormModalProps> = ({
       };
 
       await syncService.queueInventorySync(payload);
+
+      logEvent({
+        category: 'inventory',
+        action: itemToEdit ? 'inventory.update' : 'inventory.create',
+        summary: `Készlet tételt ${itemToEdit ? 'módosított' : 'rögzített'}: ${payload.brandOrName || payload.itemType} (${payload.quantity} ${payload.unit})`,
+        entityType: 'inventory',
+        entityId: String(payload.id || ''),
+      }).catch(() => {});
+
+      showSuccess(`Készlet tétel sikeresen ${itemToEdit ? 'módosítva' : 'elmentve'}.`);
       onClose();
-    } catch (err) {
-      console.error('Error saving inventory item:', err);
-      alert('Hiba történt a készlet rekord mentése során!');
+    } catch (err: any) {
+      logError('inventory.save', err, {
+        category: 'inventory',
+        summary: 'Hiba történt a készlet rekord mentése során',
+      }).catch(() => {});
+      showError('Hiba történt a készlet rekord mentése során!', { details: err?.message });
     } finally {
       setIsSubmitting(false);
     }

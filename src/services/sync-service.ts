@@ -4,6 +4,7 @@ import { db } from '../lib/db';
 import { toSupabaseCat, fromSupabaseCat, toSupabaseFosterParent, fromSupabaseFosterParent, toSupabaseFosterSupply, toSupabaseFosterExpense, toSupabaseInventory, fromSupabaseInventory, toSupabaseFinance } from '../lib/mappers/supabase-mapper';
 import { getLicenseStatus, LICENSE_STATUS_CHANGE_EVENT } from './licenseService';
 import { logEvent } from '../utils/eventLog';
+import { showError } from '../store/useToastStore';
 
 /**
  * Service for managing synchronization between local IndexedDB and Supabase cloud database
@@ -430,11 +431,16 @@ export class SyncService {
                 logEvent({
                     category: 'sync',
                     action: 'sync.fail',
-                    level: 'warn',
+                    level: 'error',
                     ok: false,
-                    summary: `Supabase szinkronizációs hiba: ${e?.message || e}`,
+                    summary: `Supabase felhő szinkronizációs hiba: ${e?.message || e}`,
                     errorMessage: e?.message,
                 }).catch(() => {});
+
+                showError('Hiba történt a felhő szinkronizáció során', {
+                    action: 'sync.fail',
+                    details: e?.message || 'Ismeretlen szinkronizációs hiba',
+                });
             }
         } finally {
             this.syncing = false;

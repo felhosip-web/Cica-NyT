@@ -3,6 +3,8 @@ import { db } from '../lib/db';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { FosterParent } from '../types';
 import { CustomSelect } from './CustomSelect';
+import { logEvent, logError } from '../utils/eventLog';
+import { showError, showSuccess } from '../store/useToastStore';
 
 interface FosterAssignCatModalProps {
   fosterParent: FosterParent;
@@ -37,11 +39,24 @@ export const FosterAssignCatModal: React.FC<FosterAssignCatModalProps> = ({
         fosterId: fosterParent.id,
         status: 'ideiglenes',
       });
+
+      logEvent({
+        category: 'cat',
+        action: 'foster.cat_assign',
+        summary: `Cica (#${catId}) ideiglenes befogadóhoz rendelve (${fosterParent.name})`,
+        entityType: 'cat',
+        entityId: String(catId),
+      }).catch(() => {});
+
+      showSuccess(`Cica sikeresen hozzárendelve ${fosterParent.name} befogadóhoz.`);
       setSelectedCatIdToAssign('');
       onSaved();
-    } catch (err) {
-      console.error('Hiba a cica hozzárendelésekor:', err);
-      alert('Nem sikerült hozzárendelni a cicát!');
+    } catch (err: any) {
+      logError('foster.cat_assign', err, {
+        category: 'cat',
+        summary: 'Hiba történt a cica hozzárendelésekor',
+      }).catch(() => {});
+      showError('Nem sikerült hozzárendelni a cicát!', { details: err?.message });
     } finally {
       setIsProcessing(false);
     }
@@ -55,10 +70,23 @@ export const FosterAssignCatModal: React.FC<FosterAssignCatModalProps> = ({
         fosterId: null,
         status: 'gondozasban',
       });
+
+      logEvent({
+        category: 'cat',
+        action: 'foster.cat_unassign',
+        summary: `Cica (#${catId}) eltávolítva tőle: ${fosterParent.name}`,
+        entityType: 'cat',
+        entityId: String(catId),
+      }).catch(() => {});
+
+      showSuccess('Cica eltávolítva az ideiglenes befogadótól.');
       onSaved();
-    } catch (err) {
-      console.error('Hiba a cica eltávolításakor:', err);
-      alert('Nem sikerült eltávolítani a cicát!');
+    } catch (err: any) {
+      logError('foster.cat_unassign', err, {
+        category: 'cat',
+        summary: 'Hiba történt a cica eltávolításakor',
+      }).catch(() => {});
+      showError('Nem sikerült eltávolítani a cicát!', { details: err?.message });
     } finally {
       setIsProcessing(false);
     }

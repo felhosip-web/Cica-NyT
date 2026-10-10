@@ -5,6 +5,8 @@ import { InventoryItem, InventoryDirection, InventoryCategory, InventorySourceTy
 import { getInventorySourceLabel } from '../utils/inventoryUtils';
 import { InventoryFormModal } from './InventoryFormModal';
 import { CustomSelect } from './CustomSelect';
+import { logEvent, logError } from '../utils/eventLog';
+import { showError, showSuccess } from '../store/useToastStore';
 
 export const InventoryView: React.FC = () => {
   const inventoryItems = (useLiveQuery(() => db.inventory.toArray(), []) || []) as InventoryItem[];
@@ -274,8 +276,20 @@ export const InventoryView: React.FC = () => {
     if (confirm('Biztosan törölni szeretné ezt a készlet tétel bejegyzést?')) {
       try {
         await db.inventory.delete(id);
-      } catch (e) {
-        console.error('Error deleting inventory item:', e);
+        logEvent({
+          category: 'inventory',
+          action: 'inventory.delete',
+          summary: `Készlet tételt törölt (#${id})`,
+          entityType: 'inventory',
+          entityId: String(id),
+        }).catch(() => {});
+        showSuccess('Készlet tétel törölve.');
+      } catch (e: any) {
+        logError('inventory.delete', e, {
+          category: 'inventory',
+          summary: 'Hiba történt a készlet tétel törlésekor',
+        }).catch(() => {});
+        showError('Hiba történt a készlet tétel törlésekor!', { details: e?.message });
       }
     }
   };

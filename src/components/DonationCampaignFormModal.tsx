@@ -3,6 +3,8 @@ import { X, Gift, Calendar, MapPin, Users, FileText } from 'lucide-react';
 import { DonationCampaign, CampaignStatus } from '../types';
 import { db } from '../lib/db';
 import { CustomSelect } from './CustomSelect';
+import { logEvent, logError } from '../utils/eventLog';
+import { showError, showSuccess } from '../store/useToastStore';
 
 interface DonationCampaignFormModalProps {
   isOpen: boolean;
@@ -78,19 +80,32 @@ export const DonationCampaignFormModal: React.FC<DonationCampaignFormModalProps>
         updatedAt: new Date().toISOString()
       };
 
-      if (campaignToEdit?.id) {
-        await db.table('donationCampaigns').update(campaignToEdit.id, campaignData);
+      let campaignId = campaignToEdit?.id;
+      if (campaignId) {
+        await db.table('donationCampaigns').update(campaignId, campaignData);
       } else {
         campaignData.createdAt = new Date().toISOString();
         campaignData.inventoryConverted = false;
-        await db.table('donationCampaigns').add(campaignData);
+        campaignId = await db.table('donationCampaigns').add(campaignData);
       }
 
+      logEvent({
+        category: 'donation',
+        action: campaignToEdit ? 'donation.update' : 'donation.create',
+        summary: `Adománygyűjtő akció ${campaignToEdit ? 'módosítva' : 'létrehozva'}: ${name.trim()}`,
+        entityType: 'donationCampaign',
+        entityId: String(campaignId || ''),
+      }).catch(() => {});
+
+      showSuccess(`Adománygyűjtő akció sikeresen ${campaignToEdit ? 'módosítva' : 'elmentve'}.`);
       onSaved();
       onClose();
-    } catch (err) {
-      console.error('Error saving donation campaign:', err);
-      alert('Hiba történt a mentés során: ' + (err as Error).message);
+    } catch (err: any) {
+      logError('donation.save', err, {
+        category: 'donation',
+        summary: 'Hiba történt az adománygyűjtő akció mentése során',
+      }).catch(() => {});
+      showError('Hiba történt az adománygyűjtő akció mentése során!', { details: err?.message });
     } finally {
       setIsSubmitting(false);
     }

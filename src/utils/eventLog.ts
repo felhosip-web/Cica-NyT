@@ -1,5 +1,6 @@
 import { db } from '../lib/db';
 import { useAppStore } from '../store/useAppStore';
+import { showError } from '../store/useToastStore';
 import { APP_VERSION } from '../version';
 
 export type AuditEventLevel = 'info' | 'warn' | 'error';
@@ -220,9 +221,10 @@ export async function withErrorHandling<T>(
       ...extra,
     });
 
-    if (typeof window !== 'undefined') {
-      alert(`⚠️ ${userMessageHu}\n(${err?.message || 'Ismeretlen hiba'})`);
-    }
+    showError(userMessageHu, {
+      action,
+      details: err?.message || 'Ismeretlen hiba',
+    });
 
     return null;
   }

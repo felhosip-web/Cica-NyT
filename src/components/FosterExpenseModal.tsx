@@ -3,6 +3,8 @@ import { db } from '../lib/db';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { FosterExpense, FinancialTransaction, PaymentMethod, FinanceCategory } from '../types';
 import { useAppStore } from '../store/useAppStore';
+import { logEvent, logError } from '../utils/eventLog';
+import { showError, showSuccess } from '../store/useToastStore';
 import { CustomSelect } from './CustomSelect';
 
 interface FosterExpenseModalProps {
@@ -107,11 +109,24 @@ export const FosterExpenseModal: React.FC<FosterExpenseModalProps> = ({
         financeId: linkedFinanceId,
       };
 
-      await db.fosterExpenses.add(payload);
+      const newId = await db.fosterExpenses.add(payload);
+
+      logEvent({
+        category: 'finance',
+        action: 'foster.expense_create',
+        summary: `Ideiglenes nevelési költség rögzítve (${fosterName}): ${amount} Ft - ${description.trim()}`,
+        entityType: 'fosterExpense',
+        entityId: String(newId || ''),
+      }).catch(() => {});
+
+      showSuccess('Ideiglenes nevelési költség sikeresen rögzítve.');
       onSaved();
-    } catch (err) {
-      console.error('Hiba a költség rögzítésekor:', err);
-      alert('Nem sikerült elmenteni a kiadást!');
+    } catch (err: any) {
+      logError('foster.expense_save', err, {
+        category: 'finance',
+        summary: 'Hiba történt az ideiglenes nevelési költség rögzítésekor',
+      }).catch(() => {});
+      showError('Nem sikerült elmenteni a kiadást!', { details: err?.message });
     } finally {
       setIsSaving(false);
     }
