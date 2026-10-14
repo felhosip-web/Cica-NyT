@@ -18,6 +18,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { DonationCampaign, DonationCampaignItem, CampaignStatus, CampaignItemCategory } from '../types';
+import { softDelete } from '../utils/softDelete';
 import { db } from '../lib/db';
 import { CustomSelect } from './CustomSelect';
 import { DonationCampaignFormModal } from './DonationCampaignFormModal';
@@ -43,8 +44,8 @@ export const DonationCampaignsView: React.FC = () => {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const allCampaigns = await db.table('donationCampaigns').toArray();
-      const allItems = await db.table('donationCampaignItems').toArray();
+      const allCampaigns = (await db.table('donationCampaigns').toArray()).filter((c: any) => !c.deletedAt);
+      const allItems = (await db.table('donationCampaignItems').toArray()).filter((i: any) => !i.deletedAt);
 
       // Sort by startDate desc
       allCampaigns.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
@@ -119,13 +120,7 @@ export const DonationCampaignsView: React.FC = () => {
 
     try {
       if (c.id) {
-        // Delete items
-        const itemsToDelete = campaignItems.filter((i) => String(i.campaignId) === String(c.id));
-        for (const item of itemsToDelete) {
-          if (item.id) await db.table('donationCampaignItems').delete(item.id);
-        }
-        // Delete campaign
-        await db.table('donationCampaigns').delete(c.id);
+        await softDelete('donationCampaigns', c.id);
       }
       loadData();
     } catch (err) {

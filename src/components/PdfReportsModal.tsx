@@ -62,9 +62,9 @@ export const PdfReportsModal: React.FC<PdfReportsModalProps> = ({ onClose }) => 
   const [openDedicatedAnimalModal, setOpenDedicatedAnimalModal] = useState(false);
 
   // Fetch live cats, TNR records & finances
-  const allCats = (useLiveQuery(() => db.cats.toArray(), []) || []) as Cat[];
-  const allTnr = (useLiveQuery(() => db.tnr.toArray(), []) || []) as TnrRecord[];
-  const allFinances = (useLiveQuery(() => db.finances ? db.finances.toArray() : [], []) || []) as FinancialTransaction[];
+  const allCats = ((useLiveQuery(() => db.cats.toArray(), []) || []) as Cat[]).filter((c: any) => !c.deletedAt);
+  const allTnr = ((useLiveQuery(() => db.tnr.toArray(), []) || []) as TnrRecord[]).filter((t: any) => !t.deletedAt);
+  const allFinances = ((useLiveQuery(() => db.finances ? db.finances.toArray() : [], []) || []) as FinancialTransaction[]).filter((f: any) => !f.deletedAt);
 
   // Build options object
   const getExportOptions = (): ExportOptions => ({

@@ -57,7 +57,7 @@ export const AnimalReportModal: React.FC<AnimalReportModalProps> = ({ onClose })
   const [isGenerating, setIsGenerating] = useState(false);
 
   // Fetch live cats
-  const allCats = (useLiveQuery(() => db.cats.toArray(), []) || []) as Cat[];
+  const allCats = ((useLiveQuery(() => db.cats.toArray(), []) || []) as Cat[]).filter((c: any) => !c.deletedAt);
 
   const animalFilters = {
     reportType,

@@ -7,6 +7,7 @@ import { TnrCard } from './TnrCard';
 import { TnrFormModal } from './TnrFormModal';
 import { TnrPdfExportModal } from './TnrPdfExportModal';
 import { useAppStore } from '../store/useAppStore';
+import { softDelete } from '../utils/softDelete';
 
 export const TnrView: React.FC = () => {
   const { getCurrentUserPermissions, addDebugLog } = useAppStore();
@@ -19,7 +20,7 @@ export const TnrView: React.FC = () => {
   const [editingTnr, setEditingTnr] = useState<TnrRecord | null | 'new'>(null);
   const [showPdfExportModal, setShowPdfExportModal] = useState(false);
 
-  const allTnrRecords = (useLiveQuery(() => db.tnr.toArray(), []) || []) as TnrRecord[];
+  const allTnrRecords = ((useLiveQuery(() => db.tnr.toArray(), []) || []) as TnrRecord[]).filter((t: any) => !t.deletedAt);
 
   const filteredRecords = allTnrRecords.filter((record) => {
     // Status filter
@@ -54,8 +55,8 @@ export const TnrView: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     try {
-      await db.tnr.delete(id);
-      addDebugLog(`[TNR] Rekord törölve: ${id}`);
+      await softDelete('tnr', id);
+      addDebugLog(`[TNR] Rekord törölve (tombstone): ${id}`);
     } catch (err) {
       console.error('Hiba TNR törlésénél:', err);
     }

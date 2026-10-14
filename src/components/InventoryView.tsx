@@ -5,6 +5,7 @@ import { InventoryItem, InventoryDirection, InventoryCategory, InventorySourceTy
 import { getInventorySourceLabel } from '../utils/inventoryUtils';
 import { InventoryFormModal } from './InventoryFormModal';
 import { CustomSelect } from './CustomSelect';
+import { softDelete } from '../utils/softDelete';
 
 export const InventoryView: React.FC = () => {
   const inventoryItems = (useLiveQuery(() => db.inventory.toArray(), []) || []) as InventoryItem[];
@@ -273,7 +274,7 @@ export const InventoryView: React.FC = () => {
     if (!id) return;
     if (confirm('Biztosan törölni szeretné ezt a készlet tétel bejegyzést?')) {
       try {
-        await db.inventory.delete(id);
+        await softDelete('inventory', id);
       } catch (e) {
         console.error('Error deleting inventory item:', e);
       }

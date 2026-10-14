@@ -27,7 +27,7 @@ export const CatList: React.FC<CatListProps> = ({ onOpenDetail, onEditCat, onAdd
   const [isAnimalReportOpen, setIsAnimalReportOpen] = useState<boolean>(false);
   const viewMode = catListViewMode;
 
-  const allCats = useLiveQuery(() => db.cats.toArray(), []) || [];
+  const allCats = (useLiveQuery(() => db.cats.toArray(), []) || []).filter((c: any) => !c.deletedAt);
 
   // Extract all unique tags present across all cats
   const availableTags = Array.from(

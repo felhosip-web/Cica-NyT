@@ -14,9 +14,9 @@ interface StatsViewProps {
 
 export const StatsView: React.FC<StatsViewProps> = ({ onOpenUiCustomization, onOpenPdfReports }) => {
   const { healthCoverageItems } = useAppStore();
-  const cats = useLiveQuery(() => db.cats.toArray(), []) || [];
-  const events = useLiveQuery(() => db.events.toArray(), []) || [];
-  const tnrRecords = (useLiveQuery(() => db.tnr.toArray(), []) || []) as TnrRecord[];
+  const cats = (useLiveQuery(() => db.cats.toArray(), []) || []).filter((c: any) => !c.deletedAt);
+  const events = (useLiveQuery(() => db.events.toArray(), []) || []).filter((e: any) => !e.deletedAt);
+  const tnrRecords = ((useLiveQuery(() => db.tnr.toArray(), []) || []) as TnrRecord[]).filter((t: any) => !t.deletedAt);
 
   // Modal States
   const [showVisualGraphModal, setShowVisualGraphModal] = useState(false);

@@ -7,6 +7,7 @@ import { createAuditStamp } from '../utils/audit';
 import { EventTemplateManagerModal } from './EventTemplateManagerModal';
 import { EventTemplate } from '../types';
 import { CustomSelect } from './CustomSelect';
+import { softDelete } from '../utils/softDelete';
 
 interface EventsListViewProps {
   onOpenEventModal: (eventId?: number) => void;
@@ -43,8 +44,8 @@ export const EventsListView: React.FC<EventsListViewProps> = ({
   const [sortBy, setSortBy] = useState<'date_desc' | 'date_asc' | 'cost_desc' | 'title_asc'>('date_desc');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
 
-  const dbEvents = useLiveQuery(() => db.events.toArray(), []) || [];
-  const cats = useLiveQuery(() => db.cats.toArray(), []) || [];
+  const dbEvents = (useLiveQuery(() => db.events.toArray(), []) || []).filter((e: any) => !e.deletedAt);
+  const cats = (useLiveQuery(() => db.cats.toArray(), []) || []).filter((c: any) => !c.deletedAt);
 
   // Cat Map lookup
   const catMap = useMemo(() => {
@@ -256,8 +257,8 @@ export const EventsListView: React.FC<EventsListViewProps> = ({
       return;
     }
     try {
-      await db.events.delete(ev.dbEventId);
-      addDebugLog(`[Esemény] Törölve: #${ev.dbEventId}`);
+      await softDelete('events', ev.dbEventId);
+      addDebugLog(`[Esemény] Törölve (tombstone): #${ev.dbEventId}`);
     } catch (err) {
       console.error('Hiba az esemény törlésekor:', err);
     }
