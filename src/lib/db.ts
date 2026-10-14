@@ -125,6 +125,29 @@ try {
           audit_events: 'id, ts, level, category, userId, action'
         });
 
+        dbInstance.version(19).stores({
+          cats: 'id, sorszam, nev, ivar, szin, szuletes, created, syncStatus, status, gazdisDate, gazdisPerson, intakeType, hasKiskonyv, chipNumber, chipDate, chipLocation, isSpayed, fosterId, deletedAt',
+          finances: '++id, type, category, amount, date, catId, fosterId, status, paymentMethod, taxYear, createdAt, syncStatus, deletedAt',
+          inventory: '++id, direction, itemType, sourceType, date, sourceOrRecipient, syncStatus, createdAt, deletedAt',
+          fosterParents: 'id, name, phone, city, status, maxCapacity, createdAt, syncStatus, deletedAt',
+          fosterSupplies: '++id, fosterId, type, item, date, status, syncStatus, deletedAt',
+          fosterExpenses: '++id, fosterId, catId, category, amount, date, syncStatus, deletedAt',
+          donationCampaigns: '++id, name, startDate, status, location, syncStatus, createdAt, deletedAt',
+          donationCampaignItems: '++id, campaignId, category, createdAt, deletedAt',
+          events: '++id, catId, type, date, status, createdAt, deletedAt',
+          tnr: 'id, locationTrapped, dateTrapped, trappedBy, clinicLocation, surgeonName, locationReleased, status, createdAt, deletedAt'
+        }).upgrade(async tx => {
+          const tables = ['cats', 'finances', 'inventory', 'fosterParents', 'fosterSupplies', 'fosterExpenses', 'donationCampaigns', 'donationCampaignItems', 'events', 'tnr'];
+          for (const tableName of tables) {
+            if (tx.table(tableName)) {
+              await tx.table(tableName).toCollection().modify((row: any) => {
+                if (row.deletedAt === undefined) row.deletedAt = null;
+                if (row.deletedBy === undefined) row.deletedBy = null;
+              });
+            }
+          }
+        });
+
     }
 } catch (e) {
     console.warn("Failed to define versions because the database is already open/initialized:", e);

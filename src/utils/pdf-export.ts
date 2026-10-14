@@ -212,7 +212,7 @@ export async function generateCatPdf(cat: any, options?: { orgName?: string; eve
     if (!events && typeof window !== 'undefined') {
         try {
             const { db } = await import('../lib/db');
-            events = await db.events.where('catId').equals(cat.id).toArray();
+            events = (await db.events.where('catId').equals(cat.id).toArray()).filter((e: any) => !e.deletedAt);
         } catch (e) {
             console.warn('Could not load cat events for PDF:', e);
             events = [];
@@ -225,7 +225,7 @@ export async function generateCatPdf(cat: any, options?: { orgName?: string; eve
         try {
             const { db } = await import('../lib/db');
             const fp = await db.fosterParents.get(cat.fosterId);
-            if (fp) fosterName = fp.name;
+            if (fp && !fp.deletedAt) fosterName = fp.name;
         } catch (e) {
             console.warn('Could not load foster parent name for PDF:', e);
         }

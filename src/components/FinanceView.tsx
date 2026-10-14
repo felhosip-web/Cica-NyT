@@ -19,6 +19,7 @@ import { useAppStore } from '../store/useAppStore';
 import { generateOdsReport } from '../utils/odfExport';
 import { ExportOptions, buildSafeFilename } from '../utils/exportShared';
 import { logEvent } from '../utils/eventLog';
+import { softDelete } from '../utils/softDelete';
 
 export const FinanceView: React.FC = () => {
   const { orgName, orgTaxNumber, orgRegistrationNo, getCurrentUser, hasPermission } = useAppStore();
@@ -29,9 +30,9 @@ export const FinanceView: React.FC = () => {
   const canDeleteFinance = hasPermission('finance.delete');
 
   // Database Live Queries
-  const transactions = (useLiveQuery(() => db.finances ? db.finances.toArray() : [], []) || []) as FinancialTransaction[];
-  const cats = (useLiveQuery(() => db.cats.toArray(), []) || []) as Cat[];
-  const fosterParents = (useLiveQuery(() => db.fosterParents.toArray(), []) || []) as FosterParent[];
+  const transactions = ((useLiveQuery(() => db.finances.toArray(), []) || []) as FinancialTransaction[]).filter((t: any) => !t.deletedAt);
+  const cats = ((useLiveQuery(() => db.cats.toArray(), []) || []) as Cat[]).filter((c: any) => !c.deletedAt);
+  const fosterParents = ((useLiveQuery(() => db.fosterParents.toArray(), []) || []) as FosterParent[]).filter((f: any) => !f.deletedAt);
 
   // Quick Map Lookups
   const catMap = useMemo(() => {
@@ -297,14 +298,7 @@ export const FinanceView: React.FC = () => {
     }
 
     try {
-      await db.finances.delete(t.id);
-      logEvent({
-        category: 'finance',
-        action: 'finance.delete',
-        entityType: 'finances',
-        entityId: t.id,
-        summary: `Pénzügyi tétel törölve: ${t.title}`,
-      }).catch(() => {});
+      await softDelete('finances', t.id);
     } catch (err) {
       console.error('Error deleting finance item:', err);
       alert('Hiba történt a törlés során!');

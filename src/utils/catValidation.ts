@@ -108,7 +108,7 @@ export async function checkCatDuplicates(
   };
 
   try {
-    const allCats: Cat[] = await db.cats.toArray();
+    const allCats: Cat[] = (await db.cats.toArray()).filter((c: any) => !c.deletedAt);
 
     // Exclude current cat if editing
     const otherCats = allCats.filter((c) => String(c.id) !== String(currentCatId));

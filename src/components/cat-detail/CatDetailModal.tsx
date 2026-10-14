@@ -28,6 +28,7 @@ import { CatDetailEventsTab } from './CatDetailEventsTab';
 import { CatDetailCostTab } from './CatDetailCostTab';
 import { CatDetailConnectedTab } from './CatDetailConnectedTab';
 import { CatDetailMedicalLogModal, CatDetailFinanceModal, CatDetailSupplyModal } from './CatDetailModals';
+import { softDelete } from '../../utils/softDelete';
 
 
 interface CatDetailModalProps {
@@ -257,10 +258,7 @@ export const CatDetailModal: React.FC<CatDetailModalProps> = ({
     if (!cat) return;
     setIsDeleting(true);
     try {
-      // Delete cat from Dexie
-      await db.cats.delete(cat.id);
-      // Delete associated events
-      await db.events.where('catId').equals(cat.id).delete();
+      await softDelete('cats', cat.id);
       setShowDeleteConfirm(false);
       onClose();
     } catch (err) {

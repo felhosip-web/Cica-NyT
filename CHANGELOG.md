@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.34.0] - 2026-10-12
+
+### Added / Hozzáadva
+- **🪦 Pragmatikus Tombstone (Soft-Delete) Rendszer Multi-Device Szinkronizációhoz (`docs/TOMBSTONE.md`)**:
+  - Dexie Schema v19 frissítés `deletedAt` és `deletedBy` indexekkel minden kritikus entitás táblán (`cats`, `finances`, `inventory`, `fosterParents`, `fosterSupplies`, `fosterExpenses`, `donationCampaigns`, `donationCampaignItems`, `events`, `tnr`).
+  - Központi `softDelete(tableName, id)` API automatikus kaszkádosítással (pl. cica törlésekor az egészségügyi események és súlyadatok lágy törlése) és audit naplózással (`*.soft_delete`).
+  - Supabase DDL frissítés `deleted_at` és `deleted_by` mezőkkel és távoli indexekkel.
+  - Felhő szinkronizációs konfliktusfeloldó szabály: **Last non-null deletedAt wins**, megelőzve a zombi rekordok feltámadását többeszközös használat során.
+  - UI szűrések frissítése: minden listanézet, kártya, statisztika, PDF, ODS, ODT és CSV export alapértelmezetten kiszűri a tombstoned rekordokat, megőrizve a pénzügyi sztornó (`status === 'storno'`) és a rendszer soft-delete éles elhatárolását.
+  - **👑 Root Purge (Fizikai Törlés) Karbantartó Panel (`TombstonePurgePanel.tsx`)**: Root-only felület a lágyan törölt elemek áttekintésére, egyedi kiválasztására és végleges fizikai ürítésére helyi adatbázisból és Supabase felhőből.
+
 ## [2.33.0] - 2026-10-10
 
 ### Added / Hozzáadva

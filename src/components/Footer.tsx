@@ -27,14 +27,14 @@ export const Footer: React.FC<FooterProps> = ({
   const currentUser = getCurrentUser();
 
   // Live counters for system status indicator
-  const catsCount = useLiveQuery(() => db.cats.count(), []) || 0;
-  const eventsCount = useLiveQuery(() => db.events.count(), []) || 0;
-  const tnrCount = useLiveQuery(() => db.tnr.count(), []) || 0;
-  const fosterCount = useLiveQuery(() => db.fosterParents.count(), []) || 0;
-  const inventoryCount = useLiveQuery(() => db.inventory ? db.inventory.count() : 0, []) || 0;
-  const financesCount = useLiveQuery(() => db.finances ? db.finances.count() : 0, []) || 0;
+  const catsCount = useLiveQuery(() => db.cats.filter((c: any) => !c.deletedAt).count(), []) || 0;
+  const eventsCount = useLiveQuery(() => db.events.filter((e: any) => !e.deletedAt).count(), []) || 0;
+  const tnrCount = useLiveQuery(() => db.tnr.filter((t: any) => !t.deletedAt).count(), []) || 0;
+  const fosterCount = useLiveQuery(() => db.fosterParents.filter((f: any) => !f.deletedAt).count(), []) || 0;
+  const inventoryCount = useLiveQuery(() => db.inventory ? db.inventory.filter((i: any) => !i.deletedAt).count() : 0, []) || 0;
+  const financesCount = useLiveQuery(() => db.finances ? db.finances.filter((f: any) => !f.deletedAt).count() : 0, []) || 0;
   const pendingEventsCount = useLiveQuery(
-    () => db.events.where('status').equals('pending').count(),
+    () => db.events.filter((e: any) => !e.deletedAt && e.status === 'pending').count(),
     []
   ) || 0;
 

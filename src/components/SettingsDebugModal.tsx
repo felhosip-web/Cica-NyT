@@ -20,6 +20,7 @@ import { generateFullSupabaseSchemaSql } from '../utils/supabaseFullSchema';
 import { SystemAuditPanel } from './SystemAuditPanel';
 import { EventLogSection } from './EventLogSection';
 import { LocalMirrorSection } from './LocalMirrorSection';
+import { TombstonePurgePanel } from './TombstonePurgePanel';
 
 interface SettingsDebugModalProps {
   onClose: () => void;
@@ -63,7 +64,7 @@ export const SettingsDebugModal: React.FC<SettingsDebugModalProps> = ({
     setFooterMode,
   } = useAppStore();
 
-  const [activeTab, setActiveTab] = useState<'general' | 'health_audit' | 'license' | 'notifications' | 'google_drive' | 'auto_backup' | 'local_mirror' | 'patch' | 'pwa' | 'users' | 'supabase_rbac' | 'zustand' | 'schema' | 'inspector' | 'tuning' | 'audit' | 'event_log'>(
+  const [activeTab, setActiveTab] = useState<'general' | 'health_audit' | 'license' | 'notifications' | 'google_drive' | 'auto_backup' | 'local_mirror' | 'patch' | 'pwa' | 'users' | 'supabase_rbac' | 'zustand' | 'schema' | 'inspector' | 'tuning' | 'audit' | 'event_log' | 'tombstones'>(
     isRootMode ? 'users' : 'general'
   );
 
@@ -951,6 +952,17 @@ export const SettingsDebugModal: React.FC<SettingsDebugModalProps> = ({
           {isRootMode && (
             <>
               <button
+                onClick={() => setActiveTab('tombstones')}
+                className={`py-2.5 px-3.5 font-extrabold border-b-2 transition whitespace-nowrap cursor-pointer shrink-0 flex items-center gap-1.5 text-xs sm:text-sm ${
+                  activeTab === 'tombstones'
+                    ? 'border-purple-600 text-purple-600 font-black'
+                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                🗑️ Törölt Elemek (Purge)
+              </button>
+
+              <button
                 onClick={() => setActiveTab('event_log')}
                 className={`py-2.5 px-3.5 font-extrabold border-b-2 transition whitespace-nowrap cursor-pointer shrink-0 flex items-center gap-1.5 text-xs sm:text-sm ${
                   activeTab === 'event_log'
@@ -1068,6 +1080,8 @@ export const SettingsDebugModal: React.FC<SettingsDebugModalProps> = ({
           {activeTab === 'supabase_rbac' && <SupabaseRbacSection />}
 
           {/* TAB: Event Log Viewer (Root Only) */}
+          {activeTab === 'tombstones' && isRootMode && <TombstonePurgePanel />}
+
           {activeTab === 'event_log' && <EventLogSection />}
 
           {/* TAB: Audit Event Inspector */}

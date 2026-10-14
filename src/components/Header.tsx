@@ -56,17 +56,17 @@ export const Header: React.FC<HeaderProps> = ({
 
   const isAutoMobile = viewportWidth < 768;
 
-  const catCount = useLiveQuery(() => db.cats.where('status').notEqual('elhunyt').count(), []) || 0;
+  const catCount = useLiveQuery(() => db.cats.filter((c: any) => !c.deletedAt && c.status !== 'elhunyt').count(), []) || 0;
   const expiredEventCount = useLiveQuery(
-    () => db.events.where('status').equals('expired').count(),
+    () => db.events.filter((e: any) => !e.deletedAt && e.status === 'expired').count(),
     []
   ) || 0;
-  const totalEventsCount = useLiveQuery(() => db.events.count(), []) || 0;
-  const tnrCount = useLiveQuery(() => db.tnr.count(), []) || 0;
-  const fosterCount = useLiveQuery(() => db.fosterParents.count(), []) || 0;
-  const inventoryCount = useLiveQuery(() => db.inventory ? db.inventory.count() : 0, []) || 0;
-  const donationCount = useLiveQuery(() => db.donationCampaigns ? db.donationCampaigns.count() : 0, []) || 0;
-  const financeCount = useLiveQuery(() => db.finances ? db.finances.count() : 0, []) || 0;
+  const totalEventsCount = useLiveQuery(() => db.events.filter((e: any) => !e.deletedAt).count(), []) || 0;
+  const tnrCount = useLiveQuery(() => db.tnr.filter((t: any) => !t.deletedAt).count(), []) || 0;
+  const fosterCount = useLiveQuery(() => db.fosterParents.filter((f: any) => !f.deletedAt).count(), []) || 0;
+  const inventoryCount = useLiveQuery(() => db.inventory ? db.inventory.filter((i: any) => !i.deletedAt).count() : 0, []) || 0;
+  const donationCount = useLiveQuery(() => db.donationCampaigns ? db.donationCampaigns.filter((dc: any) => !dc.deletedAt).count() : 0, []) || 0;
+  const financeCount = useLiveQuery(() => db.finances ? db.finances.filter((f: any) => !f.deletedAt).count() : 0, []) || 0;
 
   useEffect(() => {
     const handleResize = () => {

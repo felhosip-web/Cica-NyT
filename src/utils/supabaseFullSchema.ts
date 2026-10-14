@@ -88,7 +88,9 @@ CREATE TABLE IF NOT EXISTS public.cats (
     created_by TEXT,
     created_by_name TEXT,
     updated_by TEXT,
-    updated_by_name TEXT
+    updated_by_name TEXT,
+    deleted_at TIMESTAMPTZ DEFAULT NULL,
+    deleted_by TEXT DEFAULT NULL
 );
 
 -- 1.4. Ideiglenes Befogadók (foster_parents)
@@ -106,7 +108,9 @@ CREATE TABLE IF NOT EXISTS public.foster_parents (
     is_kitten_specialist BOOLEAN DEFAULT false,
     is_medical_specialist BOOLEAN DEFAULT false,
     created_at TIMESTAMPTZ DEFAULT now(),
-    updated_at TIMESTAMPTZ DEFAULT now()
+    updated_at TIMESTAMPTZ DEFAULT now(),
+    deleted_at TIMESTAMPTZ DEFAULT NULL,
+    deleted_by TEXT DEFAULT NULL
 );
 
 -- Foreign key add if cats was created first
@@ -139,7 +143,9 @@ CREATE TABLE IF NOT EXISTS public.events (
     created_by TEXT,
     created_by_name TEXT,
     updated_by TEXT,
-    updated_by_name TEXT
+    updated_by_name TEXT,
+    deleted_at TIMESTAMPTZ DEFAULT NULL,
+    deleted_by TEXT DEFAULT NULL
 );
 
 -- 1.6. TNR Műtéti & Befogási Rekordok (tnr_records / tnr)
@@ -161,7 +167,9 @@ CREATE TABLE IF NOT EXISTS public.tnr_records (
     created_by TEXT,
     created_by_name TEXT,
     updated_by TEXT,
-    updated_by_name TEXT
+    updated_by_name TEXT,
+    deleted_at TIMESTAMPTZ DEFAULT NULL,
+    deleted_by TEXT DEFAULT NULL
 );
 
 -- Alias view for tnr if app queries 'tnr' or 'tnr_records'
@@ -180,7 +188,9 @@ CREATE TABLE IF NOT EXISTS public.foster_supplies (
     status TEXT DEFAULT 'igenyelve',
     notes TEXT,
     created_at TIMESTAMPTZ DEFAULT now(),
-    updated_at TIMESTAMPTZ DEFAULT now()
+    updated_at TIMESTAMPTZ DEFAULT now(),
+    deleted_at TIMESTAMPTZ DEFAULT NULL,
+    deleted_by TEXT DEFAULT NULL
 );
 
 -- 1.8. Befogadói Kiadások (foster_expenses)
@@ -195,7 +205,9 @@ CREATE TABLE IF NOT EXISTS public.foster_expenses (
     vendor TEXT,
     notes TEXT,
     created_at TIMESTAMPTZ DEFAULT now(),
-    updated_at TIMESTAMPTZ DEFAULT now()
+    updated_at TIMESTAMPTZ DEFAULT now(),
+    deleted_at TIMESTAMPTZ DEFAULT NULL,
+    deleted_by TEXT DEFAULT NULL
 );
 
 -- 1.9. Leltár & Raktárkészlet (inventory)
@@ -220,7 +232,9 @@ CREATE TABLE IF NOT EXISTS public.inventory (
     foster_supply_id BIGINT,
     sync_status TEXT DEFAULT 'pending',
     created_at TIMESTAMPTZ DEFAULT now(),
-    updated_at TIMESTAMPTZ DEFAULT now()
+    updated_at TIMESTAMPTZ DEFAULT now(),
+    deleted_at TIMESTAMPTZ DEFAULT NULL,
+    deleted_by TEXT DEFAULT NULL
 );
 
 -- 1.10. Pénzügyek & Adó 1% (finances)
@@ -244,7 +258,9 @@ CREATE TABLE IF NOT EXISTS public.finances (
     notes TEXT,
     sync_status TEXT DEFAULT 'pending',
     created_at TIMESTAMPTZ DEFAULT now(),
-    updated_at TIMESTAMPTZ DEFAULT now()
+    updated_at TIMESTAMPTZ DEFAULT now(),
+    deleted_at TIMESTAMPTZ DEFAULT NULL,
+    deleted_by TEXT DEFAULT NULL
 );
 
 -- 1.11. Cica Súly Mérési Adatok (cat_weights)
@@ -269,7 +285,9 @@ CREATE TABLE IF NOT EXISTS public.donation_campaigns (
     inventory_converted BOOLEAN DEFAULT false,
     sync_status TEXT DEFAULT 'pending',
     created_at TIMESTAMPTZ DEFAULT now(),
-    updated_at TIMESTAMPTZ DEFAULT now()
+    updated_at TIMESTAMPTZ DEFAULT now(),
+    deleted_at TIMESTAMPTZ DEFAULT NULL,
+    deleted_by TEXT DEFAULT NULL
 );
 
 -- 1.13. Gyűjtött Adomány Tételek (donation_campaign_items)
@@ -282,7 +300,9 @@ CREATE TABLE IF NOT EXISTS public.donation_campaign_items (
     unit TEXT DEFAULT 'db',
     estimated_value NUMERIC,
     notes TEXT,
-    created_at TIMESTAMPTZ DEFAULT now()
+    created_at TIMESTAMPTZ DEFAULT now(),
+    deleted_at TIMESTAMPTZ DEFAULT NULL,
+    deleted_by TEXT DEFAULT NULL
 );
 
 -- 1.14. Esemény Sablonok (event_templates)
@@ -382,6 +402,16 @@ CREATE INDEX IF NOT EXISTS idx_audit_events_level ON public.audit_events(level);
 CREATE INDEX IF NOT EXISTS idx_audit_events_category ON public.audit_events(category);
 CREATE INDEX IF NOT EXISTS idx_audit_events_user_id ON public.audit_events(user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_events_action ON public.audit_events(action);
+CREATE INDEX IF NOT EXISTS idx_cats_deleted_at ON public.cats(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_finances_deleted_at ON public.finances(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_inventory_deleted_at ON public.inventory(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_foster_parents_deleted_at ON public.foster_parents(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_foster_supplies_deleted_at ON public.foster_supplies(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_foster_expenses_deleted_at ON public.foster_expenses(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_donation_campaigns_deleted_at ON public.donation_campaigns(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_donation_items_deleted_at ON public.donation_campaign_items(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_events_deleted_at ON public.events(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_tnr_deleted_at ON public.tnr_records(deleted_at);
 
 -- ====================================================================
 -- 4. ROW LEVEL SECURITY (RLS) ENGEDÉLYEZÉSE

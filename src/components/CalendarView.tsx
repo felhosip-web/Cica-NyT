@@ -23,8 +23,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   const [catFilter, setCatFilter] = useState<'all' | string>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const dbEvents = useLiveQuery(() => db.events.toArray(), []) || [];
-  const cats = useLiveQuery(() => db.cats.toArray(), []) || [];
+  const dbEvents = (useLiveQuery(() => db.events.toArray(), []) || []).filter((e: any) => !e.deletedAt);
+  const cats = (useLiveQuery(() => db.cats.toArray(), []) || []).filter((c: any) => !c.deletedAt);
 
   // Create cat lookup map
   const catMap = useMemo(() => {

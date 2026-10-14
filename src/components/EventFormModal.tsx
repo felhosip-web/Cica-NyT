@@ -8,6 +8,7 @@ import { EventTemplateManagerModal } from './EventTemplateManagerModal';
 import { EventTemplate } from '../types';
 import { DEFAULT_EVENT_TEMPLATES } from '../data/defaultEventTemplates';
 import { CustomSelect } from './CustomSelect';
+import { softDelete } from '../utils/softDelete';
 
 interface EventFormModalProps {
   eventId?: number | null;
@@ -254,9 +255,9 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
     setIsDeleting(true);
     try {
       if (linkedFinanceId && db.finances) {
-        await db.finances.delete(linkedFinanceId).catch(() => {});
+        await softDelete('finances', linkedFinanceId).catch(() => {});
       }
-      await db.events.delete(eventId);
+      await softDelete('events', eventId);
       setShowDeleteConfirm(false);
       onClose();
     } catch (err) {

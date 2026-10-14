@@ -22,6 +22,7 @@ import {
   InventoryCategory
 } from '../types';
 import { db } from '../lib/db';
+import { softDelete } from '../utils/softDelete';
 import { syncService } from '../services/sync-service';
 import { CustomSelect } from './CustomSelect';
 
@@ -159,7 +160,7 @@ export const DonationCampaignDetailModal: React.FC<DonationCampaignDetailModalPr
   const handleDeleteItem = async (itemId: number | string) => {
     if (!confirm('Biztosan törölni szeretné ezt a tételt?')) return;
     try {
-      await db.table('donationCampaignItems').delete(itemId);
+      await softDelete('donationCampaignItems', itemId);
       loadItems();
     } catch (err) {
       console.error('Error deleting item:', err);

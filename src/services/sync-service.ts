@@ -1,7 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '../lib/db';
-import { toSupabaseCat, fromSupabaseCat, toSupabaseFosterParent, fromSupabaseFosterParent, toSupabaseFosterSupply, toSupabaseFosterExpense, toSupabaseInventory, fromSupabaseInventory, toSupabaseFinance } from '../lib/mappers/supabase-mapper';
+import {
+  toSupabaseCat, fromSupabaseCat,
+  toSupabaseFosterParent, fromSupabaseFosterParent,
+  toSupabaseFosterSupply, fromSupabaseFosterSupply,
+  toSupabaseFosterExpense, fromSupabaseFosterExpense,
+  toSupabaseInventory, fromSupabaseInventory,
+  toSupabaseFinance, fromSupabaseFinance,
+  toSupabaseEvent, fromSupabaseEvent,
+  toSupabaseTnr, fromSupabaseTnr,
+  toSupabaseDonationCampaign, fromSupabaseDonationCampaign,
+  toSupabaseDonationCampaignItem, fromSupabaseDonationCampaignItem
+} from '../lib/mappers/supabase-mapper';
 import { getLicenseStatus, LICENSE_STATUS_CHANGE_EVENT } from './licenseService';
 import { logEvent } from '../utils/eventLog';
 import { useToastStore } from '../store/useToastStore';
@@ -343,6 +354,82 @@ export class SyncService {
                 }
             }
 
+            // 7. Sync Pending Events
+            if (db.events) {
+                const pendingEvents = await db.events.where('syncStatus').equals('pending').toArray().catch(() => []);
+                for (const ev of pendingEvents) {
+                    const result = await this.runLicenseGuardedRequest(signal => this.supabase
+                        .from('events')
+                        .upsert(toSupabaseEvent(ev))
+                        .abortSignal(signal));
+                    if (!result) return;
+                    const { error } = result;
+                    if (!error) {
+                        if (this.isLicenseLocked()) return;
+                        await db.events.update(ev.id, { syncStatus: 'synced' });
+                    } else {
+                        console.error("[SyncService] Sync events error:", error);
+                    }
+                }
+            }
+
+            // 8. Sync Pending TNR
+            if (db.tnr) {
+                const pendingTnr = await db.tnr.where('syncStatus').equals('pending').toArray().catch(() => []);
+                for (const tnr of pendingTnr) {
+                    const result = await this.runLicenseGuardedRequest(signal => this.supabase
+                        .from('tnr_records')
+                        .upsert(toSupabaseTnr(tnr))
+                        .abortSignal(signal));
+                    if (!result) return;
+                    const { error } = result;
+                    if (!error) {
+                        if (this.isLicenseLocked()) return;
+                        await db.tnr.update(tnr.id, { syncStatus: 'synced' });
+                    } else {
+                        console.error("[SyncService] Sync TNR error:", error);
+                    }
+                }
+            }
+
+            // 9. Sync Pending Donation Campaigns
+            if (db.donationCampaigns) {
+                const pendingCampaigns = await db.donationCampaigns.where('syncStatus').equals('pending').toArray().catch(() => []);
+                for (const camp of pendingCampaigns) {
+                    const result = await this.runLicenseGuardedRequest(signal => this.supabase
+                        .from('donation_campaigns')
+                        .upsert(toSupabaseDonationCampaign(camp))
+                        .abortSignal(signal));
+                    if (!result) return;
+                    const { error } = result;
+                    if (!error) {
+                        if (this.isLicenseLocked()) return;
+                        await db.donationCampaigns.update(camp.id, { syncStatus: 'synced' });
+                    } else {
+                        console.error("[SyncService] Sync donation campaigns error:", error);
+                    }
+                }
+            }
+
+            // 10. Sync Pending Donation Campaign Items
+            if (db.donationCampaignItems) {
+                const pendingItems = await db.donationCampaignItems.where('syncStatus').equals('pending').toArray().catch(() => []);
+                for (const item of pendingItems) {
+                    const result = await this.runLicenseGuardedRequest(signal => this.supabase
+                        .from('donation_campaign_items')
+                        .upsert(toSupabaseDonationCampaignItem(item))
+                        .abortSignal(signal));
+                    if (!result) return;
+                    const { error } = result;
+                    if (!error) {
+                        if (this.isLicenseLocked()) return;
+                        await db.donationCampaignItems.update(item.id, { syncStatus: 'synced' });
+                    } else {
+                        console.error("[SyncService] Sync donation campaign items error:", error);
+                    }
+                }
+            }
+
             // 3. Sync Pending Foster Supplies
             if (db.fosterSupplies) {
                 const pendingSupplies = await db.fosterSupplies.where('syncStatus').equals('pending').toArray().catch(() => []);
@@ -444,6 +531,40 @@ export class SyncService {
     }
 
     /**
+     * Determines whether a remote record should overwrite local state based on tombstone conflict rules:
+     * - If local deletedAt is set & pending, local tombstone wins over active remote copy.
+     * - If remote deletedAt is set & local is active, remote tombstone wins.
+     * - If both deletedAt set, last delete wins.
+     * - If active, newer timestamp wins.
+     */
+    shouldApplyRemoteRecord(local: any, mappedRemote: any): boolean {
+        if (!local) return true;
+
+        const localDeletedAt = local.deletedAt ? new Date(local.deletedAt).getTime() : 0;
+        const remoteDeletedAt = mappedRemote.deletedAt ? new Date(mappedRemote.deletedAt).getTime() : 0;
+
+        if (local.deletedAt && local.syncStatus === 'pending' && !mappedRemote.deletedAt) {
+            return false;
+        }
+
+        if (mappedRemote.deletedAt && !local.deletedAt) {
+            return true;
+        }
+
+        if (localDeletedAt > 0 && remoteDeletedAt > 0) {
+            return remoteDeletedAt >= localDeletedAt;
+        }
+
+        const localUpdated = local.updatedAt || local.updated || local.created || local.createdAt || '';
+        const remoteUpdated = mappedRemote.updatedAt || mappedRemote.updated || mappedRemote.created || mappedRemote.createdAt || '';
+
+        if (!localUpdated) return true;
+        if (!remoteUpdated) return false;
+
+        return new Date(remoteUpdated).getTime() > new Date(localUpdated).getTime();
+    }
+
+    /**
      * Pulls remote records from Supabase and updates local database with newer versions
      */
     async pullRemote() {
@@ -464,9 +585,10 @@ export class SyncService {
             if (!catErr && Array.isArray(catData)) {
                 for (const remoteCat of catData) {
                     const localCat = await db.cats.get(remoteCat.id);
-                    if (!localCat || (remoteCat.updated && localCat.updated && new Date(remoteCat.updated) > new Date(localCat.updated))) {
+                    const mappedCat = fromSupabaseCat(remoteCat);
+                    if (this.shouldApplyRemoteRecord(localCat, mappedCat)) {
                         if (this.isLicenseLocked()) return;
-                        await db.cats.put(fromSupabaseCat(remoteCat));
+                        await db.cats.put(mappedCat);
                     }
                 }
             }
@@ -483,7 +605,7 @@ export class SyncService {
                     for (const remoteFoster of fosterData) {
                         const localFoster = await db.fosterParents.get(remoteFoster.id);
                         const mappedFoster = fromSupabaseFosterParent(remoteFoster);
-                        if (!localFoster || (mappedFoster.updatedAt && localFoster.updatedAt && new Date(mappedFoster.updatedAt) > new Date(localFoster.updatedAt))) {
+                        if (this.shouldApplyRemoteRecord(localFoster, mappedFoster)) {
                             if (this.isLicenseLocked()) return;
                             await db.fosterParents.put(mappedFoster);
                         }
@@ -503,9 +625,69 @@ export class SyncService {
                     for (const remoteInv of invData) {
                         const localInv = await db.inventory.get(remoteInv.id);
                         const mappedInv = fromSupabaseInventory(remoteInv);
-                        if (!localInv || (mappedInv.updatedAt && localInv.updatedAt && new Date(mappedInv.updatedAt) > new Date(localInv.updatedAt))) {
+                        if (this.shouldApplyRemoteRecord(localInv, mappedInv)) {
                             if (this.isLicenseLocked()) return;
                             await db.inventory.put(mappedInv);
+                        }
+                    }
+                }
+            }
+
+            // Pull Finances
+            if (db.finances) {
+                const finResult = await this.runLicenseGuardedRequest(signal => this.supabase
+                    .from('finances')
+                    .select('*')
+                    .abortSignal(signal));
+                if (!finResult) return;
+                const { data: finData, error: finErr } = finResult;
+                if (!finErr && Array.isArray(finData)) {
+                    for (const remoteFin of finData) {
+                        const localFin = await db.finances.get(remoteFin.id);
+                        const mappedFin = fromSupabaseFinance(remoteFin);
+                        if (this.shouldApplyRemoteRecord(localFin, mappedFin)) {
+                            if (this.isLicenseLocked()) return;
+                            await db.finances.put(mappedFin);
+                        }
+                    }
+                }
+            }
+
+            // Pull Foster Supplies
+            if (db.fosterSupplies) {
+                const supplyResult = await this.runLicenseGuardedRequest(signal => this.supabase
+                    .from('foster_supplies')
+                    .select('*')
+                    .abortSignal(signal));
+                if (!supplyResult) return;
+                const { data: supData, error: supErr } = supplyResult;
+                if (!supErr && Array.isArray(supData)) {
+                    for (const remoteSup of supData) {
+                        const localSup = await db.fosterSupplies.get(remoteSup.id);
+                        const mappedSup = fromSupabaseFosterSupply(remoteSup);
+                        if (this.shouldApplyRemoteRecord(localSup, mappedSup)) {
+                            if (this.isLicenseLocked()) return;
+                            await db.fosterSupplies.put(mappedSup);
+                        }
+                    }
+                }
+            }
+
+            // Pull Foster Expenses
+            if (db.fosterExpenses) {
+                const expResult = await this.runLicenseGuardedRequest(signal => this.supabase
+                    .from('foster_expenses')
+                    .select('*')
+                    .abortSignal(signal));
+                if (!expResult) return;
+                const { data: expData, error: expErr } = expResult;
+                if (!expErr && Array.isArray(expData)) {
+                    for (const remoteExp of expData) {
+                        const localExp = await db.fosterExpenses.get(remoteExp.id);
+                        const mappedExp = fromSupabaseFosterExpense(remoteExp);
+                        if (this.shouldApplyRemoteRecord(localExp, mappedExp)) {
+                            if (this.isLicenseLocked()) return;
+                            await db.fosterExpenses.put(mappedExp);
                         }
                     }
                 }

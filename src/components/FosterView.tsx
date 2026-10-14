@@ -24,10 +24,10 @@ export const FosterView: React.FC<FosterViewProps> = ({ onOpenCatDetail }) => {
   const [expenseModalFosterId, setExpenseModalFosterId] = useState<string | null | 'open'>(null);
 
   // Live Query DB Data
-  const fosterParents = useLiveQuery(() => db.fosterParents.toArray(), []) || [];
-  const allCats = useLiveQuery(() => db.cats.where('status').notEqual('elhunyt').toArray(), []) || [];
-  const allSupplies = useLiveQuery(() => db.fosterSupplies.toArray(), []) || [];
-  const allExpenses = useLiveQuery(() => db.fosterExpenses.toArray(), []) || [];
+  const fosterParents = (useLiveQuery(() => db.fosterParents.toArray(), []) || []).filter((f: any) => !f.deletedAt);
+  const allCats = (useLiveQuery(() => db.cats.where('status').notEqual('elhunyt').toArray(), []) || []).filter((c: any) => !c.deletedAt);
+  const allSupplies = (useLiveQuery(() => db.fosterSupplies.toArray(), []) || []).filter((s: any) => !s.deletedAt);
+  const allExpenses = (useLiveQuery(() => db.fosterExpenses.toArray(), []) || []).filter((e: any) => !e.deletedAt);
 
   // Seed sample data if empty
   useEffect(() => {

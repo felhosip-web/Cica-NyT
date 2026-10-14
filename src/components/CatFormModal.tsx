@@ -13,6 +13,7 @@ import {
   DuplicateCheckResult
 } from '../utils/catValidation';
 import { logEvent } from '../utils/eventLog';
+import { softDelete } from '../utils/softDelete';
 
 interface CatFormModalProps {
   catToEdit?: Cat | null;
@@ -119,19 +120,7 @@ export const CatFormModal: React.FC<CatFormModalProps> = ({
     if (!catToEdit?.id) return;
     setIsDeleting(true);
     try {
-      await db.transaction('rw', db.cats, db.events, db.table('cat_weights'), async () => {
-        await db.cats.delete(catToEdit.id);
-        await db.events.where('catId').equals(catToEdit.id).delete();
-        await db.table('cat_weights').where('catId').equals(String(catToEdit.id)).delete();
-      });
-
-      logEvent({
-        category: 'cat',
-        action: 'cat.delete',
-        entityType: 'cats',
-        entityId: catToEdit.id,
-        summary: `Cica profil törölve: ${catToEdit.nev}`,
-      }).catch(() => {});
+      await softDelete('cats', catToEdit.id);
 
       setShowDeleteConfirm(false);
       onSaved();
