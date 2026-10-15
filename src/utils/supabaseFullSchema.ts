@@ -14,7 +14,9 @@ export function generateFullSupabaseSchemaSql(): string {
 -- 1. Másold ki ezt a teljes SQL scriptet.
 -- 2. Nyisd meg a Supabase Dashboard -> SQL Editor felületét.
 -- 3. Illeszd be és kattints a "Run" gombra.
--- Új projektnél egyszer futtasd; meglévőnél IF NOT EXISTS miatt biztonságos.
+-- Megjegyzés: Új projektnél és MEGLÉVŐ adatbázisoknál is biztonságosan futtatható!
+-- Az ALTER TABLE ... ADD COLUMN IF NOT EXISTS kiterjesztések automatikusan hozzáadják a
+-- hiányzó deleted_at / deleted_by tombstone oszlopokat és indexeket adatvesztés nélkül.
 -- Generálva: ${generatedDate}
 -- ====================================================================
 
@@ -358,6 +360,42 @@ CREATE TABLE IF NOT EXISTS public.audit_events (
     error_message TEXT,
     app_version TEXT
 );
+
+-- ====================================================================
+-- 1.18. TOMBSTONE MIGRÁCIÓ (MEGLÉVŐ ADATBÁZISOKHOZ IDEMPOTENS DDL)
+-- ====================================================================
+-- Az alábbi utasítások garantálják, hogy a már létező Supabase adatbázisok is
+-- megkapják a deleted_at és deleted_by oszlopokat adatvesztés vagy hiba nélkül.
+
+ALTER TABLE public.cats ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ DEFAULT NULL;
+ALTER TABLE public.cats ADD COLUMN IF NOT EXISTS deleted_by TEXT DEFAULT NULL;
+
+ALTER TABLE public.finances ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ DEFAULT NULL;
+ALTER TABLE public.finances ADD COLUMN IF NOT EXISTS deleted_by TEXT DEFAULT NULL;
+
+ALTER TABLE public.inventory ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ DEFAULT NULL;
+ALTER TABLE public.inventory ADD COLUMN IF NOT EXISTS deleted_by TEXT DEFAULT NULL;
+
+ALTER TABLE public.foster_parents ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ DEFAULT NULL;
+ALTER TABLE public.foster_parents ADD COLUMN IF NOT EXISTS deleted_by TEXT DEFAULT NULL;
+
+ALTER TABLE public.foster_supplies ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ DEFAULT NULL;
+ALTER TABLE public.foster_supplies ADD COLUMN IF NOT EXISTS deleted_by TEXT DEFAULT NULL;
+
+ALTER TABLE public.foster_expenses ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ DEFAULT NULL;
+ALTER TABLE public.foster_expenses ADD COLUMN IF NOT EXISTS deleted_by TEXT DEFAULT NULL;
+
+ALTER TABLE public.donation_campaigns ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ DEFAULT NULL;
+ALTER TABLE public.donation_campaigns ADD COLUMN IF NOT EXISTS deleted_by TEXT DEFAULT NULL;
+
+ALTER TABLE public.donation_campaign_items ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ DEFAULT NULL;
+ALTER TABLE public.donation_campaign_items ADD COLUMN IF NOT EXISTS deleted_by TEXT DEFAULT NULL;
+
+ALTER TABLE public.events ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ DEFAULT NULL;
+ALTER TABLE public.events ADD COLUMN IF NOT EXISTS deleted_by TEXT DEFAULT NULL;
+
+ALTER TABLE public.tnr_records ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ DEFAULT NULL;
+ALTER TABLE public.tnr_records ADD COLUMN IF NOT EXISTS deleted_by TEXT DEFAULT NULL;
 
 -- ====================================================================
 -- 2. ALAPÉRTELMEZETT SEED ADATOK (ROLES & USERS)

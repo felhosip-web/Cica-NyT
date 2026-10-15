@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.34.1] - 2026-10-12
+
+### Fixed & Improved / Javítva és Fejlesztve
+- **🛠️ Idempotens Supabase DDL Migrációs Script & Séma Generátor Igazítás (`src/utils/supabaseFullSchema.ts`)**:
+  - Bővítve a Supabase full schema generátor explicit idempotens `ALTER TABLE ... ADD COLUMN IF NOT EXISTS deleted_at / deleted_by` DDL blokkal mind a 10 tombstoned táblára.
+  - Biztosítja a kényelmes, adatvesztés mentes migrációt a már létező Supabase felhő adatbázisokhoz a Supabase Dashboard SQL Editor felületén.
+  - DDL és indexek igazítva a `supabase-mapper.ts` és `syncService` mezőelnevezéseihez.
+  - Részletes használati útmutató hozzáadva a `docs/TOMBSTONE.md` dokumentációhoz.
+
 ## [2.34.0] - 2026-10-12
 
 ### Added / Hozzáadva

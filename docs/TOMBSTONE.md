@@ -80,3 +80,15 @@ A lágyan törölt elemek fizikai eltávolítását a `purgeTombstones(options)`
   1. Kipurgálja a kijelölt/régi elemeket a Supabase felhő tábláiból (ha van felhőkapcsolat).
   2. Fizikailag törli a rekordokat a helyi Dexie IndexedDB-ből (`db.table.delete()`).
   3. Bejegyzést hoz létre az Audit Eseménynaplóba (`system.purge` akcióval).
+
+---
+
+## 7. Supabase Adatbázis Migráció Meglévő Projekteknél
+
+Meglévő Supabase adatbázisok esetén a táblák már léteznek (`CREATE TABLE IF NOT EXISTS` nem hoz létre új oszlopokat a már meglévő táblákhoz). Ahhoz, hogy a felhő szinkronizáció hiánytalanul fogadni tudja a `deleted_at` és `deleted_by` tombstone értékeket:
+
+1. Nyisd meg a Cica-NyT Beállítások -> `💾 SQL & Dexie Séma` fülét.
+2. Kattints a **"📋 Teljes Supabase SQL Másolása"** gombra.
+3. Nyisd meg a Supabase Dashboard-ot -> **SQL Editor**.
+4. Illeszd be a kimásolt SQL scriptet és kattints a **Run** gombra.
+5. A generált script tartalmazza az idempotens `ALTER TABLE ... ADD COLUMN IF NOT EXISTS deleted_at / deleted_by` utasításokat és az indexeket, így adatvesztés nélkül frissíti a meglévő táblákat.
